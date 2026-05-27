@@ -27,7 +27,17 @@
     messagingSenderId: "952933384266",
     appId: "1:952933384266:web:55b906e903d96940d426b3"
   };
-
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
+  const app = initializeApp(firebaseConfig); 
+const db = getFirestore(app);
+async function loadProducts() {
+  const querySnapshot = await getDocs(collection(db, "products"));
+
+  querySnapshot.forEach((doc) => {
+    console.log(doc.data());
+  });
+}
+
+loadProducts();
+
