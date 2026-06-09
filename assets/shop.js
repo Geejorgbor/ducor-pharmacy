@@ -403,70 +403,139 @@ function showToast(msg) {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, 2800);
 }
 
-// ── DRUG IMAGE LOADER (NLM RxImage API) ───────────────────────────────────────
+// ── DRUG IMAGE SYSTEM ─────────────────────────────────────────────────────────
 
 const _imgCache = {};
-const _imgPending = new Set();
+const _imgQueue = [];
+let _imgActive = 0;
+const _IMG_CONCURRENT = 3;
+
+// Map common drug names to their Wikipedia article titles for better image results
+const _wikiAliases = {
+  'amox clav':'amoxicillin clavulanate','amoxicillin clav':'amoxicillin clavulanate',
+  'carbidopa levodopa':'levodopa','emtricitabine tenofovir':'tenofovir',
+  'losartan hctz':'losartan','lisinopril hctz':'lisinopril',
+  'amlodipine valsartan':'amlodipine','metoprolol succinate':'metoprolol',
+  'metoprolol tartrate':'metoprolol','sulfamethoxazole trimethoprim':'trimethoprim',
+  'dorzolamide timolol':'timolol','co q':'coenzyme q10','coq':'coenzyme q10',
+  'b complex':'b vitamins','fish oil':'omega-3 fatty acid',
+  'flaxseed oil':'flaxseed','glucosamine chondroitin':'glucosamine',
+  'hair skin':'biotin','poly vi sol':'multivitamin',
+  'certa vite':'multivitamin','cod liver':'cod liver oil',
+  'a d ointment':'petroleum jelly','triple antibiotic':'neosporin',
+  'artificial tears':'eye drops','saline nasal':'saline',
+  'blood glucose meter':'glucometer','blood pressure machine':'sphygmomanometer',
+  'prenatal vitamins':'prenatal vitamins','test strips':'blood glucose',
+  'stomach relief':'bismuth subsalicylate','migraine relief':'ibuprofen',
+  'menstrual relief':'naproxen','muscle pain':'methyl salicylate',
+  'cold flu':'dextromethorphan','daytime cold':'pseudoephedrine',
+  'night time cold':'diphenhydramine','glucose tablets':'dextrose'
+};
 
 function _baseDrugName(fullName) {
-  return fullName
-    .replace(/\s*\/.*/, '')                                     // remove /combo part
-    .replace(/\s+[\d][\d\s\.\-\/]*(mg|mcg|ml|gm|g|iu|%|units?)[^\s]*/gi, '') // remove strength
-    .replace(/\s+(XL|ER|IR|SR|ODT|HFA|EC|PM|opth|susp|oint|cream|tab|cap|syrup|drops?|spray|inj|chewable|arthritis|liquid|solution)\b.*/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  let name = fullName
+    .replace(/\s*\(.*?\)/g, '')                  // remove parenthetical
+    .replace(/\s*\/.*/, '')                       // take only first drug in combo
+    .replace(/\s+[\d][\d\s\.\-\/]*(mg|mcg|ml|gm|g|iu|%|units?|,\d+)[^\s]*/gi, '')
+    .replace(/\s+(XL|ER|IR|SR|ODT|HFA|EC|PM|Rx|opth\w*|susp\w*|oint\w*|cream|tab\w*|cap\w*|syrup|drops?|spray|inj|chewable|arthritis|liquid|solution|formula|senior|children\w*|mens?|womens?)\b.*/gi, '')
+    .replace(/\s+/g, ' ').trim();
+  // Check alias map
+  const lower = name.toLowerCase();
+  for (const [k, v] of Object.entries(_wikiAliases)) {
+    if (lower.includes(k)) return v;
+  }
+  return name;
 }
 
-async function _fetchDrugImage(drugName) {
+function _makeSVGLabel(name, category) {
+  const cfg = {
+    rx:      { bg:'#dbeafe', cap:'#1d4ed8', label:'#1e3a8a', badge:'#1d4ed8' },
+    otc:     { bg:'#cffafe', cap:'#0891b2', label:'#155e75', badge:'#0891b2' },
+    vitamins:{ bg:'#dcfce7', cap:'#16a34a', label:'#14532d', badge:'#16a34a' }
+  }[category] || { bg:'#dbeafe', cap:'#1d4ed8', label:'#1e3a8a', badge:'#1d4ed8' };
+
+  const words = name.replace(/\s+/g,' ').trim().split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length > 16) { if (cur) lines.push(cur); cur = w; }
+    else cur = (cur ? cur + ' ' : '') + w;
+  }
+  if (cur) lines.push(cur);
+  const textLines = lines.slice(0,3).map((l,i) =>
+    `<text x="100" y="${74 + i*13}" text-anchor="middle" font-size="9" font-weight="700"
+      fill="${cfg.label}" font-family="Arial,Helvetica,sans-serif">${l}</text>`).join('');
+
+  return `<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+    <rect x="62" y="32" width="76" height="98" rx="14" fill="${cfg.bg}" stroke="${cfg.cap}" stroke-width="2.5"/>
+    <rect x="74" y="17" width="52" height="24" rx="9" fill="${cfg.cap}"/>
+    <path d="M74 32 h52 v8 q-26-8-52 0z" fill="${cfg.cap}" opacity=".4"/>
+    <circle cx="100" cy="29" r="5" fill="white" opacity=".6"/>
+    <rect x="68" y="56" width="64" height="52" rx="7" fill="white" opacity=".88"/>
+    ${textLines}
+    <rect x="70" y="115" width="60" height="9" rx="4.5" fill="${cfg.badge}" opacity=".15"/>
+    <text x="100" y="123" text-anchor="middle" font-size="6.5" fill="${cfg.badge}"
+      font-family="Arial,sans-serif" font-weight="700" letter-spacing=".5">DUCOR PHARMACY</text>
+    <text x="100" y="43" text-anchor="middle" font-size="13" fill="white"
+      font-family="Arial,sans-serif" font-weight="900">✚</text>
+  </svg>`;
+}
+
+async function _fetchWikiImage(drugName) {
   const key = drugName.toLowerCase();
   if (key in _imgCache) return _imgCache[key];
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
     const r = await fetch(
-      `https://rximage.nlm.nih.gov/api/rximage/1/rxbase?name=${encodeURIComponent(drugName)}&resolution=thumbnail`,
-      { signal: AbortSignal.timeout(7000) }
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(drugName)}`,
+      { headers: { Accept: 'application/json' }, signal: controller.signal }
     );
-    const data = await r.json();
-    const url = data?.nlmRxImages?.[0]?.imageUrl || null;
+    clearTimeout(timer);
+    if (!r.ok) { _imgCache[key] = null; return null; }
+    const d = await r.json();
+    const url = d?.thumbnail?.source || d?.originalimage?.source || null;
     _imgCache[key] = url;
     return url;
-  } catch {
-    _imgCache[key] = null;
-    return null;
-  }
+  } catch { _imgCache[key] = null; return null; }
 }
 
-function _applyImage(productId, imageUrl, fallbackHtml) {
+function _applyImage(productId, imageUrl, svgFallback) {
   const el = document.getElementById('pimg-' + productId);
   if (!el) return;
   const img = new Image();
   img.onload = () => {
     el.innerHTML = '';
-    el.style.background = '#f8fafc';
-    el.style.padding = '12px';
+    el.style.cssText = 'background:#f8fafc;padding:12px;';
     img.style.cssText = 'max-width:100%;max-height:136px;object-fit:contain;border-radius:8px;display:block;margin:auto;';
     el.appendChild(img);
   };
-  img.onerror = () => { el.innerHTML = fallbackHtml; };
+  img.onerror = () => { el.innerHTML = svgFallback; };
   img.src = imageUrl;
 }
 
-function _initImageObserver(category, icon) {
-  if (!('IntersectionObserver' in window)) return;
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-      const id = el.dataset.pid;
-      const name = el.dataset.dname;
-      if (!id || !name || _imgPending.has(id)) return;
-      _imgPending.add(id);
-      obs.unobserve(el);
-      _fetchDrugImage(name).then(url => {
-        if (url) _applyImage(id, url, icon);
-      });
-    });
-  }, { rootMargin: '200px' });
-  document.querySelectorAll('.product-img[data-pid]').forEach(el => obs.observe(el));
+function _processImgQueue() {
+  if (_imgActive >= _IMG_CONCURRENT || _imgQueue.length === 0) return;
+  const { productId, drugName, svgFallback } = _imgQueue.shift();
+  _imgActive++;
+  _fetchWikiImage(drugName).then(url => {
+    if (url) _applyImage(productId, url, svgFallback);
+    _imgActive--;
+    _processImgQueue();
+  });
+}
+
+function _startImageLoading(list, category) {
+  list.forEach(p => {
+    const baseName = _baseDrugName(p.name);
+    const svgFallback = _makeSVGLabel(p.name, category);
+    // Show SVG label immediately
+    const el = document.getElementById('pimg-' + p.id);
+    if (el) el.innerHTML = svgFallback;
+    // Queue Wikipedia image fetch
+    _imgQueue.push({ productId: p.id, drugName: baseName, svgFallback });
+  });
+  _processImgQueue();
 }
 
 // ── PRODUCT RENDERER ───────────────────────────────────────────────────────────
@@ -502,11 +571,9 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   if (count) count.textContent = `${list.length} medication${list.length !== 1 ? 's' : ''}`;
 
-  container.innerHTML = list.map(p => {
-    const baseName = _baseDrugName(p.name);
-    return `
+  container.innerHTML = list.map(p => `
     <div class="product-card">
-      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" data-pid="${p.id}" data-dname="${baseName.replace(/"/g,'')}">${icon[category]}</div>
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}">${icon[category]}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
@@ -516,11 +583,10 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
           Add to Cart
         </button>
       </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 
-  // Start lazy-loading real drug images
-  setTimeout(() => _initImageObserver(category, icon[category]), 50);
+  // Show SVG labels immediately, then load Wikipedia photos
+  setTimeout(() => _startImageLoading(list, category), 30);
 }
 
 function addToCart(productId, category) {
