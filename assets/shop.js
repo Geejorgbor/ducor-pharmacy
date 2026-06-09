@@ -408,43 +408,204 @@ function showToast(msg) {
 const _imgCache = {};
 const _imgQueue = [];
 let _imgActive = 0;
-const _IMG_CONCURRENT = 3;
+const _IMG_CONCURRENT = 5;
 
-// Map common drug names to their Wikipedia article titles for better image results
-const _wikiAliases = {
-  'amox clav':'amoxicillin clavulanate','amoxicillin clav':'amoxicillin clavulanate',
-  'carbidopa levodopa':'levodopa','emtricitabine tenofovir':'tenofovir',
-  'losartan hctz':'losartan','lisinopril hctz':'lisinopril',
-  'amlodipine valsartan':'amlodipine','metoprolol succinate':'metoprolol',
-  'metoprolol tartrate':'metoprolol','sulfamethoxazole trimethoprim':'trimethoprim',
-  'dorzolamide timolol':'timolol','co q':'coenzyme q10','coq':'coenzyme q10',
-  'b complex':'b vitamins','fish oil':'omega-3 fatty acid',
-  'flaxseed oil':'flaxseed','glucosamine chondroitin':'glucosamine',
-  'hair skin':'biotin','poly vi sol':'multivitamin',
-  'certa vite':'multivitamin','cod liver':'cod liver oil',
-  'a d ointment':'petroleum jelly','triple antibiotic':'neosporin',
-  'artificial tears':'eye drops','saline nasal':'saline',
-  'blood glucose meter':'glucometer','blood pressure machine':'sphygmomanometer',
-  'prenatal vitamins':'prenatal vitamins','test strips':'blood glucose',
-  'stomach relief':'bismuth subsalicylate','migraine relief':'ibuprofen',
-  'menstrual relief':'naproxen','muscle pain':'methyl salicylate',
-  'cold flu':'dextromethorphan','daytime cold':'pseudoephedrine',
-  'night time cold':'diphenhydramine','glucose tablets':'dextrose'
+// sessionStorage cache across page navigations
+const _SS_KEY = 'ducor_img_v2';
+try { const _s = sessionStorage.getItem(_SS_KEY); if (_s) Object.assign(_imgCache, JSON.parse(_s)); } catch(e) {}
+function _saveImgCache() { try { sessionStorage.setItem(_SS_KEY, JSON.stringify(_imgCache)); } catch(e) {} }
+
+// Comprehensive map: drug name keyword → exact Wikipedia article title
+const _DRUG_WIKI_NAMES = {
+  // Rx — Cardiovascular
+  'lisinopril':'Lisinopril','atorvastatin':'Atorvastatin','metoprolol':'Metoprolol',
+  'amlodipine':'Amlodipine','losartan':'Losartan','hydrochlorothiazide':'Hydrochlorothiazide',
+  'furosemide':'Furosemide','spironolactone':'Spironolactone','carvedilol':'Carvedilol',
+  'bisoprolol':'Bisoprolol','valsartan':'Valsartan','ramipril':'Ramipril',
+  'enalapril':'Enalapril','diltiazem':'Diltiazem','nifedipine':'Nifedipine',
+  'warfarin':'Warfarin','clopidogrel':'Clopidogrel','digoxin':'Digoxin',
+  'pravastatin':'Pravastatin','simvastatin':'Simvastatin','rosuvastatin':'Rosuvastatin',
+  'olmesartan':'Olmesartan','irbesartan':'Irbesartan','telmisartan':'Telmisartan',
+  'hydralazine':'Hydralazine','isosorbide':'Isosorbide mononitrate','nitroglycerin':'Nitroglycerin',
+  'ezetimibe':'Ezetimibe','fenofibrate':'Fenofibrate','gemfibrozil':'Gemfibrozil',
+  'apixaban':'Apixaban','rivaroxaban':'Rivaroxaban','dabigatran':'Dabigatran',
+  // Rx — Diabetes
+  'metformin':'Metformin','glipizide':'Glipizide','glyburide':'Glyburide',
+  'glimepiride':'Glimepiride','sitagliptin':'Sitagliptin','empagliflozin':'Empagliflozin',
+  'canagliflozin':'Canagliflozin','dapagliflozin':'Dapagliflozin','liraglutide':'Liraglutide',
+  'semaglutide':'Semaglutide','pioglitazone':'Pioglitazone','insulin':'Insulin',
+  'dulaglutide':'Dulaglutide','exenatide':'Exenatide',
+  // Rx — Thyroid / Hormones
+  'levothyroxine':'Levothyroxine','liothyronine':'Liothyronine','methimazole':'Methimazole',
+  'prednisone':'Prednisone','prednisolone':'Prednisolone','dexamethasone':'Dexamethasone',
+  'methylprednisolone':'Methylprednisolone','hydrocortisone':'Hydrocortisone',
+  'estradiol':'Estradiol','progesterone':'Progesterone','testosterone':'Testosterone',
+  'medroxyprogesterone':'Medroxyprogesterone','norethindrone':'Norethindrone',
+  'levonorgestrel':'Levonorgestrel','ethinyl estradiol':'Ethinylestradiol',
+  // Rx — Antibiotics / Antivirals / Antifungals
+  'amoxicillin':'Amoxicillin','azithromycin':'Azithromycin','doxycycline':'Doxycycline',
+  'ciprofloxacin':'Ciprofloxacin','levofloxacin':'Levofloxacin','cephalexin':'Cefalexin',
+  'trimethoprim':'Trimethoprim','sulfamethoxazole':'Sulfamethoxazole',
+  'clindamycin':'Clindamycin','metronidazole':'Metronidazole','nitrofurantoin':'Nitrofurantoin',
+  'ampicillin':'Ampicillin','penicillin':'Penicillin','tetracycline':'Tetracycline',
+  'clarithromycin':'Clarithromycin','erythromycin':'Erythromycin',
+  'amox clav':'Amoxicillin/clavulanic acid','amoxicillin clav':'Amoxicillin/clavulanic acid',
+  'augmentin':'Amoxicillin/clavulanic acid',
+  'acyclovir':'Aciclovir','valacyclovir':'Valaciclovir','oseltamivir':'Oseltamivir',
+  'fluconazole':'Fluconazole','itraconazole':'Itraconazole','ketoconazole':'Ketoconazole',
+  'terbinafine':'Terbinafine','nystatin':'Nystatin','clotrimazole':'Clotrimazole',
+  'vancomycin':'Vancomycin','linezolid':'Linezolid','meropenem':'Meropenem',
+  // Rx — Respiratory
+  'albuterol':'Salbutamol','salbutamol':'Salbutamol','ipratropium':'Ipratropium',
+  'tiotropium':'Tiotropium','budesonide':'Budesonide','fluticasone':'Fluticasone',
+  'salmeterol':'Salmeterol','formoterol':'Formoterol','montelukast':'Montelukast',
+  'theophylline':'Theophylline','beclomethasone':'Beclometasone',
+  // Rx — Neurological / Psychiatric
+  'sertraline':'Sertraline','fluoxetine':'Fluoxetine','escitalopram':'Escitalopram',
+  'citalopram':'Citalopram','paroxetine':'Paroxetine','venlafaxine':'Venlafaxine',
+  'duloxetine':'Duloxetine','bupropion':'Bupropion','mirtazapine':'Mirtazapine',
+  'amitriptyline':'Amitriptyline','nortriptyline':'Nortriptyline',
+  'clonazepam':'Clonazepam','diazepam':'Diazepam','lorazepam':'Lorazepam',
+  'alprazolam':'Alprazolam','zolpidem':'Zolpidem','quetiapine':'Quetiapine',
+  'olanzapine':'Olanzapine','risperidone':'Risperidone','aripiprazole':'Aripiprazole',
+  'lithium':'Lithium (medication)','valproate':'Valproate','lamotrigine':'Lamotrigine',
+  'levetiracetam':'Levetiracetam','phenytoin':'Phenytoin','carbamazepine':'Carbamazepine',
+  'gabapentin':'Gabapentin','pregabalin':'Pregabalin','topiramate':'Topiramate',
+  'donepezil':'Donepezil','memantine':'Memantine','methylphenidate':'Methylphenidate',
+  'amphetamine':'Amphetamine','lisdexamfetamine':'Lisdexamfetamine',
+  'levodopa':'Levodopa','carbidopa':'Carbidopa/levodopa',
+  'carbidopa levodopa':'Carbidopa/levodopa','ropinirole':'Ropinirole',
+  'pramipexole':'Pramipexole','rasagiline':'Rasagiline',
+  'sumatriptan':'Sumatriptan','rizatriptan':'Rizatriptan','topiramate':'Topiramate',
+  // Rx — Gastrointestinal
+  'omeprazole':'Omeprazole','pantoprazole':'Pantoprazole','esomeprazole':'Esomeprazole',
+  'lansoprazole':'Lansoprazole','rabeprazole':'Rabeprazole','ranitidine':'Ranitidine',
+  'famotidine':'Famotidine','cimetidine':'Cimetidine','sucralfate':'Sucralfate',
+  'metoclopramide':'Metoclopramide','ondansetron':'Ondansetron','promethazine':'Promethazine',
+  'mesalamine':'Mesalazine','sulfasalazine':'Sulfasalazine','infliximab':'Infliximab',
+  // Rx — Pain / Musculoskeletal
+  'tramadol':'Tramadol','oxycodone':'Oxycodone','hydrocodone':'Hydrocodone',
+  'morphine':'Morphine','codeine':'Codeine','fentanyl':'Fentanyl',
+  'buprenorphine':'Buprenorphine','naltrexone':'Naltrexone','naloxone':'Naloxone',
+  'cyclobenzaprine':'Cyclobenzaprine','baclofen':'Baclofen','tizanidine':'Tizanidine',
+  'methocarbamol':'Methocarbamol','carisoprodol':'Carisoprodol',
+  'celecoxib':'Celecoxib','diclofenac':'Diclofenac','meloxicam':'Meloxicam',
+  'indomethacin':'Indometacin','naproxen':'Naproxen','allopurinol':'Allopurinol',
+  'colchicine':'Colchicine','probenecid':'Probenecid',
+  // Rx — Ophthalmology
+  'latanoprost':'Latanoprost','timolol':'Timolol','brimonidine':'Brimonidine',
+  'dorzolamide':'Dorzolamide','bimatoprost':'Bimatoprost','travoprost':'Travoprost',
+  'ciprofloxacin eye':'Ciprofloxacin','tobramycin':'Tobramycin',
+  'prednisolone eye':'Prednisolone','ofloxacin':'Ofloxacin',
+  // Rx — Dermatology
+  'tretinoin':'Tretinoin','adapalene':'Adapalene','isotretinoin':'Isotretinoin',
+  'benzoyl peroxide':'Benzoyl peroxide','tazarotene':'Tazarotene',
+  'mupirocin':'Mupirocin','betamethasone':'Betamethasone','triamcinolone':'Triamcinolone',
+  'clobetasol':'Clobetasol','tacrolimus':'Tacrolimus','pimecrolimus':'Pimecrolimus',
+  // Rx — Other
+  'acetazolamide':'Acetazolamide','emtricitabine':'Emtricitabine',
+  'tenofovir':'Tenofovir','lamivudine':'Lamivudine','efavirenz':'Efavirenz',
+  'hydroxychloroquine':'Hydroxychloroquine','chloroquine':'Chloroquine',
+  'azathioprine':'Azathioprine','mycophenolate':'Mycophenolic acid',
+  'tacrolimus':'Tacrolimus','cyclosporine':'Ciclosporin',
+  'sildenafil':'Sildenafil','tadalafil':'Tadalafil','finasteride':'Finasteride',
+  'tamsulosin':'Tamsulosin','oxybutynin':'Oxybutynin','tolterodine':'Tolterodine',
+  'desmopressin':'Desmopressin','alfuzosin':'Alfuzosin',
+  'bisacodyl':'Bisacodyl','lactulose':'Lactulose','polyethylene glycol':'Polyethylene glycol',
+  'cholestyramine':'Cholestyramine','colesevelam':'Colesevelam',
+  // OTC — Pain / Fever
+  'acetaminophen':'Paracetamol','paracetamol':'Paracetamol','ibuprofen':'Ibuprofen',
+  'aspirin':'Aspirin','naproxen sodium':'Naproxen','ketoprofen':'Ketoprofen',
+  'migraine relief':'Ibuprofen','menstrual relief':'Naproxen',
+  'muscle pain':'Methyl salicylate','pain relief':'Ibuprofen',
+  // OTC — Cold / Allergy / Cough
+  'cetirizine':'Cetirizine','loratadine':'Loratadine','fexofenadine':'Fexofenadine',
+  'diphenhydramine':'Diphenhydramine','chlorphenamine':'Chlorphenamine',
+  'pseudoephedrine':'Pseudoephedrine','phenylephrine':'Phenylephrine',
+  'oxymetazoline':'Oxymetazoline','guaifenesin':'Guaifenesin',
+  'dextromethorphan':'Dextromethorphan','benzonatate':'Benzonatate',
+  'cold flu':'Dextromethorphan','daytime cold':'Pseudoephedrine',
+  'night time cold':'Diphenhydramine','sinus':'Pseudoephedrine',
+  // OTC — GI / Digestive
+  'antacid':'Antacid','calcium carbonate':'Calcium carbonate','magnesium':'Magnesium',
+  'simethicone':'Simethicone','loperamide':'Loperamide',
+  'bismuth subsalicylate':'Bismuth subsalicylate','stomach relief':'Bismuth subsalicylate',
+  'maalox':'Antacid','mylanta':'Antacid','tums':'Calcium carbonate',
+  'miralax':'Polyethylene glycol','dulcolax':'Bisacodyl','senna':'Senna glycoside',
+  'psyllium':'Psyllium','fiber':'Dietary fiber','probiotic':'Probiotic',
+  // OTC — Skin / Eye / Ear
+  'hydrocortisone cream':'Hydrocortisone','calamine':'Calamine',
+  'bacitracin':'Bacitracin','neosporin':'Neomycin/polymyxin b/bacitracin',
+  'triple antibiotic':'Neomycin/polymyxin b/bacitracin',
+  'artificial tears':'Eye drops','visine':'Tetrahydrozoline',
+  'ear drops':'Ear drop','hydrogen peroxide':'Hydrogen peroxide',
+  'rubbing alcohol':'Isopropyl alcohol','povidone iodine':'Povidone-iodine',
+  'zinc oxide':'Zinc oxide','a d ointment':'Petrolatum',
+  // OTC — Monitoring Devices
+  'blood glucose meter':'Blood glucose meter','glucometer':'Blood glucose meter',
+  'blood pressure machine':'Sphygmomanometer','pulse oximeter':'Pulse oximetry',
+  'thermometer':'Medical thermometer','test strips':'Blood glucose monitoring',
+  // Vitamins & Supplements
+  'vitamin c':'Vitamin C','ascorbic acid':'Vitamin C',
+  'vitamin d':'Vitamin D','vitamin d3':'Cholecalciferol','cholecalciferol':'Cholecalciferol',
+  'vitamin b12':'Vitamin B12','cyanocobalamin':'Cyanocobalamin','methylcobalamin':'Methylcobalamin',
+  'vitamin b6':'Vitamin B6','pyridoxine':'Pyridoxine',
+  'vitamin a':'Vitamin A','retinol':'Retinol',
+  'vitamin e':'Vitamin E','tocopherol':'Tocopherol',
+  'vitamin k':'Vitamin K','phytonadione':'Phytomenadione',
+  'folic acid':'Folic acid','folate':'Folic acid',
+  'iron':'Iron supplement','ferrous sulfate':'Iron(II) sulfate',
+  'ferrous gluconate':'Iron(II) gluconate','ferrous fumarate':'Ferrous fumarate',
+  'calcium':'Calcium supplement','calcium citrate':'Calcium citrate',
+  'magnesium citrate':'Magnesium citrate','magnesium oxide':'Magnesium oxide',
+  'zinc':'Zinc (medication)','zinc gluconate':'Zinc gluconate',
+  'selenium':'Selenium','chromium':'Chromium (dietary)','iodine':'Iodine',
+  'biotin':'Biotin','niacin':'Niacin','riboflavin':'Riboflavin',
+  'thiamine':'Thiamine','pantothenic':'Pantothenic acid',
+  'multivitamin':'Multivitamin','prenatal':'Prenatal vitamins',
+  'poly vi sol':'Multivitamin','certa vite':'Multivitamin',
+  'b complex':'B vitamins','b vitamins':'B vitamins',
+  'fish oil':'Fish oil','omega 3':'Omega-3 fatty acid','omega-3':'Omega-3 fatty acid',
+  'flaxseed oil':'Flaxseed oil','flaxseed':'Flaxseed',
+  'cod liver':'Cod liver oil','evening primrose':'Evening primrose oil',
+  'glucosamine':'Glucosamine','chondroitin':'Chondroitin sulfate',
+  'glucosamine chondroitin':'Glucosamine/chondroitin',
+  'coq10':'Coenzyme Q10','coenzyme q':'Coenzyme Q10','co q':'Coenzyme Q10',
+  'ubiquinol':'Ubiquinol',
+  'melatonin':'Melatonin','valerian':'Valerian (herb)',
+  'echinacea':'Echinacea','elderberry':'Elderberry',
+  'turmeric':'Turmeric','curcumin':'Curcumin',
+  'probiotics':'Probiotic','lactobacillus':'Lactobacillus',
+  'collagen':'Collagen','hyaluronic acid':'Hyaluronic acid',
+  'hair skin':'Biotin','nail':'Biotin',
+  'protein powder':'Protein (nutrient)','whey':'Whey protein',
+  'cranberry':'Cranberry','saw palmetto':'Serenoa repens',
+  'milk thistle':'Silybum marianum','st john':'Hypericum perforatum',
+  'ginkgo':'Ginkgo biloba','ginseng':'Ginseng',
+  'grape seed':'Grape seed extract','lutein':'Lutein',
+  'lycopene':'Lycopene','astaxanthin':'Astaxanthin',
+  'ashwagandha':'Withania somnifera','maca':'Lepidium meyenii',
+  'spirulina':'Spirulina (dietary supplement)',
+  'glucose tablets':'Glucose','dextrose':'Dextrose',
+  'electrolytes':'Electrolyte','saline nasal':'Saline (medicine)'
 };
 
-function _baseDrugName(fullName) {
-  let name = fullName
-    .replace(/\s*\(.*?\)/g, '')                  // remove parenthetical
-    .replace(/\s*\/.*/, '')                       // take only first drug in combo
-    .replace(/\s+[\d][\d\s\.\-\/]*(mg|mcg|ml|gm|g|iu|%|units?|,\d+)[^\s]*/gi, '')
-    .replace(/\s+(XL|ER|IR|SR|ODT|HFA|EC|PM|Rx|opth\w*|susp\w*|oint\w*|cream|tab\w*|cap\w*|syrup|drops?|spray|inj|chewable|arthritis|liquid|solution|formula|senior|children\w*|mens?|womens?)\b.*/gi, '')
+function _getWikiTitle(fullName) {
+  const clean = fullName
+    .replace(/\s*\(.*?\)/g, '')
+    .replace(/\s*\/.*/, '')
+    .replace(/\s+[\d][\d\s.\-/]*(mg|mcg|ml|gm|g|iu|%|units?)[^\s]*/gi, '')
+    .replace(/\s+(XL|ER|IR|SR|ODT|HFA|EC|PM|opth\w*|susp\w*|oint\w*|cream|gel|tab\w*|cap\w*|syrup|drops?|spray|inj|chewable|liquid|solution|formula|senior|children\w*|mens?|womens?|adult\w*)\b.*/gi, '')
     .replace(/\s+/g, ' ').trim();
-  // Check alias map
-  const lower = name.toLowerCase();
-  for (const [k, v] of Object.entries(_wikiAliases)) {
-    if (lower.includes(k)) return v;
+  const lower = clean.toLowerCase();
+  // Longest match wins
+  let bestKey = '', bestVal = '';
+  for (const [k, v] of Object.entries(_DRUG_WIKI_NAMES)) {
+    if (lower.includes(k) && k.length > bestKey.length) { bestKey = k; bestVal = v; }
   }
-  return name;
+  if (bestVal) return bestVal;
+  // Title-case fallback
+  return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 }
 
 function _makeSVGLabel(name, category) {
@@ -481,23 +642,49 @@ function _makeSVGLabel(name, category) {
   </svg>`;
 }
 
-async function _fetchWikiImage(drugName) {
-  const key = drugName.toLowerCase();
+async function _fetchWikiImage(wikiTitle) {
+  const key = wikiTitle.toLowerCase();
   if (key in _imgCache) return _imgCache[key];
+  // Primary: MediaWiki pageimages API (most reliable for drug photos)
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
     const r = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(drugName)}`,
-      { headers: { Accept: 'application/json' }, signal: controller.signal }
+      'https://en.wikipedia.org/w/api.php?action=query&titles=' +
+      encodeURIComponent(wikiTitle) +
+      '&prop=pageimages&piprop=thumbnail&pithumbsize=400&format=json&origin=*',
+      { signal: ctrl.signal }
     );
-    clearTimeout(timer);
-    if (!r.ok) { _imgCache[key] = null; return null; }
-    const d = await r.json();
-    const url = d?.thumbnail?.source || d?.originalimage?.source || null;
-    _imgCache[key] = url;
-    return url;
-  } catch { _imgCache[key] = null; return null; }
+    clearTimeout(t);
+    if (r.ok) {
+      const d = await r.json();
+      const page = Object.values(d?.query?.pages || {})[0];
+      if (page && !page.missing && page.thumbnail?.source) {
+        _imgCache[key] = page.thumbnail.source;
+        _saveImgCache();
+        return page.thumbnail.source;
+      }
+    }
+  } catch(e) {}
+  // Fallback: REST summary API
+  try {
+    const ctrl2 = new AbortController();
+    const t2 = setTimeout(() => ctrl2.abort(), 6000);
+    const r2 = await fetch(
+      'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(wikiTitle),
+      { headers: { Accept: 'application/json' }, signal: ctrl2.signal }
+    );
+    clearTimeout(t2);
+    if (r2.ok) {
+      const d2 = await r2.json();
+      const url = d2?.thumbnail?.source || d2?.originalimage?.source || null;
+      _imgCache[key] = url;
+      if (url) _saveImgCache();
+      return url;
+    }
+  } catch(e) {}
+  _imgCache[key] = null;
+  return null;
 }
 
 function _applyImage(productId, imageUrl, svgFallback) {
@@ -515,25 +702,33 @@ function _applyImage(productId, imageUrl, svgFallback) {
 }
 
 function _processImgQueue() {
-  if (_imgActive >= _IMG_CONCURRENT || _imgQueue.length === 0) return;
-  const { productId, drugName, svgFallback } = _imgQueue.shift();
-  _imgActive++;
-  _fetchWikiImage(drugName).then(url => {
-    if (url) _applyImage(productId, url, svgFallback);
-    _imgActive--;
-    _processImgQueue();
-  });
+  while (_imgActive < _IMG_CONCURRENT && _imgQueue.length > 0) {
+    const { productId, wikiTitle, svgFallback } = _imgQueue.shift();
+    _imgActive++;
+    _fetchWikiImage(wikiTitle).then(url => {
+      if (url) _applyImage(productId, url, svgFallback);
+      _imgActive--;
+      _processImgQueue();
+    });
+  }
 }
 
 function _startImageLoading(list, category) {
   list.forEach(p => {
-    const baseName = _baseDrugName(p.name);
+    const wikiTitle = _getWikiTitle(p.name);
     const svgFallback = _makeSVGLabel(p.name, category);
-    // Show SVG label immediately
     const el = document.getElementById('pimg-' + p.id);
-    if (el) el.innerHTML = svgFallback;
-    // Queue Wikipedia image fetch
-    _imgQueue.push({ productId: p.id, drugName: baseName, svgFallback });
+    if (!el) return;
+    // If cached, apply immediately (photo or SVG)
+    const cached = _imgCache[wikiTitle.toLowerCase()];
+    if (cached !== undefined) {
+      if (cached) _applyImage(p.id, cached, svgFallback);
+      else el.innerHTML = svgFallback;
+      return;
+    }
+    // Show SVG while fetching
+    el.innerHTML = svgFallback;
+    _imgQueue.push({ productId: p.id, wikiTitle, svgFallback });
   });
   _processImgQueue();
 }
