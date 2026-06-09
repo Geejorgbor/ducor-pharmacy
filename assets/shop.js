@@ -713,12 +713,21 @@ function _processImgQueue() {
   }
 }
 
+// Load admin-set custom photo overrides from localStorage
+let _customPhotos = {};
+try { _customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}'); } catch(e) {}
+
 function _startImageLoading(list, category) {
   list.forEach(p => {
-    const wikiTitle = _getWikiTitle(p.name);
     const svgFallback = _makeSVGLabel(p.name, category);
     const el = document.getElementById('pimg-' + p.id);
     if (!el) return;
+    // Admin-set custom photo takes highest priority
+    if (_customPhotos[p.id]) {
+      _applyImage(p.id, _customPhotos[p.id], svgFallback);
+      return;
+    }
+    const wikiTitle = _getWikiTitle(p.name);
     // If cached, apply immediately (photo or SVG)
     const cached = _imgCache[wikiTitle.toLowerCase()];
     if (cached !== undefined) {
