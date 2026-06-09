@@ -403,6 +403,72 @@ function showToast(msg) {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, 2800);
 }
 
+// ── DRUG IMAGE LOADER (NLM RxImage API) ───────────────────────────────────────
+
+const _imgCache = {};
+const _imgPending = new Set();
+
+function _baseDrugName(fullName) {
+  return fullName
+    .replace(/\s*\/.*/, '')                                     // remove /combo part
+    .replace(/\s+[\d][\d\s\.\-\/]*(mg|mcg|ml|gm|g|iu|%|units?)[^\s]*/gi, '') // remove strength
+    .replace(/\s+(XL|ER|IR|SR|ODT|HFA|EC|PM|opth|susp|oint|cream|tab|cap|syrup|drops?|spray|inj|chewable|arthritis|liquid|solution)\b.*/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function _fetchDrugImage(drugName) {
+  const key = drugName.toLowerCase();
+  if (key in _imgCache) return _imgCache[key];
+  try {
+    const r = await fetch(
+      `https://rximage.nlm.nih.gov/api/rximage/1/rxbase?name=${encodeURIComponent(drugName)}&resolution=thumbnail`,
+      { signal: AbortSignal.timeout(7000) }
+    );
+    const data = await r.json();
+    const url = data?.nlmRxImages?.[0]?.imageUrl || null;
+    _imgCache[key] = url;
+    return url;
+  } catch {
+    _imgCache[key] = null;
+    return null;
+  }
+}
+
+function _applyImage(productId, imageUrl, fallbackHtml) {
+  const el = document.getElementById('pimg-' + productId);
+  if (!el) return;
+  const img = new Image();
+  img.onload = () => {
+    el.innerHTML = '';
+    el.style.background = '#f8fafc';
+    el.style.padding = '12px';
+    img.style.cssText = 'max-width:100%;max-height:136px;object-fit:contain;border-radius:8px;display:block;margin:auto;';
+    el.appendChild(img);
+  };
+  img.onerror = () => { el.innerHTML = fallbackHtml; };
+  img.src = imageUrl;
+}
+
+function _initImageObserver(category, icon) {
+  if (!('IntersectionObserver' in window)) return;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const id = el.dataset.pid;
+      const name = el.dataset.dname;
+      if (!id || !name || _imgPending.has(id)) return;
+      _imgPending.add(id);
+      obs.unobserve(el);
+      _fetchDrugImage(name).then(url => {
+        if (url) _applyImage(id, url, icon);
+      });
+    });
+  }, { rootMargin: '200px' });
+  document.querySelectorAll('.product-img[data-pid]').forEach(el => obs.observe(el));
+}
+
 // ── PRODUCT RENDERER ───────────────────────────────────────────────────────────
 
 function renderProducts(category, containerId, filterVal = '', sortVal = 'name') {
@@ -436,9 +502,11 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   if (count) count.textContent = `${list.length} medication${list.length !== 1 ? 's' : ''}`;
 
-  container.innerHTML = list.map(p => `
+  container.innerHTML = list.map(p => {
+    const baseName = _baseDrugName(p.name);
+    return `
     <div class="product-card">
-      <div class="product-img ${imgBg[category]}">${icon[category]}</div>
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" data-pid="${p.id}" data-dname="${baseName.replace(/"/g,'')}">${icon[category]}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
@@ -448,7 +516,11 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
           Add to Cart
         </button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  // Start lazy-loading real drug images
+  setTimeout(() => _initImageObserver(category, icon[category]), 50);
 }
 
 function addToCart(productId, category) {
