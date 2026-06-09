@@ -6,11 +6,49 @@
     <title>Ducor International Pharmacy</title>
     <script type="module" crossorigin src="./assets/index-RXGuIMLz.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-CXputsG2.css">
+    <script>
+      // Wire up "View Products" buttons on category cards once React renders
+      document.addEventListener('click', function(e) {
+        const card = e.target.closest('[class*="product-card"], [class*="ProductCard"], [class*="card"]');
+        const btn = e.target.closest('span, button, a');
+        if (!btn) return;
+        const text = btn.textContent.trim();
+        if (!text.includes('View Products') && !text.includes('View')) return;
+        // Find which product card was clicked by walking up to look for heading
+        const parent = e.target.closest('[class]');
+        if (!parent) return;
+        const heading = parent.closest('section, div[class]') ?
+          parent.closest('section, div[class]').querySelector('h3, h2') : null;
+        const title = heading ? heading.textContent.toLowerCase() : '';
+        if (title.includes('prescription')) { window.location.href = '/prescription.html'; e.preventDefault(); }
+        else if (title.includes('counter') || title.includes('otc')) { window.location.href = '/otc.html'; e.preventDefault(); }
+        else if (title.includes('vitamin') || title.includes('supplement')) { window.location.href = '/vitamins.html'; e.preventDefault(); }
+      });
+
+      // Also intercept after React renders by monitoring DOM
+      function wireProductCards() {
+        document.querySelectorAll('span, button').forEach(function(el) {
+          if (el.textContent.trim().startsWith('View Products') && !el.dataset.wired) {
+            el.dataset.wired = '1';
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', function(e) {
+              const section = e.target.closest('div[class]');
+              const h3 = section ? section.querySelector('h3') : null;
+              const title = h3 ? h3.textContent.toLowerCase() : '';
+              if (title.includes('prescription')) window.location.href = '/prescription.html';
+              else if (title.includes('counter') || title.includes('otc')) window.location.href = '/otc.html';
+              else if (title.includes('vitamin') || title.includes('supplement')) window.location.href = '/vitamins.html';
+            });
+          }
+        });
+      }
+      const obs = new MutationObserver(wireProductCards);
+      obs.observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('load', wireProductCards);
+    </script>
   </head>
   <body>
     <div id="root"></div>
-  <h2>Firebase Products</h2>
-<div id="products"></div>
   </body>
 </html>
 <script type="module">
