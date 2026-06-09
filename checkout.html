@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout – Ducor International Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <link rel="stylesheet" href="/assets/shop.css"/>
+  <style>
+    .checkout-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 32px; display: grid; grid-template-columns: 1fr 420px; gap: 32px; }
+    @media (max-width: 900px) { .checkout-wrap { grid-template-columns: 1fr; padding: 24px 16px; } }
+    .checkout-form-card, .order-summary-card { background: var(--white); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+    .card-header { background: var(--navy); padding: 20px 28px; }
+    .card-header h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: var(--white); }
+    .card-body { padding: 28px; }
+    .form-section-title { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .form-row { display: grid; gap: 16px; margin-bottom: 16px; }
+    .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: var(--text); background: var(--bg);
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); background: var(--white); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-spacer { height: 24px; }
+    .payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .payment-method { border: 2px solid var(--border); border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: border-color 0.2s, background 0.2s; }
+    .payment-method:hover { border-color: var(--gold); }
+    .payment-method.selected { border-color: var(--navy); background: rgba(13,27,42,0.04); }
+    .payment-method svg { display: block; margin: 0 auto 6px; }
+    .payment-method span { font-size: 12px; font-weight: 600; color: var(--text); }
+    .btn-place-order {
+      width: 100%; padding: 16px; border: none; border-radius: 14px;
+      background: var(--gold); color: var(--navy);
+      font-size: 17px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: background 0.2s; margin-top: 24px;
+    }
+    .btn-place-order:hover { background: var(--gold-light); }
+    .order-items { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 380px; overflow-y: auto; }
+    .order-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--bg); border-radius: 10px; }
+    .order-item-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .order-item-icon svg { width: 22px; height: 22px; }
+    .order-item-info { flex: 1; }
+    .order-item-info h4 { font-size: 13px; font-weight: 600; line-height: 1.3; }
+    .order-item-info p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .order-item-price { font-size: 14px; font-weight: 700; color: var(--navy); }
+    .order-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .order-line { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+    .order-line.total { font-size: 20px; font-weight: 700; color: var(--navy); margin-top: 12px; }
+    .empty-checkout { text-align: center; padding: 48px 24px; color: var(--muted); }
+    .empty-checkout svg { opacity: 0.3; margin-bottom: 16px; }
+    .empty-checkout p { font-size: 16px; margin-bottom: 20px; }
+    .empty-checkout a { display: inline-block; padding: 12px 28px; background: var(--navy); color: white; border-radius: 10px; text-decoration: none; font-weight: 600; }
+    .success-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+    .success-overlay.show { display: flex; }
+    .success-box { background: white; border-radius: 24px; padding: 48px 40px; max-width: 480px; width: 90%; text-align: center; }
+    .success-icon { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+    .success-box h3 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+    .success-box p { color: var(--muted); font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+    .success-box button { padding: 14px 32px; background: var(--navy); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  </style>
+</head>
+<body>
+
+<nav class="shop-nav">
+  <a href="/index.html" class="nav-brand">
+    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <div class="nav-brand-text">
+      <h1>DUCOR</h1>
+      <p>International Pharmacy</p>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/index.html">Home</a>
+    <a href="/prescription.html">Prescription</a>
+    <a href="/otc.html">Over the Counter</a>
+    <a href="/vitamins.html">Vitamins</a>
+    <a href="/checkout.html" class="active">Checkout</a>
+  </div>
+  <button class="nav-cart-btn" onclick="Cart.open()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    Cart <span id="cart-badge" class="cart-badge hidden">0</span>
+  </button>
+</nav>
+
+<div class="checkout-wrap">
+
+  <!-- LEFT: Form -->
+  <div class="checkout-form-card">
+    <div class="card-header"><h3>Checkout</h3></div>
+    <div class="card-body" id="checkout-form-body">
+
+      <p class="form-section-title">Personal Information</p>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="first-name" placeholder="John"/>
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="last-name" placeholder="Doe"/>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="email" placeholder="you@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="phone" placeholder="+231 77 000 0000"/>
+        </div>
+      </div>
+
+      <div class="form-spacer"></div>
+      <p class="form-section-title">Delivery Address</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Street Address *</label>
+          <input type="text" id="address" placeholder="123 Main Street"/>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label>City *</label>
+          <input type="text" id="city" placeholder="Monrovia"/>
+        </div>
+        <div class="form-group">
+          <label>County / Region</label>
+          <input type="text" id="region" placeholder="Montserrado"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Special Delivery Instructions</label>
+          <textarea id="notes" placeholder="Landmark, gate color, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="form-spacer"></div>
+      <p class="form-section-title">Payment Method</p>
+      <div class="payment-methods">
+        <div class="payment-method selected" onclick="selectPayment(this,'cash')">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span>Cash on Delivery</span>
+        </div>
+        <div class="payment-method" onclick="selectPayment(this,'mobile')">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="3"/></svg>
+          <span>Mobile Money</span>
+        </div>
+        <div class="payment-method" onclick="selectPayment(this,'card')">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="5" y1="15" x2="9" y2="15"/></svg>
+          <span>Debit / Credit</span>
+        </div>
+      </div>
+      <div id="card-fields" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19"/>
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>Expiry Date</label>
+            <input type="text" id="card-exp" placeholder="MM / YY" maxlength="7"/>
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="text" id="card-cvv" placeholder="123" maxlength="4"/>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-place-order" onclick="placeOrder()">Place Order →</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Order Summary -->
+  <div>
+    <div class="order-summary-card">
+      <div class="card-header"><h3>Order Summary</h3></div>
+      <div class="card-body" id="order-summary-body">
+        <div class="empty-checkout">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <p>Your cart is empty</p>
+          <a href="/prescription.html">Browse Medications</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Cart Drawer -->
+<div id="cart-overlay" class="cart-overlay"></div>
+<div id="cart-drawer" class="cart-drawer">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <button class="cart-close" onclick="Cart.close()">×</button>
+  </div>
+  <div id="cart-items-list" class="cart-items"></div>
+  <div id="cart-total-line" class="cart-footer" style="display:none">
+    <div class="cart-subtotal"><span>Subtotal</span><span id="cart-subtotal-val"></span></div>
+    <div class="cart-subtotal"><span>Shipping</span><span id="cart-shipping-val"></span></div>
+    <div class="cart-total"><span>Total</span><span id="cart-total-val"></span></div>
+    <button class="btn-checkout" onclick="window.location='/checkout.html'">Proceed to Checkout →</button>
+    <button class="btn-continue" onclick="Cart.close()">Continue Shopping</button>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Success Modal -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3>Order Placed!</h3>
+    <p>Thank you for your order. Our team will contact you shortly to confirm delivery details. You will receive a confirmation on the number provided.</p>
+    <button onclick="orderDone()">Continue Shopping</button>
+  </div>
+</div>
+
+<footer class="shop-footer">
+  <p>© 2025 <a href="/index.html">Ducor International Pharmacy</a> · Trusted Pharmaceutical &amp; Medication Supply In Liberia</p>
+</footer>
+
+<script src="/assets/shop.js"></script>
+<script>
+  let selectedPayment = 'cash';
+
+  function selectPayment(el, method) {
+    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPayment = method;
+    document.getElementById('card-fields').style.display = method === 'card' ? 'block' : 'none';
+  }
+
+  function renderSummary() {
+    Cart.load();
+    const body = document.getElementById('order-summary-body');
+    if (Cart.items.length === 0) return;
+    const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+    const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+    const sub = Cart.subtotal();
+    const shipping = sub >= 50 ? 0 : 5.99;
+    body.innerHTML = `
+      <div class="order-items">
+        ${Cart.items.map(item => `
+          <div class="order-item">
+            <div class="order-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
+            <div class="order-item-info">
+              <h4>${item.name}</h4>
+              <p>Qty: ${item.qty} × $${item.price.toFixed(2)}</p>
+            </div>
+            <span class="order-item-price">$${(item.price * item.qty).toFixed(2)}</span>
+          </div>`).join('')}
+      </div>
+      <hr class="order-divider"/>
+      <div class="order-line"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+      <div class="order-line"><span>Shipping</span><span>${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span></div>
+      <div class="order-line"><span style="font-size:12px;color:var(--muted)">Free shipping on orders over $50</span></div>
+      <div class="order-line total"><span>Total</span><span>$${(sub + shipping).toFixed(2)}</span></div>`;
+  }
+
+  function placeOrder() {
+    const first = document.getElementById('first-name').value.trim();
+    const last = document.getElementById('last-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const city = document.getElementById('city').value.trim();
+    if (!first || !last || !email || !phone || !address || !city) {
+      showToast('Please fill in all required fields');
+      return;
+    }
+    if (Cart.items.length === 0) {
+      showToast('Your cart is empty');
+      return;
+    }
+    document.getElementById('success-overlay').classList.add('show');
+  }
+
+  function orderDone() {
+    Cart.items = [];
+    Cart.save();
+    Cart.updateBadge();
+    document.getElementById('success-overlay').classList.remove('show');
+    window.location.href = '/index.html';
+  }
+
+  Cart.load();
+  Cart.updateBadge();
+  renderSummary();
+  document.getElementById('cart-overlay').addEventListener('click', () => Cart.close());
+</script>
+</body>
+</html>
