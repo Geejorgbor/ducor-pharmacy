@@ -484,9 +484,22 @@
       <input type="hidden" id="edit-product-category"/>
       <div class="field"><label>Medication Name</label><input type="text" id="edit-name" placeholder="Enter medication name"/></div>
       <div class="field"><label>Price (USD)</label><input type="number" id="edit-price" step="0.01" min="0" placeholder="0.00"/></div>
+      <div class="field">
+        <label>Photo URL <span style="font-weight:400;color:var(--muted)">(paste any image link — leave blank for auto)</span></label>
+        <input type="url" id="edit-photo" placeholder="https://example.com/drug-photo.jpg" oninput="previewEditPhoto()"/>
+        <div id="edit-photo-preview" style="margin-top:10px;display:none;text-align:center">
+          <img id="edit-photo-img" src="" alt="preview" style="max-width:100%;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:#f8fafc;padding:8px"/>
+          <p style="font-size:11px;color:var(--success);margin-top:4px">✓ Photo preview looks good</p>
+        </div>
+        <div id="edit-photo-error" style="margin-top:6px;display:none;font-size:11px;color:var(--danger)">⚠ Could not load that image URL. Check the link and try again.</div>
+      </div>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;font-size:12px;color:#0369a1;margin-top:4px">
+        <strong>Tip:</strong> Right-click any image online → "Copy image address" and paste it here. Or search Google Images for the drug, right-click the photo and copy the image URL.
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-outline" id="edit-remove-photo-btn" onclick="removeEditPhoto()" style="display:none;border-color:var(--danger);color:var(--danger)">Remove Custom Photo</button>
       <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
     </div>
   </div>
@@ -678,12 +691,46 @@ window.filterTable = function(tbodyId, query) {
 window.openEditModal = function(id, category) {
   const p = PRODUCTS[category].find(x => x.id === id);
   if (!p) return;
+  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
   document.getElementById('edit-product-id').value = id;
   document.getElementById('edit-product-category').value = category;
   document.getElementById('edit-name').value = p.name;
   document.getElementById('edit-price').value = p.price;
+  document.getElementById('edit-photo').value = customPhotos[id] || '';
   document.getElementById('edit-modal-title').textContent = 'Edit: ' + p.name.substring(0,30);
+  // Reset preview
+  document.getElementById('edit-photo-preview').style.display = 'none';
+  document.getElementById('edit-photo-error').style.display = 'none';
+  document.getElementById('edit-remove-photo-btn').style.display = customPhotos[id] ? 'inline-flex' : 'none';
+  if (customPhotos[id]) {
+    document.getElementById('edit-photo-img').src = customPhotos[id];
+    document.getElementById('edit-photo-preview').style.display = 'block';
+  }
   openModal('edit-modal');
+};
+
+window.previewEditPhoto = function() {
+  const url = document.getElementById('edit-photo').value.trim();
+  const preview = document.getElementById('edit-photo-preview');
+  const error = document.getElementById('edit-photo-error');
+  preview.style.display = 'none'; error.style.display = 'none';
+  if (!url) return;
+  const img = document.getElementById('edit-photo-img');
+  img.onerror = () => { preview.style.display = 'none'; error.style.display = 'block'; };
+  img.onload  = () => { error.style.display = 'none'; preview.style.display = 'block'; };
+  img.src = url;
+};
+
+window.removeEditPhoto = function() {
+  const id = document.getElementById('edit-product-id').value;
+  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+  delete customPhotos[id];
+  localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+  try { sessionStorage.removeItem('ducor_img_v2'); } catch(e) {}
+  document.getElementById('edit-photo').value = '';
+  document.getElementById('edit-photo-preview').style.display = 'none';
+  document.getElementById('edit-remove-photo-btn').style.display = 'none';
+  addNotif('info','Photo Removed','Custom photo removed — auto image will be used.');
 };
 
 window.saveEdit = function() {
@@ -691,18 +738,27 @@ window.saveEdit = function() {
   const category = document.getElementById('edit-product-category').value;
   const name = document.getElementById('edit-name').value.trim();
   const price = parseFloat(document.getElementById('edit-price').value);
+  const photo = document.getElementById('edit-photo').value.trim();
   if (!name || isNaN(price) || price < 0) { alert('Please enter valid name and price.'); return; }
   const p = PRODUCTS[category].find(x => x.id === id);
   if (p) {
     const old = p.name;
     p.name = name; p.price = price;
     saveProducts();
+    // Save custom photo override
+    const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+    if (photo) { customPhotos[id] = photo; }
+    else { delete customPhotos[id]; }
+    localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+    // Clear image cache so shop pages reload fresh
+    try { sessionStorage.removeItem('ducor_img_v2'); } catch(e) {}
     const nameEl = document.getElementById('name-' + id);
     const priceEl = document.getElementById('price-' + id);
     if (nameEl) nameEl.textContent = name;
     if (priceEl) priceEl.textContent = price.toFixed(2);
-    addNotif('success','Product Updated',`"${old}" updated to "$${price.toFixed(2)}"`,timeAgo(Date.now()));
-    addLog('info',`Edited product: ${old} → ${name} ($${price.toFixed(2)})`);
+    const photoMsg = photo ? ' + custom photo set' : '';
+    addNotif('success','Product Updated',`"${old}" updated to "$${price.toFixed(2)}"${photoMsg}`,timeAgo(Date.now()));
+    addLog('info',`Edited product: ${old} → ${name} ($${price.toFixed(2)})${photoMsg}`);
     renderAllTables();
   }
   closeModal('edit-modal');
