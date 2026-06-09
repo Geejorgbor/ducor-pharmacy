@@ -1,0 +1,489 @@
+// ── PRODUCT DATA ──────────────────────────────────────────────────────────────
+
+const PRODUCTS = {
+  prescription: [
+    {id:'rx001',name:'Acetazolamide 250mg',price:14.99},
+    {id:'rx002',name:'Acyclovir 400mg',price:12.50},
+    {id:'rx003',name:'Acyclovir Ointment 5%',price:18.75},
+    {id:'rx004',name:'Albuterol HFA Inhaler 8.5gm',price:32.00},
+    {id:'rx005',name:'Allopurinol 100mg',price:9.50},
+    {id:'rx006',name:'Allopurinol 300mg',price:11.25},
+    {id:'rx007',name:'Amitriptyline 25mg',price:10.00},
+    {id:'rx008',name:'Amlodipine 5mg',price:8.75},
+    {id:'rx009',name:'Amlodipine 10mg',price:9.50},
+    {id:'rx010',name:'Amlodipine/Valsartan 10/160mg',price:28.00},
+    {id:'rx011',name:'Amlodipine/Valsartan 5/160mg',price:26.50},
+    {id:'rx012',name:'Amox/Clav 600-42.9mg/ml',price:22.00},
+    {id:'rx013',name:'Amoxicillin 500mg',price:10.50},
+    {id:'rx014',name:'Amoxicillin Susp 400mg/5ml',price:14.00},
+    {id:'rx015',name:'Amoxicillin/Clav 500-125mg',price:16.75},
+    {id:'rx016',name:'Amoxicillin/Clav 875-125mg',price:18.50},
+    {id:'rx017',name:'Aripiprazole 2mg',price:35.00},
+    {id:'rx018',name:'Aripiprazole 5mg',price:38.50},
+    {id:'rx019',name:'Aripiprazole 10mg',price:42.00},
+    {id:'rx020',name:'Atenolol 50mg',price:9.00},
+    {id:'rx021',name:'Atomoxetine 10mg',price:45.00},
+    {id:'rx022',name:'Atomoxetine 18mg',price:48.00},
+    {id:'rx023',name:'Atomoxetine 25mg',price:52.00},
+    {id:'rx024',name:'Atorvastatin 10mg',price:11.50},
+    {id:'rx025',name:'Atorvastatin 20mg',price:13.00},
+    {id:'rx026',name:'Azithromycin 200mg/5ml',price:16.00},
+    {id:'rx027',name:'Azithromycin 250mg',price:14.50},
+    {id:'rx028',name:'Azithromycin 500mg',price:18.00},
+    {id:'rx029',name:'Bicalutamide 50mg',price:55.00},
+    {id:'rx030',name:'Bupropion XL 150mg',price:22.00},
+    {id:'rx031',name:'Bupropion XL 300mg',price:28.00},
+    {id:'rx032',name:'Carbidopa/Levodopa 25-100mg',price:18.50},
+    {id:'rx033',name:'Carbamazepine 200mg',price:14.00},
+    {id:'rx034',name:'Carvedilol 3.125mg',price:10.00},
+    {id:'rx035',name:'Carvedilol 6.25mg',price:11.50},
+    {id:'rx036',name:'Carvedilol 12.5mg',price:13.00},
+    {id:'rx037',name:'Carvedilol 25mg',price:15.00},
+    {id:'rx038',name:'Cefuroxime 500mg',price:20.00},
+    {id:'rx039',name:'Celecoxib (Celebrex) 200mg',price:34.00},
+    {id:'rx040',name:'Cephalexin 500mg',price:12.50},
+    {id:'rx041',name:'Ciprofloxacin 500mg',price:14.00},
+    {id:'rx042',name:'Clindamycin 150mg',price:16.00},
+    {id:'rx043',name:'Clindamycin 300mg',price:19.00},
+    {id:'rx044',name:'Clonidine 0.1mg',price:9.50},
+    {id:'rx045',name:'Clonidine 0.2mg',price:11.00},
+    {id:'rx046',name:'Clopidogrel 75mg',price:13.50},
+    {id:'rx047',name:'Dibucaine 1% Ointment',price:16.00},
+    {id:'rx048',name:'Diclofenac 50mg',price:14.00},
+    {id:'rx049',name:'Digoxin 250mcg',price:12.00},
+    {id:'rx050',name:'Diltiazem 120mg',price:15.50},
+    {id:'rx051',name:'Donepezil 5mg',price:22.00},
+    {id:'rx052',name:'Dorzolamide/Timolol Eye Drops',price:38.00},
+    {id:'rx053',name:'Doxycycline Hyclate 100mg',price:13.00},
+    {id:'rx054',name:'Duloxetine 30mg',price:28.00},
+    {id:'rx055',name:'Emtricitabine/Tenofovir',price:95.00},
+    {id:'rx056',name:'Esomeprazole 40mg',price:18.00},
+    {id:'rx057',name:'Fenofibrate 160mg',price:19.50},
+    {id:'rx058',name:'Finasteride 5mg',price:14.00},
+    {id:'rx059',name:'Fluconazole 150mg',price:12.00},
+    {id:'rx060',name:'Fluconazole Susp 10mg/ml',price:18.00},
+    {id:'rx061',name:'Fluoxetine 20mg',price:10.50},
+    {id:'rx062',name:'Folic Acid 1mg',price:8.00},
+    {id:'rx063',name:'Furosemide 20mg',price:9.00},
+    {id:'rx064',name:'Furosemide 40mg',price:10.00},
+    {id:'rx065',name:'Gabapentin 100mg',price:12.00},
+    {id:'rx066',name:'Gabapentin 300mg',price:14.50},
+    {id:'rx067',name:'Glimepiride 2mg',price:11.00},
+    {id:'rx068',name:'Glipizide 10mg',price:10.50},
+    {id:'rx069',name:'Haloperidol 5mg',price:15.00},
+    {id:'rx070',name:'Hydralazine 25mg',price:10.00},
+    {id:'rx071',name:'Hydrochlorothiazide 12.5mg',price:8.50},
+    {id:'rx072',name:'Hydrochlorothiazide 25mg',price:9.50},
+    {id:'rx073',name:'Hydrocortisone 1% Oint (Rx)',price:14.00},
+    {id:'rx074',name:'Hydrocortisone 10mg Tabs',price:12.00},
+    {id:'rx075',name:'Hydroxychloroquine 200mg',price:22.00},
+    {id:'rx076',name:'Hydroxyurea 500mg',price:30.00},
+    {id:'rx077',name:'Ibuprofen 400mg (Rx)',price:10.00},
+    {id:'rx078',name:'Ibuprofen 600mg',price:12.00},
+    {id:'rx079',name:'Ketotifen 0.025% Ophthalmic',price:28.00},
+    {id:'rx080',name:'Lancets (Rx)',price:14.00},
+    {id:'rx081',name:'Lansoprazole 15mg',price:13.00},
+    {id:'rx082',name:'Letrozole 2.5mg',price:48.00},
+    {id:'rx083',name:'Levetiracetam 250mg',price:18.00},
+    {id:'rx084',name:'Levetiracetam 500mg',price:22.00},
+    {id:'rx085',name:'Levofloxacin 500mg',price:18.00},
+    {id:'rx086',name:'Levofloxacin 750mg',price:22.00},
+    {id:'rx087',name:'Levothyroxine 25mcg',price:10.00},
+    {id:'rx088',name:'Levothyroxine 50mcg',price:10.50},
+    {id:'rx089',name:'Levothyroxine 75mcg',price:11.00},
+    {id:'rx090',name:'Levothyroxine 88mcg',price:11.50},
+    {id:'rx091',name:'Levothyroxine 100mcg',price:12.00},
+    {id:'rx092',name:'Levothyroxine 125mcg',price:12.50},
+    {id:'rx093',name:'Lisinopril 10mg',price:9.00},
+    {id:'rx094',name:'Lisinopril 20mg',price:10.00},
+    {id:'rx095',name:'Lisinopril/HCTZ 20/12.5mg',price:12.50},
+    {id:'rx096',name:'Lisinopril/HCTZ 20/25mg',price:13.50},
+    {id:'rx097',name:'Losartan 50mg',price:11.00},
+    {id:'rx098',name:'Losartan 100mg',price:13.00},
+    {id:'rx099',name:'Losartan/HCTZ 50/12.5mg',price:14.50},
+    {id:'rx100',name:'Losartan/HCTZ 100/12.5mg',price:16.00},
+    {id:'rx101',name:'Meloxicam 7.5mg',price:11.00},
+    {id:'rx102',name:'Meloxicam 15mg',price:13.00},
+    {id:'rx103',name:'Metformin 500mg',price:9.50},
+    {id:'rx104',name:'Methimazole 5mg',price:12.00},
+    {id:'rx105',name:'Methimazole 10mg',price:14.00},
+    {id:'rx106',name:'Metoclopramide 10mg',price:10.00},
+    {id:'rx107',name:'Metoprolol Succinate XL 25mg',price:12.00},
+    {id:'rx108',name:'Metoprolol Succinate XL 50mg',price:14.00},
+    {id:'rx109',name:'Metoprolol Succinate XL 100mg',price:16.00},
+    {id:'rx110',name:'Metoprolol Tartrate 50mg',price:10.00},
+    {id:'rx111',name:'Metoprolol Tartrate 100mg',price:12.00},
+    {id:'rx112',name:'Metronidazole 500mg',price:11.00},
+    {id:'rx113',name:'Moxifloxacin 0.5% Ophthalmic',price:32.00},
+    {id:'rx114',name:'Naproxen 500mg',price:12.00},
+    {id:'rx115',name:'Nifedipine ER 30mg',price:14.00},
+    {id:'rx116',name:'Nifedipine IR 10mg',price:11.00},
+    {id:'rx117',name:'Nifedipine IR 20mg',price:12.50},
+    {id:'rx118',name:'Nitrofurantoin 100mg',price:16.00},
+    {id:'rx119',name:'Nystatin Ointment',price:15.00},
+    {id:'rx120',name:'Olanzapine 5mg',price:28.00},
+    {id:'rx121',name:'Olanzapine 10mg',price:34.00},
+    {id:'rx122',name:'Olanzapine 15mg',price:40.00},
+    {id:'rx123',name:'Olanzapine 20mg',price:46.00},
+    {id:'rx124',name:'Ondansetron 4mg',price:14.00},
+    {id:'rx125',name:'Ondansetron ODT 4mg',price:18.00},
+    {id:'rx126',name:'Oxybutynin 5mg',price:12.00},
+    {id:'rx127',name:'Pantoprazole 40mg',price:13.00},
+    {id:'rx128',name:'Penicillin VK 500mg',price:10.50},
+    {id:'rx129',name:'Prednisone 10mg',price:9.50},
+    {id:'rx130',name:'Prednisone 20mg',price:11.00},
+    {id:'rx131',name:'Progesterone 100mg',price:24.00},
+    {id:'rx132',name:'Progesterone 200mg',price:30.00},
+    {id:'rx133',name:'Promethazine 25mg',price:11.00},
+    {id:'rx134',name:'Rifampin 150mg',price:28.00},
+    {id:'rx135',name:'Rifampin 300mg',price:36.00},
+    {id:'rx136',name:'Risperidone 2mg',price:22.00},
+    {id:'rx137',name:'Rosuvastatin 10mg',price:14.00},
+    {id:'rx138',name:'Rosuvastatin 20mg',price:17.00},
+    {id:'rx139',name:'Spironolactone 25mg',price:11.00},
+    {id:'rx140',name:'Sulfamethoxazole/Trimethoprim 800/160mg',price:12.00},
+    {id:'rx141',name:'Tadalafil 5mg',price:22.00},
+    {id:'rx142',name:'Tadalafil 20mg',price:32.00},
+    {id:'rx143',name:'Tamsulosin 0.4mg',price:14.00},
+    {id:'rx144',name:'Telmisartan 40mg',price:18.00},
+    {id:'rx145',name:'Tenofovir 300mg',price:45.00},
+    {id:'rx146',name:'Travoprost Eye Drops',price:42.00},
+    {id:'rx147',name:'Valacyclovir 500mg',price:18.00},
+    {id:'rx148',name:'Valproic Acid 250mg',price:14.00},
+    {id:'rx149',name:'Vancomycin 250mg',price:38.00},
+    {id:'rx150',name:'Venlafaxine IR 75mg',price:16.00},
+    {id:'rx151',name:'Vitamin D3 50,000 IU (Rx)',price:14.00},
+  ],
+  otc: [
+    {id:'otc001',name:'A&D Ointment',price:8.50},
+    {id:'otc002',name:'Acetaminophen 325mg',price:7.00},
+    {id:'otc003',name:'Acetaminophen 500mg',price:8.50},
+    {id:'otc004',name:'Acetaminophen Arthritis 650mg',price:10.00},
+    {id:'otc005',name:'Acetaminophen PM',price:9.50},
+    {id:'otc006',name:'Acne Medication 5%',price:11.00},
+    {id:'otc007',name:'Acne Medication 10%',price:12.50},
+    {id:'otc008',name:'Antacid 500mg Chewable Tabs',price:7.50},
+    {id:'otc009',name:'Artificial Tears Eye Drops',price:9.00},
+    {id:'otc010',name:'Aspirin 81mg Chewable Tablets',price:8.00},
+    {id:'otc011',name:'Aspirin 81mg EC Tablets',price:8.00},
+    {id:'otc012',name:'Bacitracin Ointment',price:7.50},
+    {id:'otc013',name:'Banophen (Benadryl)',price:9.00},
+    {id:'otc014',name:'Benzoyl Peroxide 5% Gel',price:11.00},
+    {id:'otc015',name:'Blood Glucose Meter',price:24.00},
+    {id:'otc016',name:'Blood Pressure Machine',price:45.00},
+    {id:'otc017',name:'Calamine Lotion',price:8.50},
+    {id:'otc018',name:'Cetirizine 10mg',price:10.00},
+    {id:'otc019',name:'Cetirizine 5mg/5ml Syrup',price:12.00},
+    {id:'otc020',name:'Children\'s Acetaminophen 100/5ml',price:9.50},
+    {id:'otc021',name:'Children\'s Ibuprofen 200mg/5ml',price:9.50},
+    {id:'otc022',name:'Chlorpheniramine 4mg',price:7.50},
+    {id:'otc023',name:'Clotrimazole 1% Cream',price:10.00},
+    {id:'otc024',name:'Cold/Flu Capsules',price:9.50},
+    {id:'otc025',name:'Daytime Cold/Flu Syrup',price:10.50},
+    {id:'otc026',name:'Diphenhydramine Cream',price:9.00},
+    {id:'otc027',name:'Fluticasone 50mcg Nasal Spray',price:18.00},
+    {id:'otc028',name:'Glucose Tablets',price:8.50},
+    {id:'otc029',name:'Guaifenesin DM Cough Liquid',price:11.00},
+    {id:'otc030',name:'Hemorrhoidal Ointment',price:10.50},
+    {id:'otc031',name:'Hydrocortisone 1% Cream',price:8.50},
+    {id:'otc032',name:'Hydrocortisone 1% Ointment',price:8.50},
+    {id:'otc033',name:'Ibuprofen 200mg',price:8.00},
+    {id:'otc034',name:'Iron 325mg',price:9.00},
+    {id:'otc035',name:'Ketoconazole 2% Cream',price:14.00},
+    {id:'otc036',name:'Loperamide (Imodium) 2mg',price:9.50},
+    {id:'otc037',name:'Loratadine 10mg',price:9.50},
+    {id:'otc038',name:'Maalox Antacid',price:11.00},
+    {id:'otc039',name:'Meclizine 25mg',price:9.00},
+    {id:'otc040',name:'Melatonin 5mg',price:10.00},
+    {id:'otc041',name:'Melatonin 10mg',price:11.50},
+    {id:'otc042',name:'Menstrual Relief Tablets',price:9.50},
+    {id:'otc043',name:'Miconazole 2% Cream',price:10.50},
+    {id:'otc044',name:'Miconazole-7 Vaginal Cream',price:14.00},
+    {id:'otc045',name:'Migraine Relief',price:11.00},
+    {id:'otc046',name:'Milk of Magnesia',price:9.00},
+    {id:'otc047',name:'Muscle Pain Rub',price:10.50},
+    {id:'otc048',name:'Naproxen 220mg',price:9.00},
+    {id:'otc049',name:'Nasal Spray (Afrin)',price:10.00},
+    {id:'otc050',name:'Night Time Cold Relief Syrup',price:11.00},
+    {id:'otc051',name:'Omeprazole 20mg',price:13.00},
+    {id:'otc052',name:'Refresh Eye Drops',price:10.50},
+    {id:'otc053',name:'Saline Nasal Drops',price:7.50},
+    {id:'otc054',name:'Senna-Plus 8.6mg/50mg',price:9.50},
+    {id:'otc055',name:'Sildenafil 50mg',price:28.00},
+    {id:'otc056',name:'Simethicone 80mg (Gas Relief)',price:8.00},
+    {id:'otc057',name:'Stomach Relief Liquid',price:9.50},
+    {id:'otc058',name:'Test Strips (Blood Glucose)',price:22.00},
+    {id:'otc059',name:'Triple Antibiotic Cream',price:8.50},
+  ],
+  vitamins: [
+    {id:'vit001',name:'Apple Cider Vinegar 300mg',price:12.00},
+    {id:'vit002',name:'B-Complex with B-12',price:13.50},
+    {id:'vit003',name:'B-Complex with Vitamin C',price:14.00},
+    {id:'vit004',name:'Calcium with Vitamin D',price:14.50},
+    {id:'vit005',name:'Certa-Vite Senior with Lutein',price:18.00},
+    {id:'vit006',name:'Co Q-10 30mg',price:14.00},
+    {id:'vit007',name:'Co Q-10 50mg',price:17.00},
+    {id:'vit008',name:'Co Q-10 100mg',price:22.00},
+    {id:'vit009',name:'Cod Liver Oil',price:15.00},
+    {id:'vit010',name:'Collagen Tablets',price:20.00},
+    {id:'vit011',name:'Cranberry Tablets',price:13.00},
+    {id:'vit012',name:'Cyproheptadine 4mg (Appetite)',price:11.00},
+    {id:'vit013',name:'Daily Multivitamins',price:13.00},
+    {id:'vit014',name:'Children\'s Multivitamins Chewable',price:12.00},
+    {id:'vit015',name:'Fish Oil 1000mg',price:14.00},
+    {id:'vit016',name:'Flaxseed Oil with Omega 3, 6, 9',price:16.00},
+    {id:'vit017',name:'Glucosamine/Chondroitin',price:22.00},
+    {id:'vit018',name:'Hair, Skin & Nails Formula',price:18.00},
+    {id:'vit019',name:'Magnesium Glycinate',price:16.00},
+    {id:'vit020',name:'Magnesium Oxide 400mg',price:12.00},
+    {id:'vit021',name:'Men\'s Olly Multivitamin',price:20.00},
+    {id:'vit022',name:'Men\'s One A Day Multivitamin',price:18.00},
+    {id:'vit023',name:'Poly-Vi-Sol Children\'s Vitamins',price:14.00},
+    {id:'vit024',name:'Poly-Vi-Sol with Iron',price:15.50},
+    {id:'vit025',name:'Prenatal Vitamins',price:18.00},
+    {id:'vit026',name:'Probiotics Formula Capsules',price:24.00},
+    {id:'vit027',name:'Saw Palmetto',price:16.00},
+    {id:'vit028',name:'Vitamin B1 100mg',price:10.00},
+    {id:'vit029',name:'Vitamin B12 1000mcg',price:12.00},
+    {id:'vit030',name:'Vitamin B6 25mg',price:10.00},
+    {id:'vit031',name:'Vitamin C 500mg',price:11.00},
+    {id:'vit032',name:'Vitamin D3 1000 IU',price:10.00},
+    {id:'vit033',name:'Vitamin D3 5,000 IU',price:12.00},
+    {id:'vit034',name:'Vitamin E 400 IU (180mg)',price:13.00},
+    {id:'vit035',name:'Women\'s Olly Multivitamin',price:20.00},
+    {id:'vit036',name:'Women\'s One A Day Multivitamin',price:18.00},
+    {id:'vit037',name:'Zinc Sulfate 50mg',price:10.00},
+  ]
+};
+
+// ── SVG ICONS ──────────────────────────────────────────────────────────────────
+
+const ICONS = {
+  rx: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="8" width="24" height="48" rx="6" fill="#1d4ed8" opacity="0.15"/>
+    <rect x="20" y="8" width="24" height="48" rx="6" stroke="#1d4ed8" stroke-width="2"/>
+    <rect x="24" y="18" width="16" height="3" rx="1.5" fill="#1d4ed8"/>
+    <rect x="24" y="26" width="16" height="3" rx="1.5" fill="#1d4ed8" opacity="0.7"/>
+    <rect x="24" y="34" width="10" height="3" rx="1.5" fill="#1d4ed8" opacity="0.5"/>
+    <circle cx="44" cy="44" r="12" fill="#1d4ed8"/>
+    <text x="44" y="48" text-anchor="middle" font-size="11" font-weight="bold" fill="white" font-family="sans-serif">Rx</text>
+  </svg>`,
+  otc: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="32" cy="32" rx="14" ry="20" fill="#0891b2" opacity="0.15"/>
+    <ellipse cx="32" cy="32" rx="14" ry="20" stroke="#0891b2" stroke-width="2"/>
+    <rect x="18" y="29" width="28" height="6" rx="3" fill="#0891b2" opacity="0.25"/>
+    <rect x="18" y="29" width="28" height="6" rx="3" stroke="#0891b2" stroke-width="2"/>
+    <ellipse cx="24" cy="32" rx="6" ry="10" fill="#0891b2" opacity="0.2"/>
+  </svg>`,
+  vit: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="22" fill="#16a34a" opacity="0.1"/>
+    <circle cx="32" cy="32" r="22" stroke="#16a34a" stroke-width="2"/>
+    <path d="M32 14 L36 26 L48 26 L38 34 L42 46 L32 38 L22 46 L26 34 L16 26 L28 26 Z" fill="#16a34a" opacity="0.7"/>
+  </svg>`
+};
+
+// ── CART ───────────────────────────────────────────────────────────────────────
+
+const Cart = {
+  key: 'ducor-cart',
+  items: [],
+
+  load() {
+    try { this.items = JSON.parse(localStorage.getItem(this.key) || '[]'); }
+    catch { this.items = []; }
+  },
+
+  save() {
+    localStorage.setItem(this.key, JSON.stringify(this.items));
+  },
+
+  add(product, category) {
+    this.load();
+    const existing = this.items.find(i => i.id === product.id);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      this.items.push({ ...product, category, qty: 1 });
+    }
+    this.save();
+    this.updateBadge();
+    this.renderDrawer();
+  },
+
+  remove(id) {
+    this.items = this.items.filter(i => i.id !== id);
+    this.save();
+    this.updateBadge();
+    this.renderDrawer();
+  },
+
+  setQty(id, qty) {
+    if (qty < 1) { this.remove(id); return; }
+    const item = this.items.find(i => i.id === id);
+    if (item) item.qty = qty;
+    this.save();
+    this.updateBadge();
+    this.renderDrawer();
+  },
+
+  count() {
+    return this.items.reduce((s, i) => s + i.qty, 0);
+  },
+
+  subtotal() {
+    return this.items.reduce((s, i) => s + i.price * i.qty, 0);
+  },
+
+  updateBadge() {
+    const badge = document.getElementById('cart-badge');
+    if (!badge) return;
+    const c = this.count();
+    badge.textContent = c;
+    badge.classList.toggle('hidden', c === 0);
+  },
+
+  renderDrawer() {
+    const el = document.getElementById('cart-items-list');
+    if (!el) return;
+    if (this.items.length === 0) {
+      el.innerHTML = `<div class="cart-empty">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <p>Your cart is empty</p>
+      </div>`;
+      document.getElementById('cart-total-line').style.display = 'none';
+      return;
+    }
+    document.getElementById('cart-total-line').style.display = '';
+    const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+    const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+    el.innerHTML = this.items.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
+        <div class="cart-item-info">
+          <h4>${item.name}</h4>
+          <p>$${(item.price * item.qty).toFixed(2)}</p>
+        </div>
+        <div class="cart-item-qty">
+          <button class="qty-btn" onclick="Cart.setQty('${item.id}', ${item.qty - 1})">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="Cart.setQty('${item.id}', ${item.qty + 1})">+</button>
+        </div>
+        <button class="cart-remove" onclick="Cart.remove('${item.id}')" title="Remove">×</button>
+      </div>`).join('');
+    const sub = this.subtotal();
+    const shipping = sub >= 50 ? 0 : 5.99;
+    document.getElementById('cart-subtotal-val').textContent = '$' + sub.toFixed(2);
+    document.getElementById('cart-shipping-val').textContent = shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2);
+    document.getElementById('cart-total-val').textContent = '$' + (sub + shipping).toFixed(2);
+  },
+
+  open() {
+    this.renderDrawer();
+    document.getElementById('cart-overlay').classList.add('open');
+    document.getElementById('cart-drawer').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  close() {
+    document.getElementById('cart-overlay').classList.remove('open');
+    document.getElementById('cart-drawer').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+};
+
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>${msg}`;
+  container.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => t.classList.add('show')); });
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, 2800);
+}
+
+// ── PRODUCT RENDERER ───────────────────────────────────────────────────────────
+
+function renderProducts(category, containerId, filterVal = '', sortVal = 'name') {
+  let list = PRODUCTS[category] || [];
+
+  if (filterVal.trim()) {
+    const q = filterVal.toLowerCase();
+    list = list.filter(p => p.name.toLowerCase().includes(q));
+  }
+
+  if (sortVal === 'price-asc') list = [...list].sort((a,b) => a.price - b.price);
+  else if (sortVal === 'price-desc') list = [...list].sort((a,b) => b.price - a.price);
+  else list = [...list].sort((a,b) => a.name.localeCompare(b.name));
+
+  const tagClass = { rx: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
+  const tagLabel = { rx: 'RX', otc: 'OTC', vitamins: 'Supplement' };
+  const imgBg = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+  const icon = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+
+  const container = document.getElementById(containerId);
+  const count = document.getElementById('results-count');
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="no-results">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>No medications found for "<strong>${filterVal}</strong>"</p>
+    </div>`;
+    if (count) count.textContent = '0 results';
+    return;
+  }
+
+  if (count) count.textContent = `${list.length} medication${list.length !== 1 ? 's' : ''}`;
+
+  container.innerHTML = list.map(p => `
+    <div class="product-card">
+      <div class="product-img ${imgBg[category]}">${icon[category]}</div>
+      <div class="product-body">
+        <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
+        <p class="product-name">${p.name}</p>
+        <p class="product-price">$${p.price.toFixed(2)} <span>/ unit</span></p>
+        <button class="btn-add" id="btn-${p.id}" onclick="addToCart('${p.id}','${category}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add to Cart
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function addToCart(productId, category) {
+  Cart.load();
+  const product = PRODUCTS[category].find(p => p.id === productId);
+  if (!product) return;
+  Cart.add(product, category);
+  showToast(`${product.name} added to cart`);
+  const btn = document.getElementById('btn-' + productId);
+  if (btn) {
+    btn.classList.add('added');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Added!`;
+    setTimeout(() => {
+      btn.classList.remove('added');
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add to Cart`;
+    }, 2000);
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+
+function initShop(category) {
+  Cart.load();
+  Cart.updateBadge();
+  renderProducts(category, 'products-grid');
+
+  const searchInput = document.getElementById('search-input');
+  const sortSelect = document.getElementById('sort-select');
+
+  function update() {
+    renderProducts(category, 'products-grid', searchInput.value, sortSelect.value);
+  }
+
+  if (searchInput) searchInput.addEventListener('input', update);
+  if (sortSelect) sortSelect.addEventListener('change', update);
+
+  document.getElementById('cart-overlay').addEventListener('click', () => Cart.close());
+}
