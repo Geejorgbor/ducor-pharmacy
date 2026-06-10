@@ -254,6 +254,26 @@
     .gr-item-right{font-size:13px;font-weight:700;color:var(--navy)}
     .gr-no-result{padding:20px;text-align:center;font-size:13px;color:var(--muted)}
 
+    /* ── STAFF MANAGEMENT ── */
+    .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
+    .staff-slot{background:var(--white);border-radius:16px;border:1.5px dashed var(--border);overflow:hidden;text-align:center;transition:all .2s;position:relative}
+    .staff-slot.filled{border-style:solid;border-color:var(--border)}
+    .staff-slot:hover{border-color:var(--gold);box-shadow:0 4px 18px rgba(201,160,85,.15)}
+    .staff-photo{width:100%;height:200px;object-fit:cover;object-position:top;display:block}
+    .staff-photo-placeholder{width:100%;height:200px;background:linear-gradient(135deg,#f1f5f9,#e2e8f0);display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .staff-photo-placeholder svg{opacity:.3}
+    .staff-slot-body{padding:14px 12px}
+    .staff-slot-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .staff-slot-title{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:10px}
+    .staff-slot-actions{display:flex;gap:6px;justify-content:center}
+    .staff-edit-label{background:var(--navy);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:opacity .2s}
+    .staff-edit-label:hover{opacity:.85}
+    .staff-clear-btn{background:#fee2e2;color:var(--danger);border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s}
+    .staff-clear-btn:hover{opacity:.8}
+    .staff-add-label{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 12px;cursor:pointer;color:var(--muted)}
+    .staff-add-label svg{opacity:.4}
+    .staff-add-label span{font-size:12px;font-weight:600}
+
     /* ── HAMBURGER (mobile) ── */
     .hamburger{display:none;background:none;border:1.5px solid var(--border);border-radius:8px;padding:7px;cursor:pointer;color:var(--text);align-items:center;justify-content:center}
     .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;backdrop-filter:blur(2px)}
@@ -320,6 +340,12 @@
     <button class="nav-item" onclick="showSection('analytics',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Analytics
+    </button>
+
+    <div class="nav-section-label">Website</div>
+    <button class="nav-item" onclick="showSection('team',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Our Team
     </button>
     <button class="nav-item" onclick="showSection('settings',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -825,6 +851,30 @@
       </div>
     </div>
 
+    <!-- ════ OUR TEAM ════ -->
+    <div class="section" id="sec-team">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h4>Our Team – Staff Photos</h4>
+            <p>These photos appear on the homepage "Meet Our Team" section. Upload up to 6 staff members.</p>
+          </div>
+          <button class="btn btn-gold" onclick="saveTeam()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Save All Changes
+          </button>
+        </div>
+        <div class="panel-body">
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div><strong>How to add photos:</strong> Click "Upload Photo" on any slot, choose a photo from your device, fill in the name and job title, then click "Save All Changes" at the top. Photos appear on the website homepage immediately after saving.</div>
+          </div>
+          <div class="staff-grid" id="staff-grid"></div>
+          <div id="team-save-msg" style="display:none;margin-top:14px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600"></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /page-content -->
 </main>
 
@@ -841,7 +891,15 @@
       <div class="field"><label>Medication Name</label><input type="text" id="edit-name" placeholder="Enter medication name"/></div>
       <div class="field"><label>Price (USD)</label><input type="number" id="edit-price" step="0.01" min="0" placeholder="0.00"/></div>
       <div class="field">
-        <label>Photo URL <span style="font-weight:400;color:var(--muted)">(paste any image link — leave blank for auto)</span></label>
+        <label>Product Photo</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <label style="background:var(--navy);color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Upload from Device
+            <input type="file" accept="image/*" id="edit-photo-file" style="display:none" onchange="handleEditPhotoUpload(event)"/>
+          </label>
+          <span style="font-size:12px;color:var(--muted);align-self:center">— or paste a URL below —</span>
+        </div>
         <input type="url" id="edit-photo" placeholder="https://example.com/drug-photo.jpg" oninput="previewEditPhoto()"/>
         <div id="edit-photo-preview" style="margin-top:10px;display:none;text-align:center">
           <img id="edit-photo-img" src="" alt="preview" style="max-width:100%;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:#f8fafc;padding:8px"/>
@@ -850,7 +908,7 @@
         <div id="edit-photo-error" style="margin-top:6px;display:none;font-size:11px;color:var(--danger)">⚠ Could not load that image URL. Check the link and try again.</div>
       </div>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;font-size:12px;color:#0369a1;margin-top:4px">
-        <strong>Tip:</strong> Right-click any image online → "Copy image address" and paste it here. Or search Google Images for the drug, right-click the photo and copy the image URL.
+        <strong>Tip:</strong> Use "Upload from Device" to pick one of your pharmacy photos, or paste a web URL. The photo will show on the product listing page.
       </div>
     </div>
     <div class="modal-footer">
@@ -1048,7 +1106,7 @@ window.showSection = function(name, btn) {
     'products-rx':'Prescription Medications','products-otc':'Over-the-Counter Medications',
     'products-vit':'Vitamins & Supplements','orders':'Customer Orders',
     'content':'Website Content','security':'Security Log',
-    'analytics':'Analytics','settings':'Settings'
+    'analytics':'Analytics','settings':'Settings','team':'Our Team'
   };
   document.getElementById('page-title').textContent = titles[name] || name;
   document.getElementById('page-sub').textContent = {
@@ -1061,7 +1119,8 @@ window.showSection = function(name, btn) {
     'content':'Edit website text and information',
     'security':'Complete log of admin activities',
     'analytics':'Track visitors, page views, devices, and traffic sources',
-    'settings':'Manage password, backup data, and store information'
+    'settings':'Manage password, backup data, and store information',
+    'team':'Manage staff photos shown on the homepage'
   }[name] || '';
   // Close mobile sidebar on nav
   document.querySelector('.sidebar').classList.remove('mob-open');
@@ -1071,6 +1130,7 @@ window.showSection = function(name, btn) {
   if (name === 'security') renderSecurityLog();
   if (name === 'analytics') loadAnalytics();
   if (name === 'settings') { document.getElementById('acc-email').textContent = currentUser?.email || '—'; }
+  if (name === 'team') renderTeamSlots();
 };
 
 // ── TABLES ──
@@ -1721,6 +1781,157 @@ window.saveStoreInfo = function() {
   saved.style.display = 'inline';
   setTimeout(() => saved.style.display = 'none', 2500);
   addLog('info', 'Store information updated');
+};
+
+// ── PRODUCT PHOTO FILE UPLOAD ──
+window.handleEditPhotoUpload = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
+    document.getElementById('edit-photo').value = dataUrl;
+    const prev = document.getElementById('edit-photo-preview');
+    const img = document.getElementById('edit-photo-img');
+    prev.style.display = 'block';
+    img.src = dataUrl;
+    document.getElementById('edit-photo-error').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+};
+
+// ── TEAM MANAGEMENT ──
+const MAX_STAFF = 6;
+
+function getStaff() {
+  try { return JSON.parse(localStorage.getItem('ducor-staff') || '[]'); } catch(e) { return []; }
+}
+
+function renderTeamSlots() {
+  const staff = getStaff();
+  // Pad to MAX_STAFF slots
+  const slots = [];
+  for (let i = 0; i < MAX_STAFF; i++) {
+    slots.push(staff[i] || null);
+  }
+  const grid = document.getElementById('staff-grid');
+  if (!grid) return;
+  grid.innerHTML = slots.map((m, i) => {
+    if (m) {
+      return `<div class="staff-slot filled">
+        ${m.photo
+          ? `<img src="${m.photo}" alt="${m.name}" class="staff-photo" id="staff-photo-prev-${i}"/>`
+          : `<div class="staff-photo-placeholder">
+              <svg width="56" height="56" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="1">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>`}
+        <div class="staff-slot-body">
+          <div class="field" style="margin-bottom:8px">
+            <input type="text" id="staff-name-${i}" value="${m.name || ''}" placeholder="Full Name" style="width:100%;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit"/>
+          </div>
+          <div class="field" style="margin-bottom:10px">
+            <input type="text" id="staff-title-${i}" value="${m.title || ''}" placeholder="Job Title" style="width:100%;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit"/>
+          </div>
+          <input type="hidden" id="staff-photo-data-${i}" value="${m.photo || ''}"/>
+          <div class="staff-slot-actions">
+            <label class="staff-edit-label">
+              <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/></svg>
+              Photo
+              <input type="file" accept="image/*" style="display:none" onchange="loadStaffPhoto(event,${i})"/>
+            </label>
+            <button class="staff-clear-btn" onclick="clearStaffSlot(${i})">Remove</button>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="staff-slot">
+        <label class="staff-add-label">
+          <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>Add Staff Member</span>
+          <span style="font-size:10px;color:#cbd5e1">Click to upload photo</span>
+          <input type="file" accept="image/*" style="display:none" onchange="addNewStaffFromFile(event,${i})"/>
+        </label>
+        <div class="staff-slot-body" style="display:none" id="staff-new-body-${i}">
+          <div class="field" style="margin-bottom:8px">
+            <input type="text" id="staff-name-${i}" placeholder="Full Name" style="width:100%;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit"/>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <input type="text" id="staff-title-${i}" placeholder="Job Title" style="width:100%;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit"/>
+          </div>
+          <input type="hidden" id="staff-photo-data-${i}" value=""/>
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+window.loadStaffPhoto = function(e, idx) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('staff-photo-data-' + idx).value = ev.target.result;
+    const prev = document.getElementById('staff-photo-prev-' + idx);
+    if (prev) { prev.src = ev.target.result; }
+    else {
+      const slot = document.getElementById('staff-grid').children[idx];
+      if (slot) {
+        const ph = slot.querySelector('.staff-photo-placeholder');
+        if (ph) ph.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:200px;object-fit:cover;object-position:top;display:block" id="staff-photo-prev-${idx}"/>`;
+      }
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.addNewStaffFromFile = function(e, idx) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const staff = getStaff();
+    while (staff.length <= idx) staff.push(null);
+    staff[idx] = { name: '', title: '', photo: ev.target.result };
+    localStorage.setItem('ducor-staff', JSON.stringify(staff.filter(Boolean)));
+    renderTeamSlots();
+  };
+  reader.readAsDataURL(file);
+};
+
+window.clearStaffSlot = function(idx) {
+  const staff = getStaff();
+  if (staff[idx]) { staff[idx] = null; }
+  localStorage.setItem('ducor-staff', JSON.stringify(staff.filter(Boolean)));
+  renderTeamSlots();
+};
+
+window.saveTeam = function() {
+  const staff = getStaff();
+  const MAX = MAX_STAFF;
+  const saved = [];
+  for (let i = 0; i < MAX; i++) {
+    const nameEl = document.getElementById('staff-name-' + i);
+    const titleEl = document.getElementById('staff-title-' + i);
+    const photoEl = document.getElementById('staff-photo-data-' + i);
+    if (!nameEl) continue;
+    const name = nameEl.value.trim();
+    const title = titleEl ? titleEl.value.trim() : '';
+    const photo = photoEl ? photoEl.value : (staff[i] ? staff[i].photo : '');
+    if (name || photo) {
+      saved.push({ name: name || 'Staff Member', title: title || 'Pharmacy Staff', photo });
+    }
+  }
+  localStorage.setItem('ducor-staff', JSON.stringify(saved));
+  const msg = document.getElementById('team-save-msg');
+  msg.style.display = 'block';
+  msg.style.background = '#f0fdf4'; msg.style.border = '1px solid #bbf7d0'; msg.style.color = '#15803d';
+  msg.textContent = '✓ Team saved! Staff photos now appear on the homepage.';
+  setTimeout(() => { msg.style.display = 'none'; }, 4000);
+  addLog('info', `Team updated: ${saved.length} staff member(s)`);
+  renderTeamSlots();
 };
 </script>
 </body>
