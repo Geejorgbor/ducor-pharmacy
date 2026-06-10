@@ -320,6 +320,10 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Vitamins & Supplements
     </button>
+    <button class="nav-item" onclick="showSection('product-photos',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Product Photos
+    </button>
 
     <div class="nav-section-label">Store</div>
     <button class="nav-item" onclick="showSection('orders',this)">
@@ -634,6 +638,27 @@
             <div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search vitamins & supplements…" oninput="filterTable('vit-tbody',this.value)" style="padding-left:36px"/></div>
           </div>
           <div class="table-wrap"><table><thead><tr><th>#</th><th>Product Name</th><th>Price (USD)</th><th>Actions</th></tr></thead><tbody id="vit-tbody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ PRODUCT PHOTOS ════ -->
+    <div class="section" id="sec-product-photos">
+      <div class="panel">
+        <div class="panel-header">
+          <div><h4>Product Photos Manager</h4><p>Upload your own real bottle photos for every medication.</p></div>
+          <div class="panel-actions" style="gap:6px">
+            <button id="pp-tab-otc" onclick="renderPhotoGrid('otc')" class="btn btn-sm" style="background:#0891b2;color:#fff;border:none;font-size:12px;padding:7px 14px">OTC</button>
+            <button id="pp-tab-vitamins" onclick="renderPhotoGrid('vitamins')" class="btn btn-sm" style="background:#e2e8f0;color:#64748b;border:none;font-size:12px;padding:7px 14px">Vitamins</button>
+            <button id="pp-tab-prescription" onclick="renderPhotoGrid('prescription')" class="btn btn-sm" style="background:#e2e8f0;color:#64748b;border:none;font-size:12px;padding:7px 14px">Prescription</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;font-size:12px;color:#166534;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div><strong>How to use:</strong> Click <strong>"Upload Photo"</strong> under any medication to pick a photo from your phone or computer. The real bottle photo will show on the website immediately. The red × button removes a custom photo.</div>
+          </div>
+          <div id="photo-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px"></div>
         </div>
       </div>
     </div>
@@ -1147,7 +1172,7 @@ window.showSection = function(name, btn) {
     'products-vit':'Vitamins & Supplements','orders':'Customer Orders',
     'content':'Website Content','security':'Security Log',
     'analytics':'Analytics','settings':'Settings','team':'Our Team',
-    'hero-photos':'Hero Slideshow'
+    'hero-photos':'Hero Slideshow','product-photos':'Product Photos Manager'
   };
   document.getElementById('page-title').textContent = titles[name] || name;
   document.getElementById('page-sub').textContent = {
@@ -1162,7 +1187,8 @@ window.showSection = function(name, btn) {
     'analytics':'Track visitors, page views, devices, and traffic sources',
     'settings':'Manage password, backup data, and store information',
     'team':'Manage staff photos shown on the homepage',
-    'hero-photos':'Upload extra background photos for the homepage hero slideshow'
+    'hero-photos':'Upload extra background photos for the homepage hero slideshow',
+    'product-photos':'Upload real bottle photos for each medication — they show on the website'
   }[name] || '';
   // Close mobile sidebar on nav
   document.querySelector('.sidebar').classList.remove('mob-open');
@@ -1174,6 +1200,7 @@ window.showSection = function(name, btn) {
   if (name === 'settings') { document.getElementById('acc-email').textContent = currentUser?.email || '—'; }
   if (name === 'team') renderTeamSlots();
   if (name === 'hero-photos') renderHeroSlots();
+  if (name === 'product-photos') renderPhotoGrid();
 };
 
 // ── TABLES ──
@@ -1249,7 +1276,7 @@ window.removeEditPhoto = function() {
   const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
   delete customPhotos[id];
   localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
-  try { sessionStorage.removeItem('ducor_img_v2'); } catch(e) {}
+  try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
   document.getElementById('edit-photo').value = '';
   document.getElementById('edit-photo-preview').style.display = 'none';
   document.getElementById('edit-remove-photo-btn').style.display = 'none';
@@ -1274,7 +1301,7 @@ window.saveEdit = function() {
     else { delete customPhotos[id]; }
     localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
     // Clear image cache so shop pages reload fresh
-    try { sessionStorage.removeItem('ducor_img_v2'); } catch(e) {}
+    try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
     const nameEl = document.getElementById('name-' + id);
     const priceEl = document.getElementById('price-' + id);
     if (nameEl) nameEl.textContent = name;
@@ -1285,6 +1312,72 @@ window.saveEdit = function() {
     renderAllTables();
   }
   closeModal('edit-modal');
+};
+
+// ── PRODUCT PHOTOS MANAGER ──
+let _ppCategory = 'otc';
+
+window.renderPhotoGrid = function(cat) {
+  if (cat) _ppCategory = cat;
+  // Update tab button styles
+  const tabColors = { otc:'#0891b2', vitamins:'#16a34a', prescription:'#1d4ed8' };
+  ['otc','vitamins','prescription'].forEach(c => {
+    const btn = document.getElementById('pp-tab-' + c);
+    if (!btn) return;
+    btn.style.background = (c === _ppCategory) ? tabColors[c] : '#e2e8f0';
+    btn.style.color = (c === _ppCategory) ? '#fff' : '#64748b';
+  });
+  const catKey = _ppCategory;
+  const list = PRODUCTS[catKey] || [];
+  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+  const grid = document.getElementById('photo-grid');
+  if (!grid) return;
+  const color = tabColors[_ppCategory] || '#0891b2';
+  grid.innerHTML = list.map(p => {
+    const hasPhoto = !!customPhotos[p.id];
+    const photoSrc = hasPhoto ? customPhotos[p.id] : '';
+    return `<div style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''">
+      <div style="height:130px;background:#f8fafc;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        ${hasPhoto
+          ? `<img src="${photoSrc}" alt="${p.name}" style="max-width:100%;max-height:130px;object-fit:contain" onerror="this.parentNode.innerHTML='<div style=color:#cbd5e1;text-align:center;font-size:10px>Photo error</div>'">`
+          : `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#cbd5e1"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span style="font-size:10px;font-weight:500">No photo yet</span></div>`
+        }
+        ${hasPhoto ? `<button onclick="removePPPhoto('${p.id}')" title="Remove photo" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:700">×</button>` : ''}
+      </div>
+      <div style="padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:6px">
+        <p style="font-size:11px;font-weight:600;color:#1e293b;line-height:1.3">${p.name}</p>
+        <label style="display:flex;align-items:center;justify-content:center;gap:5px;background:${color};color:#fff;padding:7px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          ${hasPhoto ? 'Change Photo' : 'Upload Photo'}
+          <input type="file" accept="image/*" style="display:none" onchange="handlePPUpload(event,'${p.id}')">
+        </label>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.handlePPUpload = function(event, productId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+    customPhotos[productId] = e.target.result;
+    localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+    try { sessionStorage.removeItem('ducor_img_v3'); } catch(ex) {}
+    renderPhotoGrid();
+    addNotif('success','Photo Saved','Product photo uploaded and saved successfully.');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.removePPPhoto = function(productId) {
+  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+  delete customPhotos[productId];
+  localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+  try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
+  renderPhotoGrid();
+  addNotif('info','Photo Removed','Custom photo removed — auto image will be used.');
 };
 
 // ── ADD MODAL ──
