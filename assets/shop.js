@@ -408,12 +408,130 @@ function showToast(msg) {
 const _imgCache = {};
 const _imgQueue = [];
 let _imgActive = 0;
-const _IMG_CONCURRENT = 5;
+const _IMG_CONCURRENT = 4;
 
-// sessionStorage cache across page navigations
-const _SS_KEY = 'ducor_img_v2';
+// sessionStorage cache across page navigations — keyed by drug name
+const _SS_KEY = 'ducor_img_v3';
 try { const _s = sessionStorage.getItem(_SS_KEY); if (_s) Object.assign(_imgCache, JSON.parse(_s)); } catch(e) {}
 function _saveImgCache() { try { sessionStorage.setItem(_SS_KEY, JSON.stringify(_imgCache)); } catch(e) {} }
+
+// Strip dosage / form info → generic name for NIH search
+function _genericName(full) {
+  return full
+    .replace(/\s*\(.*?\)/g, '')
+    .replace(/\s*\/.*/, '')
+    .replace(/\s+[\d][\d\s.\-]*(mg|mcg|ml|gm|g|iu|%|units?|eq|meq)[^\s]*/gi, '')
+    .replace(/\s+(XL|ER|IR|SR|ODT|HFA|EC|PM)\b.*/gi, '')
+    .replace(/\s+(ophthalmic|ointment|cream|gel|tablet|capsule|syrup|drop|spray|injection|chewable|liquid|solution|suspension|lotion|topical|nasal|oral|susp|oint)\b.*/gi, '')
+    .replace(/\s+\d+$/g, '')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// ── SOURCE 1: NIH RxImage API ────────────────────────────────────────────────
+// Free public API from US National Library of Medicine — returns actual FDA
+// product photos (pill bottles, blister packs, capsules as sold in pharmacies)
+async function _fetchNIHImage(drugName) {
+  const generic = _genericName(drugName);
+  if (!generic || generic.length < 3) return null;
+  const cacheKey = 'nih:' + generic.toLowerCase();
+  if (cacheKey in _imgCache) return _imgCache[cacheKey];
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(
+      'https://rximage.nlm.nih.gov/api/rximage/1/rxbase?name=' +
+      encodeURIComponent(generic) + '&resolution=600&format=json',
+      { signal: ctrl.signal }
+    );
+    clearTimeout(tid);
+    if (r.ok) {
+      const d = await r.json();
+      const imgs = d?.nlmRxImages;
+      if (imgs && imgs.length > 0) {
+        // Pick first active image
+        const found = imgs.find(i => i.status === 'ACTIVE') || imgs[0];
+        const url = found.imageUrl;
+        _imgCache[cacheKey] = url;
+        _saveImgCache();
+        return url;
+      }
+    }
+  } catch(e) {}
+  _imgCache[cacheKey] = null;
+  return null;
+}
+
+// ── NDC MAP: exact NDC numbers from actual inventory photos ──────────────────
+// NDC lookup returns the EXACT product photo for each bottle shown in store
+const _PRODUCT_NDC = {
+  'otc002': '57896-102-01',   // Geri Care Acetaminophen 325mg (regular strength)
+  'otc003': '57896-219-01',   // Geri Care Acetaminophen 500mg (extra strength)
+  'otc004': '70010-160-01',   // Acetaminophen 650mg ER (8-hour arthritis)
+  'otc005': '57896-224-05',   // Health Star Night Time Pain Medicine (Acetaminophen PM)
+  'otc010': '57896-911-36',   // Geri Care Aspirin 81mg Chewable Low Dose
+  'otc025': '70677-1031-1',   // Foster & Thrive Daytime Cold & Flu Relief syrup
+  'otc031': '62559-430-01',   // Hydrocortisone Cream USP 1% (ANI brand)
+  'rx073':  '62559-430-01',   // Hydrocortisone 1% Cream Rx (same product, Rx-dispensed)
+};
+
+async function _fetchNIHImageByNDC(ndc) {
+  const cacheKey = 'ndc:' + ndc;
+  if (cacheKey in _imgCache) return _imgCache[cacheKey];
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(
+      'https://rximage.nlm.nih.gov/api/rximage/1/rxbase?ndc=' +
+      encodeURIComponent(ndc) + '&resolution=600&format=json',
+      { signal: ctrl.signal }
+    );
+    clearTimeout(tid);
+    if (r.ok) {
+      const d = await r.json();
+      const imgs = d?.nlmRxImages;
+      if (imgs && imgs.length > 0) {
+        const found = imgs.find(i => i.status === 'ACTIVE') || imgs[0];
+        const url = found.imageUrl;
+        _imgCache[cacheKey] = url;
+        _saveImgCache();
+        return url;
+      }
+    }
+  } catch(e) {}
+  _imgCache[cacheKey] = null;
+  return null;
+}
+
+// ── SOURCE 2: Open Library of Medicine (DailyMed thumbnail fallback) ─────────
+async function _fetchDailyMedImage(drugName) {
+  const generic = _genericName(drugName);
+  if (!generic || generic.length < 3) return null;
+  const cacheKey = 'dm:' + generic.toLowerCase();
+  if (cacheKey in _imgCache) return _imgCache[cacheKey];
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 7000);
+    // DailyMed fulltext search → get first SPL set id → fetch image
+    const r = await fetch(
+      'https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?drug_name=' +
+      encodeURIComponent(generic) + '&pagesize=1',
+      { signal: ctrl.signal }
+    );
+    clearTimeout(tid);
+    if (r.ok) {
+      const d = await r.json();
+      const setId = d?.data?.[0]?.setid;
+      if (setId) {
+        const url = `https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=${setId}&type=img`;
+        _imgCache[cacheKey] = url;
+        _saveImgCache();
+        return url;
+      }
+    }
+  } catch(e) {}
+  _imgCache[cacheKey] = null;
+  return null;
+}
 
 // Comprehensive map: drug name keyword → exact Wikipedia article title
 const _DRUG_WIKI_NAMES = {
@@ -703,12 +821,30 @@ function _applyImage(productId, imageUrl, svgFallback) {
 
 function _processImgQueue() {
   while (_imgActive < _IMG_CONCURRENT && _imgQueue.length > 0) {
-    const { productId, wikiTitle, svgFallback } = _imgQueue.shift();
+    const { productId, drugName, wikiTitle, svgFallback } = _imgQueue.shift();
     _imgActive++;
-    _fetchWikiImage(wikiTitle).then(url => {
-      if (url) _applyImage(productId, url, svgFallback);
-      _imgActive--;
-      _processImgQueue();
+    const ndc = _PRODUCT_NDC[productId];
+    // Chain: NDC exact match → NIH name search → Wikipedia → SVG label
+    (ndc ? _fetchNIHImageByNDC(ndc) : Promise.resolve(null)).then(ndcUrl => {
+      if (ndcUrl) {
+        _applyImage(productId, ndcUrl, svgFallback);
+        _imgActive--;
+        _processImgQueue();
+      } else {
+        _fetchNIHImage(drugName).then(url => {
+          if (url) {
+            _applyImage(productId, url, svgFallback);
+            _imgActive--;
+            _processImgQueue();
+          } else {
+            _fetchWikiImage(wikiTitle).then(wUrl => {
+              if (wUrl) _applyImage(productId, wUrl, svgFallback);
+              _imgActive--;
+              _processImgQueue();
+            });
+          }
+        });
+      }
     });
   }
 }
@@ -728,8 +864,14 @@ function _startImageLoading(list, category) {
       return;
     }
     const wikiTitle = _getWikiTitle(p.name);
-    // If cached, apply immediately (photo or SVG)
-    const cached = _imgCache[wikiTitle.toLowerCase()];
+    const ndcKey  = _PRODUCT_NDC[p.id] ? 'ndc:' + _PRODUCT_NDC[p.id] : null;
+    const nihKey  = 'nih:' + _genericName(p.name).toLowerCase();
+    const wikiKey = wikiTitle.toLowerCase();
+    // Check caches in priority order: NDC → NIH name → Wikipedia
+    const cached = (ndcKey && ndcKey in _imgCache)  ? _imgCache[ndcKey]
+                 : (nihKey  in _imgCache)            ? _imgCache[nihKey]
+                 : (wikiKey in _imgCache)            ? _imgCache[wikiKey]
+                 : undefined;
     if (cached !== undefined) {
       if (cached) _applyImage(p.id, cached, svgFallback);
       else el.innerHTML = svgFallback;
@@ -737,7 +879,7 @@ function _startImageLoading(list, category) {
     }
     // Show SVG while fetching
     el.innerHTML = svgFallback;
-    _imgQueue.push({ productId: p.id, wikiTitle, svgFallback });
+    _imgQueue.push({ productId: p.id, drugName: p.name, wikiTitle, svgFallback });
   });
   _processImgQueue();
 }
