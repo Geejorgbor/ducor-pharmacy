@@ -165,8 +165,102 @@
     .empty-state svg{opacity:.3;margin-bottom:12px}
     .empty-state p{font-size:14px}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+
+    /* ── LIVE CLOCK ── */
+    .topbar-clock{text-align:right;margin-right:8px;line-height:1.2}
+    .topbar-clock .clock-time{font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--navy),var(--rx));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .topbar-clock .clock-date{font-size:10px;color:var(--muted);font-weight:500}
+
+    /* ── GREETING BANNER ── */
+    .greeting-banner{background:linear-gradient(135deg,var(--navy) 0%,#1e3a6e 50%,#0d2d5e 100%);border-radius:18px;padding:24px 28px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+    .greeting-banner::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(201,160,85,.12);border-radius:50%}
+    .greeting-banner::after{content:'';position:absolute;bottom:-60px;right:80px;width:120px;height:120px;background:rgba(201,160,85,.08);border-radius:50%}
+    .greeting-text h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#fff;margin-bottom:4px}
+    .greeting-text p{font-size:13px;color:rgba(255,255,255,.65);font-weight:400}
+    .greeting-actions{display:flex;gap:10px;z-index:1}
+    .greeting-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:8px 16px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:6px}
+    .greeting-pill:hover{background:rgba(201,160,85,.3);border-color:var(--gold)}
+    .greeting-pill.gold{background:linear-gradient(135deg,var(--gold),#e8c97a);color:var(--navy);border:none}
+
+    /* ── QUICK ACTIONS ── */
+    .quick-actions{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:22px}
+    .qa-btn{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px 8px 14px;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;position:relative;overflow:hidden}
+    .qa-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s}
+    .qa-btn:hover::before{opacity:1}
+    .qa-btn:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+    .qa-btn.qa-rx{border-color:#bfdbfe}.qa-btn.qa-rx::before{background:linear-gradient(135deg,#eff6ff,#dbeafe)}.qa-btn.qa-rx:hover{border-color:#3b82f6}
+    .qa-btn.qa-otc{border-color:#a5f3fc}.qa-btn.qa-otc::before{background:linear-gradient(135deg,#ecfeff,#cffafe)}.qa-btn.qa-otc:hover{border-color:#06b6d4}
+    .qa-btn.qa-vit{border-color:#bbf7d0}.qa-btn.qa-vit::before{background:linear-gradient(135deg,#f0fdf4,#dcfce7)}.qa-btn.qa-vit:hover{border-color:#22c55e}
+    .qa-btn.qa-orders{border-color:#fed7aa}.qa-btn.qa-orders::before{background:linear-gradient(135deg,#fff7ed,#ffedd5)}.qa-btn.qa-orders:hover{border-color:#f97316}
+    .qa-btn.qa-web{border-color:#c4b5fd}.qa-btn.qa-web::before{background:linear-gradient(135deg,#faf5ff,#ede9fe)}.qa-btn.qa-web:hover{border-color:#8b5cf6}
+    .qa-btn.qa-pass{border-color:#fda4af}.qa-btn.qa-pass::before{background:linear-gradient(135deg,#fff1f2,#ffe4e6)}.qa-btn.qa-pass:hover{border-color:#f43f5e}
+    .qa-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+    .qa-icon.rx{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+    .qa-icon.otc{background:linear-gradient(135deg,#06b6d4,#0891b2)}
+    .qa-icon.vit{background:linear-gradient(135deg,#22c55e,#16a34a)}
+    .qa-icon.orders{background:linear-gradient(135deg,#f97316,#ea580c)}
+    .qa-icon.web{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+    .qa-icon.pass{background:linear-gradient(135deg,#f43f5e,#e11d48)}
+    .qa-btn span{font-size:11px;font-weight:700;color:var(--text);position:relative;z-index:1;line-height:1.3}
+
+    /* ── STORE LINKS ── */
+    .store-links{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .store-link{border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;transition:all .15s;border:1.5px solid transparent}
+    .store-link:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1);border-color:rgba(255,255,255,.3)}
+    .sl-home{background:linear-gradient(135deg,#0d1b2a,#1e3a6e)}
+    .sl-rx{background:linear-gradient(135deg,#1d4ed8,#2563eb)}
+    .sl-otc{background:linear-gradient(135deg,#0891b2,#0e7490)}
+    .sl-vit{background:linear-gradient(135deg,#16a34a,#15803d)}
+    .store-link .sl-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .store-link .sl-text p{font-size:12px;font-weight:700;color:#fff}
+    .store-link .sl-text span{font-size:11px;color:rgba(255,255,255,.6)}
+    .store-link .sl-arrow{margin-left:auto;color:rgba(255,255,255,.4);font-size:14px}
+
+    /* ── ANALYTICS ── */
+    .chart-bar-wrap{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px}
+    .chart-bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+    .chart-bar{border-radius:8px 8px 0 0;transition:opacity .2s;cursor:default;min-height:4px;width:100%}
+    .chart-bar:hover{opacity:.75}
+    .chart-label{font-size:10px;color:var(--muted);white-space:nowrap;font-weight:500}
+    .chart-val{font-size:9px;font-weight:700;color:var(--muted)}
+    .analytics-metric{background:var(--white);border-radius:14px;border:1px solid var(--border);padding:18px;text-align:center}
+    .analytics-metric .am-val{font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--navy),var(--rx));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:4px}
+    .analytics-metric .am-label{font-size:12px;color:var(--muted);font-weight:500}
+
+    /* ── SETTINGS ── */
+    .settings-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
+    .settings-card-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+    .settings-card-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .settings-card h5{font-size:15px;font-weight:700;color:var(--text)}
+    .settings-card p.desc{font-size:13px;color:var(--muted);margin-bottom:18px;padding-left:52px;margin-top:-2px}
+    .backup-btn{background:linear-gradient(135deg,#0d1b2a,#1e3a6e);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;transition:opacity .2s}
+    .backup-btn:hover{opacity:.85}
+    .backup-btn.green{background:linear-gradient(135deg,#16a34a,#15803d)}
+    .backup-btn.red{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+
+    /* ── GLOBAL SEARCH ── */
+    .global-search-wrap{position:relative;width:280px}
+    .global-search-wrap input{width:100%;padding:8px 12px 8px 34px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:var(--bg);transition:border-color .2s}
+    .global-search-wrap input:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px rgba(201,160,85,.12)}
+    .global-search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
+    .global-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.14);z-index:300;max-height:300px;overflow-y:auto;display:none}
+    .global-results.open{display:block}
+    .gr-item{padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+    .gr-item:last-child{border-bottom:none}
+    .gr-item:hover{background:#fafafa}
+    .gr-item-left p{font-size:13px;font-weight:500;color:var(--text)}
+    .gr-item-left span{font-size:11px;color:var(--muted)}
+    .gr-item-right{font-size:13px;font-weight:700;color:var(--navy)}
+    .gr-no-result{padding:20px;text-align:center;font-size:13px;color:var(--muted)}
+
+    /* ── HAMBURGER (mobile) ── */
+    .hamburger{display:none;background:none;border:1.5px solid var(--border);border-radius:8px;padding:7px;cursor:pointer;color:var(--text);align-items:center;justify-content:center}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;backdrop-filter:blur(2px)}
+
+    @media(max-width:1200px){.quick-actions{grid-template-columns:repeat(3,1fr)}.store-links{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.health-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}.two-col{grid-template-columns:1fr}}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.mob-open{transform:none;z-index:100}.sidebar-overlay.mob-open{display:block}.main{margin-left:0}.two-col,.three-col{grid-template-columns:1fr}.hamburger{display:flex}.quick-actions{grid-template-columns:repeat(2,1fr)}.store-links{grid-template-columns:1fr 1fr}.greeting-actions{display:none}.topbar-clock{display:none}.global-search-wrap{width:180px}}
   </style>
 </head>
 <body>
@@ -221,7 +315,18 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Security Log
     </button>
+
+    <div class="nav-section-label">Insights</div>
+    <button class="nav-item" onclick="showSection('analytics',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Analytics
+    </button>
+    <button class="nav-item" onclick="showSection('settings',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
   </nav>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <div class="sidebar-footer">
     <div class="admin-info">
@@ -241,18 +346,32 @@
 <!-- ── MAIN ── -->
 <main class="main">
   <div class="topbar">
-    <div class="topbar-title">
-      <h3 id="page-title">Dashboard</h3>
-      <p id="page-sub">Welcome back — here's what's happening</p>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="hamburger" onclick="toggleSidebar()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title">
+        <h3 id="page-title">Dashboard</h3>
+        <p id="page-sub">Welcome back — here's what's happening</p>
+      </div>
     </div>
     <div class="topbar-right">
-      <div class="status-pill"><div class="status-dot"></div>Website Live</div>
-      <button class="topbar-btn" onclick="showSection('notifications',document.querySelector('.nav-item:nth-child(2)'))">
+      <div class="global-search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="global-search-input" placeholder="Search all medicines…" oninput="globalSearch(this.value)" onblur="setTimeout(closeGlobalSearch,200)" autocomplete="off"/>
+        <div class="global-results" id="global-results"></div>
+      </div>
+      <div class="topbar-clock">
+        <div class="clock-time" id="clock-time">--:--</div>
+        <div class="clock-date" id="clock-date">Loading…</div>
+      </div>
+      <div class="status-pill"><div class="status-dot"></div>Live</div>
+      <button class="topbar-btn" onclick="showSection('notifications',null)" title="Notifications">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-dot" id="topbar-notif-dot"></span>
       </button>
-      <button class="topbar-btn" onclick="location.href='/index.html'" title="View Website">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <button class="topbar-btn" onclick="window.open('/index.html','_blank')" title="View Website">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10 15.3 15.3 0 0 1-4-10z"/></svg>
       </button>
     </div>
   </div>
@@ -261,7 +380,27 @@
 
     <!-- ════ DASHBOARD ════ -->
     <div class="section active" id="sec-dashboard">
-      <div class="stats-grid">
+
+      <!-- Greeting Banner -->
+      <div class="greeting-banner">
+        <div class="greeting-text">
+          <h2 id="greeting-msg">Good morning, Admin!</h2>
+          <p id="greeting-sub">Here's a live overview of your Ducor International Pharmacy store.</p>
+        </div>
+        <div class="greeting-actions">
+          <button class="greeting-pill gold" onclick="showSection('analytics',null)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            View Analytics
+          </button>
+          <button class="greeting-pill" onclick="window.open('/index.html','_blank')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            View Store
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:22px">
         <div class="stat-card rx">
           <div class="stat-icon rx"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></div>
           <div class="stat-value" id="stat-rx">151</div>
@@ -281,6 +420,74 @@
           <div class="stat-icon gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
           <div class="stat-value" id="stat-orders">0</div>
           <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card" style="--c:#16a34a">
+          <div class="stat-icon" style="background:#dcfce7"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="stat-value" id="stat-revenue" style="font-size:20px">$0</div>
+          <div class="stat-label">Total Revenue</div>
+          <style>.stat-card:nth-child(5)::before{background:#16a34a}</style>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,var(--navy),#1e3a6e);border:none">
+          <div class="stat-icon" style="background:rgba(255,255,255,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="stat-value" style="color:#fff" id="stat-visitors">0</div>
+          <div class="stat-label" style="color:rgba(255,255,255,.6)">Visitors Today</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="qa-btn qa-rx" onclick="openAddModal('prescription')">
+          <div class="qa-icon rx"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <span>Add Rx Drug</span>
+        </button>
+        <button class="qa-btn qa-otc" onclick="openAddModal('otc')">
+          <div class="qa-icon otc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <span>Add OTC Drug</span>
+        </button>
+        <button class="qa-btn qa-vit" onclick="openAddModal('vitamins')">
+          <div class="qa-icon vit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <span>Add Vitamin</span>
+        </button>
+        <button class="qa-btn qa-orders" onclick="showSection('orders',null)">
+          <div class="qa-icon orders"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
+          <span>View Orders</span>
+        </button>
+        <button class="qa-btn qa-web" onclick="showSection('analytics',null)">
+          <div class="qa-icon web"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <span>Analytics</span>
+        </button>
+        <button class="qa-btn qa-pass" onclick="openModal('pwd-modal')">
+          <div class="qa-icon pass"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <span>Change Password</span>
+        </button>
+      </div>
+
+      <!-- Store Quick Links -->
+      <div class="panel" style="margin-bottom:22px">
+        <div class="panel-header"><div><h4>Store Pages</h4><p>Open any page directly</p></div></div>
+        <div class="panel-body">
+          <div class="store-links">
+            <a class="store-link sl-home" href="/index.html" target="_blank">
+              <div class="sl-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+              <div class="sl-text"><p>Homepage</p><span>ducor-pharmacy.vercel.app</span></div>
+              <div class="sl-arrow">↗</div>
+            </a>
+            <a class="store-link sl-rx" href="/prescription.html" target="_blank">
+              <div class="sl-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></div>
+              <div class="sl-text"><p>Prescription</p><span>151 medications</span></div>
+              <div class="sl-arrow">↗</div>
+            </a>
+            <a class="store-link sl-otc" href="/otc.html" target="_blank">
+              <div class="sl-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+              <div class="sl-text"><p>OTC Medications</p><span>59 medications</span></div>
+              <div class="sl-arrow">↗</div>
+            </a>
+            <a class="store-link sl-vit" href="/vitamins.html" target="_blank">
+              <div class="sl-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <div class="sl-text"><p>Vitamins & Supplements</p><span>37 products</span></div>
+              <div class="sl-arrow">↗</div>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -469,6 +676,155 @@
       </div>
     </div>
 
+    <!-- ════ ANALYTICS ════ -->
+    <div class="section" id="sec-analytics">
+
+      <!-- Top metric cards -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px">
+        <div class="stat-card gold">
+          <div class="stat-icon gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="stat-value" id="an-total">0</div>
+          <div class="stat-label">Total Visitors (Today)</div>
+        </div>
+        <div class="stat-card rx">
+          <div class="stat-icon rx"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <div class="stat-value" id="an-desktop">0</div>
+          <div class="stat-label">Desktop Visitors</div>
+        </div>
+        <div class="stat-card otc">
+          <div class="stat-icon otc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+          <div class="stat-value" id="an-mobile">0</div>
+          <div class="stat-label">Mobile Visitors</div>
+        </div>
+        <div class="stat-card vit">
+          <div class="stat-icon vit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <div class="stat-value" id="an-direct">0</div>
+          <div class="stat-label">Direct Traffic</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Page Visits Chart -->
+        <div class="panel">
+          <div class="panel-header"><div><h4>Visits by Page</h4><p>Where visitors are going today</p></div></div>
+          <div class="panel-body">
+            <div id="page-chart" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+        </div>
+
+        <!-- Traffic Sources -->
+        <div class="panel">
+          <div class="panel-header"><div><h4>Traffic Sources</h4><p>How visitors are finding your site</p></div></div>
+          <div class="panel-body">
+            <div id="source-chart" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hourly traffic + recent visits -->
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header"><div><h4>Visits by Hour (Today)</h4><p>Peak traffic times</p></div></div>
+          <div class="panel-body">
+            <div id="hour-chart" class="chart-bar-wrap"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div><h4>Recent Visits</h4><p>Latest visitors to your store</p></div>
+            <button class="btn btn-outline btn-sm" onclick="loadAnalytics()">Refresh</button>
+          </div>
+          <div class="panel-body" id="recent-visits-list">
+            <div class="empty-state"><p>No visit data yet. Share your website link to start seeing visitors here.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-color:#bae6fd">
+        <div class="panel-body" style="padding:18px 22px">
+          <p style="font-size:13px;color:#0369a1"><strong>How this works:</strong> Every time someone visits your store pages (Homepage, Prescription, OTC, Vitamins, Checkout), their visit is automatically recorded here. Data shown is for <strong>today only</strong>. Refresh to see the latest numbers.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SETTINGS ════ -->
+    <div class="section" id="sec-settings">
+
+      <!-- Change Password -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-icon" style="background:linear-gradient(135deg,#f43f5e,#e11d48)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h5>Change Admin Password</h5>
+        </div>
+        <p class="desc">Update the password you use to log in to this dashboard.</p>
+        <div style="max-width:420px;display:flex;flex-direction:column;gap:14px">
+          <div class="field" style="margin:0"><label>New Password</label><input type="password" id="s-new-pass" placeholder="Enter new password (min. 8 characters)"/></div>
+          <div class="field" style="margin:0"><label>Confirm Password</label><input type="password" id="s-conf-pass" placeholder="Repeat new password"/></div>
+          <div id="s-pass-msg" style="font-size:12px;display:none;padding:8px 12px;border-radius:8px"></div>
+          <button class="backup-btn" onclick="changePassword()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Update Password
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup & Restore -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-icon" style="background:linear-gradient(135deg,#0d1b2a,#1e3a6e)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <h5>Backup & Restore</h5>
+        </div>
+        <p class="desc">Download all your product prices and settings as a backup file. You can restore it later if needed.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="backup-btn" onclick="backupData()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Backup
+          </button>
+          <label class="backup-btn green" style="cursor:pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Restore Backup
+            <input type="file" accept=".json" onchange="restoreData(event)" style="display:none"/>
+          </label>
+        </div>
+      </div>
+
+      <!-- Store Info -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-icon" style="background:linear-gradient(135deg,var(--gold),#e8c97a)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <h5>Store Information</h5>
+        </div>
+        <p class="desc">These details appear on your website. Changes save instantly.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:640px">
+          <div class="field" style="margin:0"><label>Store Name</label><input type="text" id="si-name" value="Ducor International Pharmacy"/></div>
+          <div class="field" style="margin:0"><label>Phone Number</label><input type="text" id="si-phone" placeholder="+231 77 000 0000"/></div>
+          <div class="field" style="margin:0"><label>Email</label><input type="email" id="si-email" placeholder="info@ducorpharmacy.com"/></div>
+          <div class="field" style="margin:0"><label>Address</label><input type="text" id="si-address" placeholder="Monrovia, Liberia"/></div>
+        </div>
+        <div style="margin-top:14px">
+          <button class="backup-btn" onclick="saveStoreInfo()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Save Store Info
+          </button>
+          <span id="si-saved" style="display:none;margin-left:10px;font-size:12px;color:var(--success);font-weight:600">✓ Saved!</span>
+        </div>
+      </div>
+
+      <!-- Admin Account Info -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <h5>Admin Account</h5>
+        </div>
+        <p class="desc">Your current admin login information.</p>
+        <div style="background:var(--bg);border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:8px;max-width:400px">
+          <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--muted)">Email</span><span id="acc-email" style="font-size:13px;font-weight:600">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--muted)">Login URL</span><span style="font-size:12px;font-weight:600;color:var(--rx)">ducor-pharmacy.vercel.app/admin.html</span></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /page-content -->
 </main>
 
@@ -537,6 +893,25 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('del-modal')">Cancel</button>
       <button class="btn btn-danger" onclick="confirmDelete()">Delete Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CHANGE PASSWORD MODAL ── -->
+<div class="modal-overlay" id="pwd-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#f43f5e,#e11d48)">
+      <h3>Change Password</h3>
+      <button class="modal-close" onclick="closeModal('pwd-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>New Password</label><input type="password" id="m-new-pass" placeholder="At least 8 characters"/></div>
+      <div class="field"><label>Confirm Password</label><input type="password" id="m-conf-pass" placeholder="Repeat new password"/></div>
+      <div id="m-pass-msg" style="font-size:12px;display:none;padding:8px 12px;border-radius:8px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('pwd-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="changePasswordModal()">Update Password</button>
     </div>
   </div>
 </div>
@@ -619,10 +994,47 @@ function init() {
   renderNotifications();
   renderSecurityLog();
   runHealthCheck();
+  startClock();
+  setGreeting();
+  loadStoreInfo();
   addNotif('success','Website Online','All pages are running normally.','Just now');
   updateOrderCount();
-  setInterval(loadOrders, 30000); // refresh orders every 30s
+  setInterval(loadOrders, 30000);
 }
+
+// ── LIVE CLOCK ──
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2,'0');
+    const m = now.getMinutes().toString().padStart(2,'0');
+    const s = now.getSeconds().toString().padStart(2,'0');
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('clock-time').textContent = `${h}:${m}:${s}`;
+    document.getElementById('clock-date').textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+// ── GREETING ──
+function setGreeting() {
+  const h = new Date().getHours();
+  const part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  const el = document.getElementById('greeting-msg');
+  if (el) el.textContent = `Good ${part}, Admin!`;
+  const sub = document.getElementById('greeting-sub');
+  if (sub) {
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    sub.textContent = `Today is ${days[new Date().getDay()]}. Here's a live overview of your Ducor International Pharmacy store.`;
+  }
+}
+
+// ── MOBILE SIDEBAR ──
+window.toggleSidebar = function() {
+  document.querySelector('.sidebar').classList.toggle('mob-open');
+  document.getElementById('sidebar-overlay').classList.toggle('mob-open');
+};
 
 // ── SECTION NAVIGATION ──
 window.showSection = function(name, btn) {
@@ -635,7 +1047,8 @@ window.showSection = function(name, btn) {
     'dashboard':'Dashboard','notifications':'Notifications',
     'products-rx':'Prescription Medications','products-otc':'Over-the-Counter Medications',
     'products-vit':'Vitamins & Supplements','orders':'Customer Orders',
-    'content':'Website Content','security':'Security Log'
+    'content':'Website Content','security':'Security Log',
+    'analytics':'Analytics','settings':'Settings'
   };
   document.getElementById('page-title').textContent = titles[name] || name;
   document.getElementById('page-sub').textContent = {
@@ -646,11 +1059,18 @@ window.showSection = function(name, btn) {
     'products-vit':'View, edit, add, or remove vitamins & supplements',
     'orders':'Manage and track customer orders',
     'content':'Edit website text and information',
-    'security':'Complete log of admin activities'
+    'security':'Complete log of admin activities',
+    'analytics':'Track visitors, page views, devices, and traffic sources',
+    'settings':'Manage password, backup data, and store information'
   }[name] || '';
+  // Close mobile sidebar on nav
+  document.querySelector('.sidebar').classList.remove('mob-open');
+  document.getElementById('sidebar-overlay').classList.remove('mob-open');
   if (name === 'orders') renderOrders();
   if (name === 'notifications') renderNotifications();
   if (name === 'security') renderSecurityLog();
+  if (name === 'analytics') loadAnalytics();
+  if (name === 'settings') { document.getElementById('acc-email').textContent = currentUser?.email || '—'; }
 };
 
 // ── TABLES ──
@@ -832,6 +1252,8 @@ function loadOrders() {
 
 function updateOrderCount() {
   document.getElementById('stat-orders').textContent = ORDERS.length;
+  const revenue = ORDERS.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+  document.getElementById('stat-revenue').textContent = '$' + revenue.toFixed(2);
   renderRecentOrders();
 }
 
@@ -1087,6 +1509,219 @@ function timeAgo(ts) {
   if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
   return Math.floor(diff/86400000) + 'd ago';
 }
+
+// ── GLOBAL SEARCH ──
+window.globalSearch = function(val) {
+  const box = document.getElementById('global-results');
+  if (!val.trim()) { box.classList.remove('open'); box.innerHTML = ''; return; }
+  const q = val.toLowerCase();
+  const all = [
+    ...PRODUCTS.prescription.map(p => ({...p, cat:'Rx'})),
+    ...PRODUCTS.otc.map(p => ({...p, cat:'OTC'})),
+    ...PRODUCTS.vitamins.map(p => ({...p, cat:'Vitamin'}))
+  ].filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
+  if (!all.length) {
+    box.innerHTML = '<div class="gr-no-result">No medicines found</div>';
+  } else {
+    box.innerHTML = all.map(p => `
+      <div class="gr-item" onclick="openEditModal('${p.id}','${p.cat==='Rx'?'prescription':p.cat==='OTC'?'otc':'vitamins'}')">
+        <div class="gr-item-left"><p>${p.name}</p><span>${p.cat}</span></div>
+        <div class="gr-item-right">$${p.price.toFixed(2)}</div>
+      </div>`).join('');
+  }
+  box.classList.add('open');
+};
+window.closeGlobalSearch = function() {
+  document.getElementById('global-results').classList.remove('open');
+};
+
+// ── ANALYTICS ──
+window.loadAnalytics = async function() {
+  const today = new Date().toISOString().slice(0,10);
+  try {
+    const { doc, getDoc, collection, query, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const snap = await getDoc(doc(db, 'analytics_days', today));
+    const data = snap.exists() ? snap.data() : {};
+    const total = data.total || 0;
+    const devices = data.devices || {};
+    const sources = data.sources || {};
+    const pages = data.pages || {};
+    const hours = data.hours || {};
+
+    document.getElementById('an-total').textContent = total;
+    document.getElementById('an-desktop').textContent = devices.Desktop || 0;
+    document.getElementById('an-mobile').textContent = devices.Mobile || 0;
+    document.getElementById('an-direct').textContent = sources.Direct || 0;
+    document.getElementById('stat-visitors').textContent = total;
+
+    // Page visits bar chart
+    const pageNames = ['Homepage','Prescription','OTC','Vitamins','Checkout'];
+    const pageColors = ['#0d1b2a','#1d4ed8','#0891b2','#16a34a','#d97706'];
+    const maxPage = Math.max(1, ...pageNames.map(p => pages[p] || 0));
+    document.getElementById('page-chart').innerHTML = pageNames.map((p,i) => {
+      const val = pages[p] || 0;
+      const pct = Math.round(val / maxPage * 100);
+      return `<div style="display:flex;align-items:center;gap:10px">
+        <div style="width:100px;font-size:12px;font-weight:600;color:var(--text);text-align:right;flex-shrink:0">${p}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:10px">
+          <div style="width:${pct}%;background:${pageColors[i]};height:10px;border-radius:6px;transition:width .4s"></div>
+        </div>
+        <div style="width:28px;font-size:12px;font-weight:700;color:var(--text)">${val}</div>
+      </div>`;
+    }).join('');
+
+    // Source chart
+    const sourceNames = ['Direct','Search','Social','Referral','Internal'];
+    const sourceColors = ['#8b5cf6','#f97316','#ec4899','#14b8a6','#64748b'];
+    const maxSrc = Math.max(1, ...sourceNames.map(s => sources[s] || 0));
+    document.getElementById('source-chart').innerHTML = sourceNames.map((s,i) => {
+      const val = sources[s] || 0;
+      const pct = Math.round(val / maxSrc * 100);
+      return `<div style="display:flex;align-items:center;gap:10px">
+        <div style="width:80px;font-size:12px;font-weight:600;color:var(--text);text-align:right;flex-shrink:0">${s}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:10px">
+          <div style="width:${pct}%;background:${sourceColors[i]};height:10px;border-radius:6px;transition:width .4s"></div>
+        </div>
+        <div style="width:28px;font-size:12px;font-weight:700;color:var(--text)">${val}</div>
+      </div>`;
+    }).join('');
+
+    // Hourly chart
+    const maxH = Math.max(1, ...Array.from({length:24},(_,i) => hours[`h${i}`] || 0));
+    document.getElementById('hour-chart').innerHTML = Array.from({length:24},(_,i) => {
+      const val = hours[`h${i}`] || 0;
+      const pct = Math.max(4, Math.round(val / maxH * 100));
+      const label = i === 0 ? '12a' : i < 12 ? `${i}a` : i === 12 ? '12p' : `${i-12}p`;
+      const color = i >= 8 && i <= 20 ? '#1d4ed8' : '#94a3b8';
+      return `<div class="chart-bar-col">
+        <div class="chart-val">${val || ''}</div>
+        <div class="chart-bar" style="height:${pct}%;background:${color};width:100%"></div>
+        <div class="chart-label">${label}</div>
+      </div>`;
+    }).join('');
+
+    // Recent visits feed
+    const vSnap = await getDocs(query(collection(db,'analytics_visits'), orderBy('ts','desc'), limit(10)));
+    const visits = [];
+    vSnap.forEach(d => visits.push(d.data()));
+    const icons = {Homepage:'🏠',Prescription:'💊',OTC:'🛒',Vitamins:'🌿',Checkout:'📦',Other:'🌐'};
+    const deviceIcons = {Mobile:'📱',Desktop:'💻'};
+    document.getElementById('recent-visits-list').innerHTML = visits.length
+      ? `<div style="display:flex;flex-direction:column;gap:8px">${visits.map(v => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:10px">
+            <span style="font-size:18px">${icons[v.page]||'🌐'}</span>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;margin:0">${v.page||'Unknown'}</p><span style="font-size:11px;color:var(--muted)">${v.source||'Direct'} · ${v.lang||''}</span></div>
+            <span style="font-size:16px">${deviceIcons[v.device]||'💻'}</span>
+          </div>`).join('')}</div>`
+      : '<div class="empty-state"><p>No visits recorded yet today. Visitors will appear here once they start visiting your store.</p></div>';
+
+  } catch(e) {
+    document.getElementById('recent-visits-list').innerHTML = '<div class="empty-state"><p>Analytics data not yet available. Visitors to your store will appear here automatically.</p></div>';
+  }
+};
+
+// ── CHANGE PASSWORD ──
+async function doChangePassword(newPass, confirmPass, msgElId) {
+  const msgEl = document.getElementById(msgElId);
+  const show = (msg, ok) => {
+    msgEl.style.display = 'block';
+    msgEl.style.background = ok ? '#f0fdf4' : '#fef2f2';
+    msgEl.style.color = ok ? '#16a34a' : '#dc2626';
+    msgEl.textContent = msg;
+  };
+  if (!newPass || newPass.length < 8) { show('Password must be at least 8 characters.', false); return false; }
+  if (newPass !== confirmPass) { show('Passwords do not match.', false); return false; }
+  try {
+    const { updatePassword } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+    await updatePassword(currentUser, newPass);
+    show('✓ Password updated successfully!', true);
+    addLog('warning', 'Admin password changed');
+    return true;
+  } catch(e) {
+    if (e.code === 'auth/requires-recent-login') {
+      show('For security, please sign out and sign back in before changing your password.', false);
+    } else {
+      show('Error: ' + e.message, false);
+    }
+    return false;
+  }
+}
+window.changePasswordModal = async function() {
+  const ok = await doChangePassword(
+    document.getElementById('m-new-pass').value,
+    document.getElementById('m-conf-pass').value,
+    'm-pass-msg'
+  );
+  if (ok) { setTimeout(() => closeModal('pwd-modal'), 1500); }
+};
+window.changePassword = function() {
+  doChangePassword(
+    document.getElementById('s-new-pass').value,
+    document.getElementById('s-conf-pass').value,
+    's-pass-msg'
+  );
+};
+
+// ── BACKUP & RESTORE ──
+window.backupData = function() {
+  const backup = {
+    version: 1,
+    date: new Date().toISOString(),
+    products: PRODUCTS,
+    content: JSON.parse(localStorage.getItem('ducor-content') || '{}'),
+    customPhotos: JSON.parse(localStorage.getItem('ducor-photos') || '{}')
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ducor-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  addLog('info', 'Data backup downloaded');
+  addNotif('success','Backup Downloaded','Your product data has been saved to your device.');
+};
+window.restoreData = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.products) { alert('Invalid backup file.'); return; }
+      if (!confirm(`Restore backup from ${data.date?.slice(0,10) || 'unknown date'}? This will replace your current product data.`)) return;
+      PRODUCTS = data.products;
+      saveProducts();
+      if (data.content) localStorage.setItem('ducor-content', JSON.stringify(data.content));
+      if (data.customPhotos) localStorage.setItem('ducor-photos', JSON.stringify(data.customPhotos));
+      renderAllTables();
+      addLog('warning', 'Data restored from backup file');
+      addNotif('success','Backup Restored','Your product data has been restored successfully.');
+      alert('Backup restored successfully!');
+    } catch(err) { alert('Could not read backup file. Make sure it is a valid Ducor backup.'); }
+  };
+  reader.readAsText(file);
+};
+
+// ── STORE INFO ──
+function loadStoreInfo() {
+  const si = JSON.parse(localStorage.getItem('ducor-storeinfo') || '{}');
+  if (si.name) document.getElementById('si-name').value = si.name;
+  if (si.phone) document.getElementById('si-phone').value = si.phone;
+  if (si.email) document.getElementById('si-email').value = si.email;
+  if (si.address) document.getElementById('si-address').value = si.address;
+}
+window.saveStoreInfo = function() {
+  const si = {
+    name: document.getElementById('si-name').value,
+    phone: document.getElementById('si-phone').value,
+    email: document.getElementById('si-email').value,
+    address: document.getElementById('si-address').value
+  };
+  localStorage.setItem('ducor-storeinfo', JSON.stringify(si));
+  const saved = document.getElementById('si-saved');
+  saved.style.display = 'inline';
+  setTimeout(() => saved.style.display = 'none', 2500);
+  addLog('info', 'Store information updated');
+};
 </script>
 </body>
 </html>
