@@ -462,16 +462,107 @@ async function _fetchNIHImage(drugName) {
 }
 
 // ── NDC MAP: exact NDC numbers from actual inventory photos ──────────────────
-// NDC lookup returns the EXACT product photo for each bottle shown in store
 const _PRODUCT_NDC = {
-  'otc002': '57896-102-01',   // Geri Care Acetaminophen 325mg (regular strength)
-  'otc003': '57896-219-01',   // Geri Care Acetaminophen 500mg (extra strength)
-  'otc004': '70010-160-01',   // Acetaminophen 650mg ER (8-hour arthritis)
-  'otc005': '57896-224-05',   // Health Star Night Time Pain Medicine (Acetaminophen PM)
-  'otc010': '57896-911-36',   // Geri Care Aspirin 81mg Chewable Low Dose
-  'otc025': '70677-1031-1',   // Foster & Thrive Daytime Cold & Flu Relief syrup
-  'otc031': '62559-430-01',   // Hydrocortisone Cream USP 1% (ANI brand)
-  'rx073':  '62559-430-01',   // Hydrocortisone 1% Cream Rx (same product, Rx-dispensed)
+  // ── OTC (confirmed from bottle photos) ──
+  'otc002': '57896-102-01',   // Geri Care Acetaminophen 325mg
+  'otc003': '57896-219-01',   // Geri Care Acetaminophen 500mg
+  'otc004': '70010-160-01',   // Acetaminophen 650mg ER 8-Hour
+  'otc005': '57896-224-05',   // Health Star Acetaminophen PM Night Time
+  'otc010': '57896-911-36',   // Geri Care Aspirin 81mg Chewable
+  'otc025': '70677-1031-1',   // Foster & Thrive Daytime Cold & Flu Relief
+  'otc031': '62559-430-01',   // Hydrocortisone Cream 1% USP
+  'otc032': '62559-431-01',   // Hydrocortisone Ointment 1% USP
+  // ── OTC (Major Pharmaceuticals – common generic brand) ──
+  'otc012': '0904-5143-75',   // Bacitracin Ointment
+  'otc013': '0904-1992-24',   // Diphenhydramine (Banophen) 25mg
+  'otc017': '0904-1800-09',   // Calamine Lotion
+  'otc022': '0904-0012-24',   // Chlorpheniramine 4mg tablets
+  'otc029': '0904-5197-20',   // Guaifenesin DM Cough Liquid
+  'otc033': '0904-5555-40',   // Ibuprofen 200mg tablets
+  'otc034': '0904-0168-60',   // Ferrous Sulfate (Iron) 325mg
+  'otc036': '0904-5789-24',   // Loperamide (Imodium) 2mg
+  'otc039': '0904-5788-09',   // Meclizine 25mg
+  'otc046': '0904-6267-46',   // Milk of Magnesia liquid
+  'otc048': '0904-5273-40',   // Naproxen 220mg tablets
+  'otc051': '0904-6434-46',   // Omeprazole 20mg capsules
+  'otc054': '0904-5140-60',   // Senna-Plus 8.6/50mg tablets
+  'otc056': '0904-0107-46',   // Simethicone 80mg (Gas Relief)
+  'otc059': '0904-5145-31',   // Triple Antibiotic Ointment
+  // ── OTC (Perrigo generics) ──
+  'otc018': '0113-0468-65',   // Cetirizine 10mg tablets
+  'otc023': '0113-0359-29',   // Clotrimazole 1% Cream
+  'otc027': '0113-0552-23',   // Fluticasone 50mcg Nasal Spray
+  'otc037': '0113-0402-55',   // Loratadine 10mg tablets
+  'otc043': '0113-0182-64',   // Miconazole 2% Cream
+  // ── Vitamins (Rugby brand – NDC prefix 0536) ──
+  'vit002': '0536-4006-01',   // Rugby B-Complex with B12
+  'vit003': '0536-4010-01',   // Rugby B-Complex with Vitamin C
+  'vit004': '0536-4691-01',   // Rugby Calcium 600mg + Vitamin D3
+  'vit009': '0536-1840-46',   // Rugby Cod Liver Oil softgels
+  'vit015': '0536-1030-01',   // Rugby Fish Oil 1000mg
+  'vit020': '0536-4554-01',   // Rugby Magnesium Oxide 400mg
+  'vit028': '0536-4018-01',   // Rugby Vitamin B1 (Thiamine) 100mg
+  'vit029': '0536-4085-01',   // Rugby Vitamin B12 1000mcg
+  'vit030': '0536-4030-01',   // Rugby Vitamin B6 25mg
+  'vit031': '0536-4613-29',   // Rugby Vitamin C 500mg
+  'vit032': '0536-4644-01',   // Rugby Vitamin D3 1000 IU
+  'vit033': '0536-4645-01',   // Rugby Vitamin D3 5000 IU
+  'vit034': '0536-4651-29',   // Rugby Vitamin E 400 IU
+  'vit037': '0536-4658-01',   // Rugby Zinc Sulfate 50mg
+  // ── Vitamins (Foster & Thrive – McKesson, NDC prefix 70677) ──
+  'vit016': '70677-1027-1',   // Foster & Thrive Flaxseed Oil Omega 3,6,9
+  'vit018': '70677-1018-1',   // Foster & Thrive Hair, Skin & Nails Formula
+  // ── Rx (confirmed) ──
+  'rx073':  '62559-430-01',   // Hydrocortisone 1% Cream Rx
+};
+
+// ── NIH SEARCH NAME OVERRIDES ─────────────────────────────────────────────────
+// Better search terms for products whose auto-parsed name gives poor NIH results
+const _NIH_SEARCH_OVERRIDE = {
+  'otc001': 'vitamins a and d ointment',
+  'otc005': 'acetaminophen diphenhydramine pm',
+  'otc008': 'calcium carbonate antacid chewable',
+  'otc011': 'aspirin enteric coated 81mg',
+  'otc019': 'cetirizine syrup',
+  'otc020': 'acetaminophen childrens suspension',
+  'otc021': 'ibuprofen childrens suspension',
+  'otc024': 'acetaminophen phenylephrine cold',
+  'otc025': 'dextromethorphan phenylephrine daytime cold',
+  'otc026': 'diphenhydramine topical cream',
+  'otc030': 'hemorrhoidal ointment phenylephrine',
+  'otc038': 'aluminum hydroxide magnesium hydroxide antacid',
+  'otc040': 'melatonin 5mg',
+  'otc041': 'melatonin 10mg',
+  'otc042': 'pamabrom acetaminophen menstrual',
+  'otc044': 'miconazole vaginal cream',
+  'otc045': 'acetaminophen aspirin caffeine migraine',
+  'otc047': 'trolamine salicylate muscle rub',
+  'otc049': 'oxymetazoline nasal spray',
+  'otc050': 'doxylamine acetaminophen night cold',
+  'otc052': 'carboxymethylcellulose eye drops',
+  'otc053': 'sodium chloride saline nasal',
+  'otc057': 'bismuth subsalicylate stomach',
+  'vit001': 'apple cider vinegar supplement',
+  'vit005': 'multivitamin senior lutein',
+  'vit006': 'coenzyme q10 30mg',
+  'vit007': 'coenzyme q10 50mg',
+  'vit008': 'coenzyme q10 100mg',
+  'vit010': 'collagen supplement tablets',
+  'vit011': 'cranberry extract supplement',
+  'vit012': 'cyproheptadine appetite',
+  'vit013': 'multivitamin daily adult',
+  'vit014': 'childrens multivitamin chewable',
+  'vit017': 'glucosamine chondroitin joint',
+  'vit019': 'magnesium glycinate chelated',
+  'vit021': 'mens multivitamin gummy',
+  'vit022': 'mens one daily multivitamin',
+  'vit023': 'poly vi sol childrens vitamins drops',
+  'vit024': 'poly vi sol iron drops',
+  'vit025': 'prenatal vitamins folic acid',
+  'vit026': 'probiotic lactobacillus acidophilus',
+  'vit027': 'saw palmetto 320mg',
+  'vit035': 'womens multivitamin gummy',
+  'vit036': 'womens one daily multivitamin',
 };
 
 async function _fetchNIHImageByNDC(ndc) {
@@ -824,6 +915,7 @@ function _processImgQueue() {
     const { productId, drugName, wikiTitle, svgFallback } = _imgQueue.shift();
     _imgActive++;
     const ndc = _PRODUCT_NDC[productId];
+    const nihSearchName = _NIH_SEARCH_OVERRIDE[productId] || drugName;
     // Chain: NDC exact match → NIH name search → Wikipedia → SVG label
     (ndc ? _fetchNIHImageByNDC(ndc) : Promise.resolve(null)).then(ndcUrl => {
       if (ndcUrl) {
@@ -831,7 +923,7 @@ function _processImgQueue() {
         _imgActive--;
         _processImgQueue();
       } else {
-        _fetchNIHImage(drugName).then(url => {
+        _fetchNIHImage(nihSearchName).then(url => {
           if (url) {
             _applyImage(productId, url, svgFallback);
             _imgActive--;
