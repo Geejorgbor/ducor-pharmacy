@@ -153,6 +153,7 @@ const PRODUCTS = {
     {id:'rx149',name:'Vancomycin 250mg',price:38.00},
     {id:'rx150',name:'Venlafaxine IR 75mg',price:16.00},
     {id:'rx151',name:'Vitamin D3 50,000 IU (Rx)',price:14.00},
+    {id:'rx152',name:'Tranexamic Acid 650mg',price:28.00},
   ],
   otc: [
     {id:'otc001',name:'A&D Ointment',price:8.50},
@@ -174,7 +175,7 @@ const PRODUCTS = {
     {id:'otc017',name:'Calamine Lotion',price:8.50},
     {id:'otc018',name:'Cetirizine 10mg',price:10.00},
     {id:'otc019',name:'Cetirizine 5mg/5ml Syrup',price:12.00},
-    {id:'otc020',name:'Children\'s Acetaminophen 100/5ml',price:9.50},
+    {id:'otc020',name:'Children\'s Acetaminophen 160mg/5mL',price:9.50},
     {id:'otc021',name:'Children\'s Ibuprofen 200mg/5ml',price:9.50},
     {id:'otc022',name:'Chlorpheniramine 4mg',price:7.50},
     {id:'otc023',name:'Clotrimazole 1% Cream',price:10.00},
@@ -469,9 +470,14 @@ const _PRODUCT_NDC = {
   'otc004': '70010-160-01',   // Acetaminophen 650mg ER 8-Hour
   'otc005': '57896-224-05',   // Health Star Acetaminophen PM Night Time
   'otc010': '57896-911-36',   // Geri Care Aspirin 81mg Chewable
+  'otc011': '57896-981-12',   // Health Star Aspirin 81mg Enteric Coated
+  'otc020': '45802-201-26',   // Padagis Children's Acetaminophen 160mg/5mL
+  'otc023': '51672-1275-1',   // Taro Clotrimazole Cream 1%
   'otc025': '70677-1031-1',   // Foster & Thrive Daytime Cold & Flu Relief
   'otc031': '62559-430-01',   // Hydrocortisone Cream 1% USP
   'otc032': '62559-431-01',   // Hydrocortisone Ointment 1% USP
+  'otc046': '57896-649-16',   // Geri-Care Milk of Magnesia 16oz
+  'otc056': '69618-033-01',   // Reliable-1 Simethicone 80mg Chewable
   // ── OTC (Major Pharmaceuticals – common generic brand) ──
   'otc012': '0904-5143-75',   // Bacitracin Ointment
   'otc013': '0904-1992-24',   // Diphenhydramine (Banophen) 25mg
@@ -482,15 +488,12 @@ const _PRODUCT_NDC = {
   'otc034': '0904-0168-60',   // Ferrous Sulfate (Iron) 325mg
   'otc036': '0904-5789-24',   // Loperamide (Imodium) 2mg
   'otc039': '0904-5788-09',   // Meclizine 25mg
-  'otc046': '0904-6267-46',   // Milk of Magnesia liquid
   'otc048': '0904-5273-40',   // Naproxen 220mg tablets
   'otc051': '0904-6434-46',   // Omeprazole 20mg capsules
   'otc054': '0904-5140-60',   // Senna-Plus 8.6/50mg tablets
-  'otc056': '0904-0107-46',   // Simethicone 80mg (Gas Relief)
   'otc059': '0904-5145-31',   // Triple Antibiotic Ointment
   // ── OTC (Perrigo generics) ──
   'otc018': '0113-0468-65',   // Cetirizine 10mg tablets
-  'otc023': '0113-0359-29',   // Clotrimazole 1% Cream
   'otc027': '0113-0552-23',   // Fluticasone 50mcg Nasal Spray
   'otc037': '0113-0402-55',   // Loratadine 10mg tablets
   'otc043': '0113-0182-64',   // Miconazole 2% Cream
@@ -512,8 +515,44 @@ const _PRODUCT_NDC = {
   // ── Vitamins (Foster & Thrive – McKesson, NDC prefix 70677) ──
   'vit016': '70677-1027-1',   // Foster & Thrive Flaxseed Oil Omega 3,6,9
   'vit018': '70677-1018-1',   // Foster & Thrive Hair, Skin & Nails Formula
-  // ── Rx (confirmed) ──
-  'rx073':  '62559-430-01',   // Hydrocortisone 1% Cream Rx
+  // ── Vitamins (other brands confirmed from photos) ──
+  'vit024': '71399-7420-5',   // OneVite Poly-Vi-Sol with Iron – Akron Pharma
+  // ── Rx (confirmed from bottle photos) ──
+  'rx002': '31722-777-01',    // Acyclovir 400mg – Camber
+  'rx008': '67877-198-90',    // Amlodipine Besylate 5mg – Ascend
+  'rx009': '69097-128-05',    // Amlodipine Besylate 10mg – Cipla
+  'rx012': '16714-294-02',    // Amoxicillin/Clav Suspension 600/42.9mg – NorthStar
+  'rx013': '16714-299-03',    // Amoxicillin 500mg Capsules – NorthStar
+  'rx014': '65862-071-01',    // Amoxicillin Suspension 400mg/5mL – Aurobindo
+  'rx015': '16714-296-01',    // Amoxicillin/Clav 500/125mg Tablets – NorthStar
+  'rx016': '16714-297-01',    // Amoxicillin/Clav 875/125mg Tablets – NorthStar
+  'rx020': '65862-169-01',    // Atenolol 50mg – Aurobindo
+  'rx024': '72603-282-01',    // Atorvastatin Calcium 10mg – NorthStar
+  'rx025': '72603-283-01',    // Atorvastatin Calcium 20mg – NorthStar
+  'rx026': '42806-151-34',    // Azithromycin Suspension 200mg/5mL – Epic Pharma
+  'rx034': '68462-162-01',    // Carvedilol 3.125mg – Glenmark
+  'rx035': '68382-093-01',    // Carvedilol 6.25mg – Zydus
+  'rx037': '68382-095-01',    // Carvedilol 25mg – Zydus
+  'rx040': '65862-019-01',    // Cephalexin 500mg – Aurobindo
+  'rx041': '69367-386-01',    // Ciprofloxacin HCl 500mg – Westminster
+  'rx042': '42571-251-01',    // Clindamycin HCl 150mg – Micro Labs
+  'rx043': '68462-144-01',    // Clindamycin HCl 300mg – Glenmark
+  'rx053': '27808-233-01',    // Doxycycline Hyclate 100mg – Tris Pharma
+  'rx056': '16714-980-02',    // Esomeprazole Magnesium 40mg – NorthStar
+  'rx064': '64980-563-01',    // Furosemide 40mg – Rising
+  'rx068': '60505-0142-4',    // Glipizide 10mg – Apotex
+  'rx073': '62559-430-01',    // Hydrocortisone 1% Cream Rx
+  'rx093': '43547-353-10',    // Lisinopril 10mg – Falco
+  'rx094': '43547-354-10',    // Lisinopril 20mg – Falco
+  'rx098': '31722-702-90',    // Losartan Potassium 100mg – Camber
+  'rx103': '70010-063-01',    // Metformin HCl 500mg
+  'rx105': '23155-071-01',    // Methimazole 10mg – Avet Pharma
+  'rx127': '31722-713-90',    // Pantoprazole Sodium 40mg – Camber
+  'rx138': '16714-990-01',    // Rosuvastatin 20mg – NorthStar
+  'rx141': '31722-644-30',    // Tadalafil 5mg – Camber
+  'rx142': '31722-646-30',    // Tadalafil 20mg – Camber
+  'rx145': '16714-820-01',    // Tenofovir Disoproxil Fumarate 300mg – NorthStar
+  'rx152': '72888-178-30',    // Tranexamic Acid 650mg – Advagen
 };
 
 // ── NIH SEARCH NAME OVERRIDES ─────────────────────────────────────────────────
@@ -563,6 +602,7 @@ const _NIH_SEARCH_OVERRIDE = {
   'vit027': 'saw palmetto 320mg',
   'vit035': 'womens multivitamin gummy',
   'vit036': 'womens one daily multivitamin',
+  'rx152': 'tranexamic acid tablets',
 };
 
 async function _fetchNIHImageByNDC(ndc) {
