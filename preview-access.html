@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ducor Pharmacy – Owner Preview</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: white; text-align: center; padding: 24px;
+    }
+    .card { max-width: 400px; }
+    h2 { font-size: 22px; margin-bottom: 12px; }
+    p { color: rgba(255,255,255,0.6); font-size: 14px; }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid rgba(212,175,55,0.3);
+      border-top-color: #d4af37; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { color: #ff6b6b; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card" id="box">
+    <div class="spinner"></div>
+    <h2>Verifying access…</h2>
+    <p>Please wait.</p>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('key') === 'ducor2025') {
+      document.cookie = 'preview=ducor2025; path=/; max-age=604800; SameSite=Lax';
+      const dest = params.get('to') || '/';
+      window.location.replace(dest);
+    } else {
+      document.getElementById('box').innerHTML =
+        '<p class="error">Invalid or missing access key.</p>';
+    }
+  </script>
+</body>
+</html>
