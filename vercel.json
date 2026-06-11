@@ -1,5 +1,5 @@
 {
   "redirects": [
-    { "source": "/(.*)", "destination": "/coming-soon.html", "permanent": false }
+    { "source": "/((?!admin\\.html|assets/|coming-soon\\.html).*)", "destination": "/coming-soon.html", "permanent": false }
   ]
 }
