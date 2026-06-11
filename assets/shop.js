@@ -956,32 +956,24 @@ function _applyImage(productId, imageUrl, svgFallback) {
 
 function _processImgQueue() {
   while (_imgActive < _IMG_CONCURRENT && _imgQueue.length > 0) {
-    const { productId, drugName, wikiTitle, svgFallback } = _imgQueue.shift();
+    const { productId, svgFallback } = _imgQueue.shift();
     _imgActive++;
-    const ndc = _PRODUCT_NDC[productId];
-    const nihSearchName = _NIH_SEARCH_OVERRIDE[productId] || drugName;
-    // Chain: NDC exact match → NIH name search → Wikipedia → SVG label
-    (ndc ? _fetchNIHImageByNDC(ndc) : Promise.resolve(null)).then(ndcUrl => {
-      if (ndcUrl) {
-        _applyImage(productId, ndcUrl, svgFallback);
-        _imgActive--;
-        _processImgQueue();
-      } else {
-        _fetchNIHImage(nihSearchName).then(url => {
-          if (url) {
-            _applyImage(productId, url, svgFallback);
-            _imgActive--;
-            _processImgQueue();
-          } else {
-            _fetchWikiImage(wikiTitle).then(wUrl => {
-              if (wUrl) _applyImage(productId, wUrl, svgFallback);
-              _imgActive--;
-              _processImgQueue();
-            });
-          }
-        });
-      }
-    });
+    // Try local pharmacy photo first — /assets/products/{id}.jpg
+    const localUrl = '/assets/products/' + productId + '.jpg';
+    const testImg = new Image();
+    testImg.onload = () => {
+      _applyImage(productId, localUrl, svgFallback);
+      _imgActive--;
+      _processImgQueue();
+    };
+    testImg.onerror = () => {
+      // No local photo yet — show clean placeholder
+      const el = document.getElementById('pimg-' + productId);
+      if (el) el.innerHTML = svgFallback;
+      _imgActive--;
+      _processImgQueue();
+    };
+    testImg.src = localUrl;
   }
 }
 
@@ -999,23 +991,9 @@ function _startImageLoading(list, category) {
       _applyImage(p.id, _customPhotos[p.id], svgFallback);
       return;
     }
-    const wikiTitle = _getWikiTitle(p.name);
-    const ndcKey  = _PRODUCT_NDC[p.id] ? 'ndc:' + _PRODUCT_NDC[p.id] : null;
-    const nihKey  = 'nih:' + _genericName(p.name).toLowerCase();
-    const wikiKey = wikiTitle.toLowerCase();
-    // Check caches in priority order: NDC → NIH name → Wikipedia
-    const cached = (ndcKey && ndcKey in _imgCache)  ? _imgCache[ndcKey]
-                 : (nihKey  in _imgCache)            ? _imgCache[nihKey]
-                 : (wikiKey in _imgCache)            ? _imgCache[wikiKey]
-                 : undefined;
-    if (cached !== undefined) {
-      if (cached) _applyImage(p.id, cached, svgFallback);
-      else el.innerHTML = svgFallback;
-      return;
-    }
-    // Show SVG while fetching
+    // Show placeholder while checking for local photo
     el.innerHTML = svgFallback;
-    _imgQueue.push({ productId: p.id, drugName: p.name, wikiTitle, svgFallback });
+    _imgQueue.push({ productId: p.id, svgFallback });
   });
   _processImgQueue();
 }
