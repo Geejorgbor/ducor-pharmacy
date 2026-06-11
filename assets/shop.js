@@ -947,7 +947,7 @@ function _applyImage(productId, imageUrl, svgFallback) {
   img.onload = () => {
     el.innerHTML = '';
     el.style.cssText = 'background:#f8fafc;padding:12px;';
-    img.style.cssText = 'max-width:100%;max-height:136px;object-fit:contain;border-radius:8px;display:block;margin:auto;';
+    img.style.cssText = 'max-width:100%;max-height:196px;object-fit:contain;border-radius:8px;display:block;margin:auto;';
     el.appendChild(img);
   };
   img.onerror = () => { el.innerHTML = svgFallback; };
