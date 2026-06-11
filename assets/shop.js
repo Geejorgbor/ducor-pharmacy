@@ -487,7 +487,7 @@ const _PRODUCT_NDC = {
   'otc033': '0904-5555-40',   // Ibuprofen 200mg tablets
   'otc034': '0904-0168-60',   // Ferrous Sulfate (Iron) 325mg
   'otc036': '0904-5789-24',   // Loperamide (Imodium) 2mg
-  'otc039': '0904-5788-09',   // Meclizine 25mg
+  'otc039': '64980-190-01',   // Meclizine HCl 25mg – Rising
   'otc048': '0904-5273-40',   // Naproxen 220mg tablets
   'otc051': '0904-6434-46',   // Omeprazole 20mg capsules
   'otc054': '0904-5140-60',   // Senna-Plus 8.6/50mg tablets
@@ -540,11 +540,15 @@ const _PRODUCT_NDC = {
   'rx053': '27808-233-01',    // Doxycycline Hyclate 100mg – Tris Pharma
   'rx056': '16714-980-02',    // Esomeprazole Magnesium 40mg – NorthStar
   'rx064': '64980-563-01',    // Furosemide 40mg – Rising
+  'rx067': '72883-541-01',    // Glimepiride 2mg – FPP
   'rx068': '60505-0142-4',    // Glipizide 10mg – Apotex
+  'rx069': '73786-064-01',    // Haloperidol 5mg – Lifestar/Rising
+  'rx070': '31722-023-01',    // Hydralazine HCl 25mg – Camber
   'rx073': '62559-430-01',    // Hydrocortisone 1% Cream Rx
   'rx093': '43547-353-10',    // Lisinopril 10mg – Falco
   'rx094': '43547-354-10',    // Lisinopril 20mg – Falco
   'rx098': '31722-702-90',    // Losartan Potassium 100mg – Camber
+  'rx099': '65382-056-01',    // Losartan/HCTZ 50/12.5mg – Aurobindo
   'rx103': '70010-063-01',    // Metformin HCl 500mg
   'rx105': '23155-071-01',    // Methimazole 10mg – Avet Pharma
   'rx127': '31722-713-90',    // Pantoprazole Sodium 40mg – Camber
@@ -591,8 +595,8 @@ const _NIH_SEARCH_OVERRIDE = {
   'vit012': 'cyproheptadine appetite',
   'vit013': 'multivitamin daily adult',
   'vit014': 'childrens multivitamin chewable',
-  'vit017': 'glucosamine chondroitin joint',
-  'vit019': 'magnesium glycinate chelated',
+  'vit017': 'glucosamine chondroitin tablets',
+  'vit019': 'magnesium glycinate 400mg capsules',
   'vit021': 'mens multivitamin gummy',
   'vit022': 'mens one daily multivitamin',
   'vit023': 'poly vi sol childrens vitamins drops',
