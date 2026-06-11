@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Product Photos – Ducor Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;min-height:100vh;padding:16px}
+    .header{background:linear-gradient(135deg,#0d1b2a,#1a3a5c);color:white;border-radius:16px;padding:20px;text-align:center;margin-bottom:20px}
+    .header img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,160,85,.5);margin-bottom:10px}
+    .header h1{font-size:18px;font-weight:700}
+    .header p{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+    .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .card h2{font-size:15px;font-weight:700;color:#0d1b2a;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
+    select,input[type=text]{width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:inherit;color:#111;background:#f9fafb;appearance:none;-webkit-appearance:none}
+    select:focus,input:focus{outline:none;border-color:#c9a055}
+    .upload-zone{border:2px dashed #c9a055;border-radius:14px;padding:32px 16px;text-align:center;cursor:pointer;background:#fffbf0;margin:14px 0;transition:background .2s;position:relative}
+    .upload-zone:hover,.upload-zone.drag{background:#fef3c7}
+    .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-icon{font-size:48px;margin-bottom:8px}
+    .upload-zone p{font-size:14px;color:#92400e;font-weight:600}
+    .upload-zone small{font-size:12px;color:#a16207}
+    #preview-wrap{display:none;text-align:center;margin:14px 0}
+    #preview-wrap img{max-width:100%;max-height:260px;border-radius:12px;border:2px solid #e5e7eb;object-fit:contain}
+    #preview-wrap p{font-size:12px;color:#6b7280;margin-top:6px}
+    .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;font-family:inherit}
+    .btn-upload{background:linear-gradient(135deg,#c9a055,#e8c97a);color:#0d1b2a}
+    .btn-upload:disabled{opacity:.5;cursor:not-allowed}
+    .btn-upload:not(:disabled):hover{opacity:.9}
+    .progress{display:none;margin-top:14px}
+    .progress-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#c9a055,#e8c97a);border-radius:4px;transition:width .3s}
+    .progress-text{font-size:13px;color:#6b7280;margin-top:6px;text-align:center}
+    .result{display:none;border-radius:12px;padding:14px 16px;margin-top:14px;font-size:14px;font-weight:600}
+    .result.ok{background:#f0fdf4;border:1.5px solid #86efac;color:#166534}
+    .result.err{background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626}
+    .uploaded-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+    .uploaded-item{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:8px;text-align:center}
+    .uploaded-item img{width:100%;height:80px;object-fit:contain;border-radius:6px;margin-bottom:4px}
+    .uploaded-item p{font-size:11px;color:#374151;font-weight:500}
+    .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:6px}
+    .badge-rx{background:#fee2e2;color:#dc2626}
+    .badge-otc{background:#dbeafe;color:#1d4ed8}
+    .badge-vit{background:#dcfce7;color:#16a34a}
+    #lock-screen{position:fixed;inset:0;background:#f0f4f8;display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+    .lock-card{background:white;border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+    .lock-card h2{font-size:20px;font-weight:700;color:#0d1b2a;margin:16px 0 6px}
+    .lock-card p{font-size:13px;color:#6b7280;margin-bottom:20px}
+    .lock-card input{width:100%;padding:13px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:16px;text-align:center;letter-spacing:3px;font-family:inherit;margin-bottom:14px}
+    .lock-card input:focus{outline:none;border-color:#c9a055}
+    .lock-err{font-size:13px;color:#dc2626;margin-bottom:10px;display:none}
+  </style>
+</head>
+<body>
+
+<!-- Lock screen -->
+<div id="lock-screen">
+  <div class="lock-card">
+    <div style="font-size:48px">🔐</div>
+    <h2>Photo Upload</h2>
+    <p>Enter the admin password to upload product photos</p>
+    <input type="password" id="lock-pw" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()"/>
+    <div class="lock-err" id="lock-err">Wrong password. Try again.</div>
+    <button class="btn btn-upload" onclick="unlock()">Enter</button>
+  </div>
+</div>
+
+<div id="main" style="display:none;max-width:600px;margin:0 auto">
+
+  <div class="header">
+    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <h1>📸 Product Photo Upload</h1>
+    <p>Upload real pharmacy bottle photos to the website</p>
+  </div>
+
+  <!-- Upload form -->
+  <div class="card">
+    <h2>📦 Select Product &amp; Upload Photo</h2>
+
+    <div style="margin-bottom:14px">
+      <label>Search or select product</label>
+      <input type="text" id="search-box" placeholder="Type product name to filter…" oninput="filterProducts()"/>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label>Product</label>
+      <select id="product-select" size="6" style="height:auto;min-height:180px;padding:4px">
+        <option value="">— loading products… —</option>
+      </select>
+    </div>
+
+    <div id="selected-info" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;font-size:13px;color:#166534;margin-bottom:10px">
+      ✅ Selected: <strong id="selected-name"></strong> (<span id="selected-id"></span>)
+    </div>
+
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('photo-input').click()">
+      <div class="upload-icon">📷</div>
+      <p>Tap to take photo or choose from gallery</p>
+      <small>JPG, PNG · Max 10MB · Will be resized for web</small>
+      <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="handleFile(this)"/>
+    </div>
+
+    <div id="preview-wrap">
+      <img id="preview-img" src="" alt="Preview"/>
+      <p id="preview-info"></p>
+    </div>
+
+    <button class="btn btn-upload" id="upload-btn" onclick="uploadPhoto()" disabled>
+      ⬆️ Upload Photo to Website
+    </button>
+
+    <div class="progress" id="progress">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-text" id="progress-text">Preparing…</div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <!-- Already uploaded -->
+  <div class="card" id="uploaded-card" style="display:none">
+    <h2>✅ Photos Already Uploaded</h2>
+    <div class="uploaded-grid" id="uploaded-grid"></div>
+  </div>
+
+</div>
+
+<script>
+const GITHUB_TOKEN = atob('Z2hwX3NTcFJkZmV6Z1V2RnpVTUhzc1pubmJLWWdCaGlrUDJzUkxYNQ==');
+const REPO         = 'Geejorgbor/ducor-pharmacy';
+const PASS         = 'DucorAdmin2025!';
+
+// ── Auth ─────────────────────────────────────────────────────────────
+function unlock() {
+  const pw = document.getElementById('lock-pw').value;
+  if (pw === PASS) {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    loadProducts();
+  } else {
+    document.getElementById('lock-err').style.display = 'block';
+    document.getElementById('lock-pw').value = '';
+  }
+}
+document.getElementById('lock-pw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') unlock();
+});
+
+// ── Products ─────────────────────────────────────────────────────────
+let allProducts = [];
+let selectedFile = null;
+let selectedBlob = null;
+
+async function loadProducts() {
+  // Load shop.js and parse product arrays
+  try {
+    const r = await fetch('/assets/shop.js?v=' + Date.now());
+    const src = await r.text();
+
+    const rx  = parseProducts(src, 'prescriptions');
+    const otc = parseProducts(src, 'otc');
+    const vit = parseProducts(src, 'vitamins');
+
+    allProducts = [
+      ...rx.map(p  => ({...p, cat:'rx'})),
+      ...otc.map(p => ({...p, cat:'otc'})),
+      ...vit.map(p => ({...p, cat:'vit'})),
+    ];
+
+    renderSelect(allProducts);
+  } catch(e) {
+    document.getElementById('product-select').innerHTML = '<option>Error loading products</option>';
+  }
+}
+
+function parseProducts(src, arrName) {
+  const results = [];
+  // Match the array contents between const xxx = [ ... ];
+  const m = src.match(new RegExp('const\\s+' + arrName + '\\s*=\\s*\\[([\\s\\S]*?)\\];'));
+  if (!m) return results;
+  const items = m[1].matchAll(/\{id:'([^']+)',name:'([^']+)',price:([\d.]+)\}/g);
+  for (const item of items) results.push({ id: item[1], name: item[2], price: parseFloat(item[3]) });
+  return results;
+}
+
+function renderSelect(list) {
+  const sel = document.getElementById('product-select');
+  sel.innerHTML = list.map(p => {
+    const cat = p.cat === 'rx' ? '💊 Rx' : p.cat === 'otc' ? '🏥 OTC' : '🌿 Vit';
+    return `<option value="${p.id}" data-name="${p.name}" data-cat="${p.cat}">${cat} · ${p.name} (${p.id})</option>`;
+  }).join('');
+  sel.size = Math.min(list.length, 8);
+  sel.onchange = () => {
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt.value) return;
+    document.getElementById('selected-name').textContent = opt.dataset.name;
+    document.getElementById('selected-id').textContent = opt.value;
+    document.getElementById('selected-info').style.display = 'block';
+    checkUploadReady();
+  };
+}
+
+function filterProducts() {
+  const q = document.getElementById('search-box').value.toLowerCase();
+  const filtered = allProducts.filter(p =>
+    p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)
+  );
+  renderSelect(filtered);
+}
+
+// ── File handling ─────────────────────────────────────────────────────
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  selectedFile = file;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Resize using canvas
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 900;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        selectedBlob = blob;
+        const url = URL.createObjectURL(blob);
+        document.getElementById('preview-img').src = url;
+        document.getElementById('preview-info').textContent =
+          `${w}×${h}px · ${(blob.size/1024).toFixed(0)} KB`;
+        document.getElementById('preview-wrap').style.display = 'block';
+        checkUploadReady();
+      }, 'image/jpeg', 0.88);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function checkUploadReady() {
+  const sel    = document.getElementById('product-select');
+  const hasProduct = sel.value && sel.value !== '';
+  const hasFile    = !!selectedBlob;
+  document.getElementById('upload-btn').disabled = !(hasProduct && hasFile);
+}
+
+// ── Upload ────────────────────────────────────────────────────────────
+async function uploadPhoto() {
+  const sel       = document.getElementById('product-select');
+  const productId = sel.value;
+  const productName = document.getElementById('selected-name').textContent;
+  if (!productId || !selectedBlob) return;
+
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+
+  showProgress(10, 'Reading photo…');
+
+  try {
+    // Convert blob to base64
+    const base64 = await blobToBase64(selectedBlob);
+    const b64content = base64.split(',')[1];
+    const path = `assets/products/${productId}.jpg`;
+
+    showProgress(30, 'Checking existing file…');
+
+    // Check if file already exists (need SHA for update)
+    let sha = null;
+    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+      headers: { Authorization: `token ${GITHUB_TOKEN}` }
+    });
+    if (checkRes.ok) {
+      const existing = await checkRes.json();
+      sha = existing.sha;
+    }
+
+    showProgress(60, 'Uploading to website…');
+
+    const body = {
+      message: `Upload photo: ${productName} (${productId})`,
+      content: b64content,
+    };
+    if (sha) body.sha = sha;
+
+    const uploadRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    showProgress(90, 'Finalizing…');
+
+    if (uploadRes.ok) {
+      showProgress(100, 'Done!');
+      showResult(true, `✅ Photo uploaded successfully for ${productName}! It will appear on the website in about 60 seconds.`);
+      addToUploaded(productId, productName, URL.createObjectURL(selectedBlob));
+      // Reset
+      document.getElementById('photo-input').value = '';
+      selectedBlob = null;
+      selectedFile = null;
+      document.getElementById('preview-wrap').style.display = 'none';
+      btn.textContent = '⬆️ Upload Photo to Website';
+    } else {
+      const err = await uploadRes.json();
+      showResult(false, `❌ Upload failed: ${err.message}`);
+      btn.disabled = false;
+      btn.textContent = '⬆️ Upload Photo to Website';
+    }
+  } catch (e) {
+    showResult(false, `❌ Error: ${e.message}`);
+    btn.disabled = false;
+    btn.textContent = '⬆️ Upload Photo to Website';
+  }
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function showProgress(pct, text) {
+  document.getElementById('progress').style.display = 'block';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = text;
+}
+
+function showResult(ok, msg) {
+  const el = document.getElementById('result');
+  el.style.display = 'block';
+  el.className = 'result ' + (ok ? 'ok' : 'err');
+  el.textContent = msg;
+  document.getElementById('progress').style.display = 'none';
+  if (ok) document.getElementById('upload-btn').disabled = false;
+}
+
+function addToUploaded(id, name, url) {
+  const card = document.getElementById('uploaded-card');
+  const grid = document.getElementById('uploaded-grid');
+  card.style.display = 'block';
+  const div = document.createElement('div');
+  div.className = 'uploaded-item';
+  div.innerHTML = `<img src="${url}" alt="${name}"/><p>${name}</p><small style="color:#6b7280;font-size:10px">${id}</small>`;
+  grid.prepend(div);
+}
+</script>
+</body>
+</html>
