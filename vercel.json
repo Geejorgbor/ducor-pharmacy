@@ -1,12 +1,1 @@
-{
-  "redirects": [
-    {
-      "source": "/((?!admin\\.html|assets/|coming-soon\\.html|preview-access\\.html).*)",
-      "missing": [
-        { "type": "cookie", "key": "preview", "value": "ducor2025" }
-      ],
-      "destination": "/coming-soon.html",
-      "permanent": false
-    }
-  ]
-}
+{}
