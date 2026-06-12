@@ -9,384 +9,510 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{
-      --navy:#0a2558;--navy2:#071a3e;--gold:#c9a055;--teal:#0d9488;
-      --red:#dc2626;--green:#16a34a;--gray:#64748b;--light:#f8fafc;
+      --navy:#071a3e;--navy2:#020c1b;--navy3:#0a2558;--gold:#c9a055;--gold2:#e8c97a;
+      --teal:#0d9488;--red:#dc2626;--green:#16a34a;--gray:#64748b;
     }
-    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--light);display:flex;min-height:100vh}
+    html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif}
+    body{display:flex;min-height:100vh;background:var(--navy2)}
 
-    /* ── LEFT PANEL ── */
+    /* ═══════════════════════════════
+       LEFT PANEL — dramatic showcase
+    ═══════════════════════════════ */
     .lp{
-      width:42%;flex-shrink:0;
-      background:linear-gradient(160deg,var(--navy2) 0%,var(--navy) 55%,#0d3a6e 100%);
-      display:flex;flex-direction:column;justify-content:center;align-items:center;
-      padding:56px 48px;position:relative;overflow:hidden;
+      width:58%;flex-shrink:0;position:relative;overflow:hidden;
+      background:radial-gradient(ellipse at 30% 50%,#0d3a6e 0%,#071a3e 45%,#020c1b 100%);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:60px 56px;
     }
-    @media(max-width:800px){.lp{display:none}}
-    .lp-bg{
-      position:absolute;inset:0;pointer-events:none;
-      background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    @media(max-width:860px){.lp{display:none}}
+
+    /* Background grid */
+    .lp::before{
+      content:'';position:absolute;inset:0;
+      background-image:
+        linear-gradient(rgba(201,160,85,0.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(201,160,85,0.04) 1px,transparent 1px);
+      background-size:48px 48px;pointer-events:none;
     }
-    /* Animated glow orbs */
-    .lp-orb1{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(13,148,136,0.25) 0%,transparent 70%);top:-60px;right:-60px;animation:orbFloat 6s ease-in-out infinite}
-    .lp-orb2{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(201,160,85,0.18) 0%,transparent 70%);bottom:-40px;left:-40px;animation:orbFloat 8s ease-in-out infinite 2s}
-    @keyframes orbFloat{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.15);opacity:1}}
 
-    .lp-logo{display:flex;align-items:center;gap:14px;margin-bottom:44px;position:relative}
-    .lp-logo img{width:58px;height:58px;border-radius:50%;border:2px solid rgba(201,160,85,0.5);object-fit:contain;background:rgba(255,255,255,0.08)}
-    .lp-logo div h1{color:#fff;font-size:1.15rem;font-weight:800;letter-spacing:1.5px}
-    .lp-logo div p{color:var(--gold);font-size:0.62rem;letter-spacing:2px;text-transform:uppercase}
+    /* Animated glow blobs */
+    .blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+    .blob-1{width:500px;height:500px;background:rgba(13,148,136,0.18);top:-120px;right:-120px;animation:blobMove 10s ease-in-out infinite}
+    .blob-2{width:380px;height:380px;background:rgba(201,160,85,0.14);bottom:-80px;left:-80px;animation:blobMove 13s ease-in-out infinite 3s}
+    .blob-3{width:260px;height:260px;background:rgba(10,37,88,0.4);top:40%;left:20%;animation:blobMove 8s ease-in-out infinite 1.5s}
+    @keyframes blobMove{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.12) translate(20px,-20px)}}
 
-    .lp-title{color:#fff;font-size:clamp(1.6rem,2.5vw,2.1rem);font-weight:800;line-height:1.2;margin-bottom:12px;text-align:center;position:relative}
-    .lp-title span{color:var(--gold)}
-    .lp-sub{color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.7;text-align:center;margin-bottom:40px;position:relative}
+    /* Content wrapper */
+    .lp-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;max-width:520px}
 
-    /* Trust badges */
-    .lp-badges{display:flex;flex-direction:column;gap:14px;width:100%;position:relative}
-    .lp-badge{
-      background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
-      border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:13px;
+    /* Brand */
+    .lp-brand{display:flex;flex-direction:column;align-items:center;margin-bottom:52px}
+    .lp-logo-ring{
+      width:78px;height:78px;border-radius:50%;
+      border:2px solid rgba(201,160,85,0.6);
+      background:rgba(255,255,255,0.06);
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:18px;
+      box-shadow:0 0 28px rgba(201,160,85,0.2),inset 0 0 20px rgba(201,160,85,0.05);
     }
-    .lp-badge-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .lp-badge-icon.gold{background:rgba(201,160,85,0.18);border:1px solid rgba(201,160,85,0.3)}
-    .lp-badge-icon.teal{background:rgba(13,148,136,0.18);border:1px solid rgba(13,148,136,0.3)}
-    .lp-badge-icon.blue{background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.3)}
-    .lp-badge-text p{color:#fff;font-size:0.88rem;font-weight:600}
-    .lp-badge-text span{color:rgba(255,255,255,0.45);font-size:0.75rem}
+    .lp-logo-ring img{width:58px;height:58px;border-radius:50%;object-fit:contain}
+    .lp-name{font-size:2.4rem;font-weight:900;letter-spacing:6px;color:#fff;line-height:1;text-align:center;margin-bottom:6px;text-transform:uppercase}
+    .lp-name span{color:var(--gold)}
+    .lp-sub-name{font-size:0.62rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:14px}
+    .lp-portal-badge{
+      display:inline-flex;align-items:center;gap:7px;
+      background:rgba(201,160,85,0.12);border:1px solid rgba(201,160,85,0.35);
+      color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:3px;
+      text-transform:uppercase;padding:7px 18px;border-radius:50px;
+    }
 
-    /* ── RIGHT PANEL ── */
-    .rp{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
-    .rp-card{width:100%;max-width:460px}
+    /* ── PHARMACY CROSS ── */
+    .cross-wrap{position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center;margin-bottom:52px}
 
-    /* Mobile logo */
-    .mobile-logo{display:none;align-items:center;gap:12px;margin-bottom:32px;text-decoration:none}
-    @media(max-width:800px){.mobile-logo{display:flex}}
-    .mobile-logo img{width:44px;height:44px;border-radius:50%;border:1px solid rgba(10,37,88,0.2);object-fit:contain}
-    .mobile-logo span{color:var(--navy);font-weight:800;font-size:1.05rem}
+    /* Outer rotating ring */
+    .cross-ring{position:absolute;border-radius:50%;border-style:solid}
+    .ring-1{width:220px;height:220px;border-color:rgba(201,160,85,0.18) rgba(201,160,85,0.04) rgba(201,160,85,0.18) rgba(201,160,85,0.04);border-width:1px;animation:spinRing 18s linear infinite}
+    .ring-2{width:188px;height:188px;border-color:rgba(13,148,136,0.22) rgba(13,148,136,0.05) rgba(13,148,136,0.22) rgba(13,148,136,0.05);border-width:1px;animation:spinRing 12s linear infinite reverse}
+    .ring-3{width:155px;height:155px;border-color:rgba(201,160,85,0.30) rgba(201,160,85,0.08) rgba(201,160,85,0.30) rgba(201,160,85,0.08);border-width:1px;animation:spinRing 25s linear infinite 0.5s}
+    @keyframes spinRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-    .rp-back{display:inline-flex;align-items:center;gap:6px;color:var(--gray);font-size:0.82rem;text-decoration:none;margin-bottom:28px;transition:color .2s}
-    .rp-back:hover{color:var(--navy)}
+    /* Glow orb behind cross */
+    .cross-glow{position:absolute;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(201,160,85,0.35) 0%,transparent 70%);animation:glowPulse 3s ease-in-out infinite}
+    @keyframes glowPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+
+    /* The cross symbol */
+    .cross-symbol{position:relative;width:72px;height:72px;animation:crossFloat 4s ease-in-out infinite}
+    @keyframes crossFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    .cross-v{position:absolute;left:50%;top:0;width:20px;height:72px;transform:translateX(-50%);background:linear-gradient(180deg,var(--gold2),var(--gold),rgba(201,160,85,0.6));border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.7),0 0 48px rgba(201,160,85,0.3)}
+    .cross-h{position:absolute;top:50%;left:0;height:20px;width:72px;transform:translateY(-50%);background:linear-gradient(90deg,rgba(201,160,85,0.6),var(--gold),var(--gold2),var(--gold),rgba(201,160,85,0.6));border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.7),0 0 48px rgba(201,160,85,0.3)}
+
+    /* Corner dots on cross */
+    .cross-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold2);box-shadow:0 0 8px var(--gold)}
+    .dot-tl{top:-4px;left:-4px}.dot-tr{top:-4px;right:-4px}
+    .dot-bl{bottom:-4px;left:-4px}.dot-br{bottom:-4px;right:-4px}
+
+    /* ── TRUST STRIP ── */
+    .trust-strip{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+    .trust-item{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:0.72rem;font-weight:600;letter-spacing:0.5px}
+    .trust-item svg{flex-shrink:0}
+    .trust-dot{width:3px;height:3px;border-radius:50%;background:rgba(201,160,85,0.4);flex-shrink:0}
+
+    /* Corner bracket decorations */
+    .corner{position:absolute;width:36px;height:36px;border-color:rgba(201,160,85,0.3);border-style:solid}
+    .corner-tl{top:24px;left:24px;border-width:2px 0 0 2px}
+    .corner-tr{top:24px;right:24px;border-width:2px 2px 0 0}
+    .corner-bl{bottom:24px;left:24px;border-width:0 0 2px 2px}
+    .corner-br{bottom:24px;right:24px;border-width:0 2px 2px 0}
+
+    /* ═══════════════════════════════
+       RIGHT PANEL — clean form
+    ═══════════════════════════════ */
+    .rp{
+      flex:1;display:flex;align-items:center;justify-content:center;
+      padding:40px 32px;
+      background:linear-gradient(160deg,#f8fafc 0%,#eef2ff 100%);
+      position:relative;
+    }
+    .rp::before{
+      content:'';position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230a2558' fill-opacity='0.025'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+      pointer-events:none;
+    }
+
+    .rp-card{
+      width:100%;max-width:420px;position:relative;z-index:1;
+      background:#fff;border-radius:24px;
+      box-shadow:0 20px 60px rgba(10,37,88,0.12),0 4px 16px rgba(10,37,88,0.06);
+      overflow:hidden;
+    }
+
+    /* Card top accent bar */
+    .rp-card::before{content:'';display:block;height:4px;background:linear-gradient(90deg,var(--teal),var(--navy3),var(--gold))}
+
+    .rp-card-inner{padding:36px 36px 28px}
+    @media(max-width:500px){.rp-card-inner{padding:28px 22px 22px}}
+
+    /* Mobile top logo */
+    .mob-top{display:none;align-items:center;gap:10px;margin-bottom:24px}
+    @media(max-width:860px){.mob-top{display:flex}}
+    .mob-top img{width:36px;height:36px;border-radius:50%;border:1px solid rgba(10,37,88,0.15);object-fit:contain}
+    .mob-top span{font-weight:800;font-size:0.95rem;color:var(--navy3)}
+
+    /* Back link */
+    .rp-back{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-size:0.78rem;text-decoration:none;margin-bottom:22px;transition:color .2s;font-weight:500}
+    .rp-back:hover{color:var(--navy3)}
+
+    /* Card heading */
+    .rp-heading{margin-bottom:24px}
+    .rp-heading h2{font-size:1.5rem;font-weight:800;color:var(--navy3);margin-bottom:4px;line-height:1.2}
+    .rp-heading p{font-size:0.84rem;color:var(--gray);line-height:1.55}
+    .rp-heading .checkout-note{display:none;margin-top:8px;padding:8px 12px;background:rgba(13,148,136,0.08);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;color:#0d6e66;font-size:0.8rem;font-weight:600}
+    .rp-heading .checkout-note.show{display:block}
 
     /* Tabs */
-    .auth-tabs{display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:30px}
+    .auth-tabs{display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:26px;gap:4px}
     .auth-tab{
-      flex:1;text-align:center;padding:10px 0;border-radius:9px;font-size:0.9rem;font-weight:600;
-      cursor:pointer;border:none;background:none;color:var(--gray);transition:all .2s
+      flex:1;text-align:center;padding:9px 0;border-radius:9px;font-size:0.87rem;font-weight:700;
+      cursor:pointer;border:none;background:none;color:#94a3b8;transition:all .22s;letter-spacing:0.2px;
     }
-    .auth-tab.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(10,37,88,0.1)}
+    .auth-tab.active{
+      background:var(--navy3);color:#fff;
+      box-shadow:0 3px 10px rgba(10,37,88,0.25);
+    }
 
     /* Forms */
     .auth-form{display:none}
     .auth-form.active{display:block}
 
-    .form-title{color:var(--navy);font-size:1.55rem;font-weight:800;margin-bottom:6px}
-    .form-sub{color:var(--gray);font-size:0.88rem;margin-bottom:26px;line-height:1.6}
-
-    .field{margin-bottom:18px}
-    .field label{display:block;font-size:0.8rem;font-weight:700;color:var(--navy);margin-bottom:7px;letter-spacing:0.3px}
+    /* Fields */
+    .field{margin-bottom:16px}
+    .field label{display:block;font-size:0.76rem;font-weight:700;color:var(--navy3);margin-bottom:6px;letter-spacing:0.4px;text-transform:uppercase}
     .field-wrap{position:relative}
     .field input{
-      width:100%;padding:13px 16px;border:1.5px solid #e2e8f0;border-radius:10px;
-      font-size:0.95rem;color:#1e293b;background:#fff;transition:border-color .2s,box-shadow .2s;
-      outline:none;font-family:inherit;
+      width:100%;padding:12px 14px 12px 40px;
+      border:1.5px solid #e2e8f0;border-radius:10px;
+      font-size:0.92rem;color:#1e293b;background:#f8fafc;
+      transition:all .2s;outline:none;font-family:inherit;
     }
-    .field input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(10,37,88,0.08)}
-    .field input.error{border-color:var(--red)}
-    .field input.valid{border-color:var(--green)}
-    .field-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
-    .field input.has-icon{padding-left:42px}
-    .field-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px;transition:color .2s}
-    .field-toggle:hover{color:var(--navy)}
-    .field-err{display:none;font-size:0.75rem;color:var(--red);margin-top:5px;font-weight:500}
-    .field-err.show{display:block}
+    .field input:focus{border-color:var(--navy3);background:#fff;box-shadow:0 0 0 3px rgba(10,37,88,0.07)}
+    .field input.err{border-color:var(--red);background:#fff9f9}
+    .field-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#cbd5e1;pointer-events:none;transition:color .2s}
+    .field input:focus~.field-ico,.field input:not(:placeholder-shown)~.field-ico{color:var(--navy3)}
+    .field-ico{pointer-events:none} /* keep above */
+    .field-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#cbd5e1;padding:2px;transition:color .2s;display:flex;align-items:center}
+    .field-eye:hover{color:var(--navy3)}
+    .field-err-msg{font-size:0.72rem;color:var(--red);margin-top:4px;font-weight:500;display:none}
+    .field-err-msg.show{display:block}
+
+    /* Two-col grid for name */
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* Honeypot */
+    .hp{position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;pointer-events:none}
 
     /* Password strength */
-    .pw-strength{margin-top:8px}
-    .pw-bars{display:flex;gap:4px;margin-bottom:5px}
-    .pw-bar{flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s}
-    .pw-bar.weak{background:#dc2626}
-    .pw-bar.fair{background:#f59e0b}
-    .pw-bar.good{background:#3b82f6}
-    .pw-bar.strong{background:#16a34a}
-    .pw-label{font-size:0.72rem;color:var(--gray);font-weight:600}
-
-    /* Honeypot — hidden from users, catches bots */
-    .hp-field{position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden}
+    .pw-str{margin-top:7px;display:none}
+    .pw-str-bars{display:flex;gap:3px;margin-bottom:4px}
+    .pw-bar{flex:1;height:3px;border-radius:2px;background:#e2e8f0;transition:background .3s}
+    .pw-bar.w{background:#dc2626}.pw-bar.f{background:#f59e0b}
+    .pw-bar.g{background:#3b82f6}.pw-bar.s{background:#16a34a}
+    .pw-str-lbl{font-size:0.7rem;color:var(--gray);font-weight:600}
 
     /* Checkbox */
-    .check-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:22px}
-    .check-row input[type=checkbox]{width:17px;height:17px;margin-top:2px;accent-color:var(--navy);flex-shrink:0;cursor:pointer}
-    .check-row label{font-size:0.82rem;color:var(--gray);line-height:1.5;cursor:pointer}
-    .check-row a{color:var(--navy);font-weight:600}
+    .check-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:18px}
+    .check-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;accent-color:var(--navy3);flex-shrink:0;cursor:pointer}
+    .check-row label{font-size:0.79rem;color:var(--gray);line-height:1.5;cursor:pointer}
+    .check-row a{color:var(--navy3);font-weight:600;text-decoration:none}
+    .check-row a:hover{text-decoration:underline}
+
+    /* Forgot */
+    .forgot{text-align:right;margin:-4px 0 16px}
+    .forgot a{font-size:0.77rem;color:var(--teal);font-weight:600;text-decoration:none}
+    .forgot a:hover{text-decoration:underline}
+
+    /* Alert */
+    .alert{display:none;padding:11px 14px;border-radius:9px;font-size:0.82rem;font-weight:500;margin-bottom:14px;align-items:flex-start;gap:9px;line-height:1.5}
+    .alert.show{display:flex}
+    .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+    .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+
+    /* Rate limit bar */
+    .rate-bar{display:none;padding:11px 14px;border-radius:9px;font-size:0.8rem;margin-bottom:14px;background:#fef2f2;border:1px solid #fecaca;align-items:center;gap:8px}
+    .rate-bar.show{display:flex}
 
     /* Submit button */
     .btn-submit{
-      width:100%;padding:14px;background:var(--navy);color:#fff;
-      border:none;border-radius:10px;font-size:0.97rem;font-weight:700;
-      cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;
-      font-family:inherit;
+      width:100%;padding:13px;border:none;border-radius:11px;font-size:0.95rem;font-weight:700;
+      cursor:pointer;transition:all .22s;font-family:inherit;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      background:linear-gradient(135deg,var(--navy3) 0%,#0d3a6e 100%);
+      color:#fff;box-shadow:0 4px 16px rgba(10,37,88,0.3);
+      letter-spacing:0.3px;
     }
-    .btn-submit:hover{background:#0d3a6e;transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,37,88,0.25)}
-    .btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none}
-
-    /* Alert boxes */
-    .alert{display:none;padding:13px 16px;border-radius:10px;font-size:0.85rem;font-weight:500;margin-bottom:16px;line-height:1.5}
-    .alert.show{display:flex;align-items:flex-start;gap:10px}
-    .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
-    .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
-    .alert.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,37,88,0.35);background:linear-gradient(135deg,#0d3a6e 0%,var(--navy3) 100%)}
+    .btn-submit:active{transform:translateY(0)}
+    .btn-submit:disabled{opacity:0.55;cursor:not-allowed;transform:none;box-shadow:none}
 
     /* Divider */
-    .divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--gray);font-size:0.8rem}
-    .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
+    .or-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#cbd5e1;font-size:0.75rem;font-weight:600}
+    .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
 
-    /* Forgot password link */
-    .forgot{text-align:right;margin-top:-10px;margin-bottom:18px}
-    .forgot a{font-size:0.8rem;color:var(--teal);font-weight:600;text-decoration:none}
-    .forgot a:hover{text-decoration:underline}
+    /* Switch link */
+    .switch-lnk{text-align:center;font-size:0.82rem;color:var(--gray);margin-top:18px}
+    .switch-lnk a{color:var(--navy3);font-weight:700;cursor:pointer;text-decoration:none}
+    .switch-lnk a:hover{text-decoration:underline}
 
-    /* Bottom switch link */
-    .switch-link{text-align:center;font-size:0.85rem;color:var(--gray);margin-top:22px}
-    .switch-link a{color:var(--navy);font-weight:700;cursor:pointer;text-decoration:none}
-    .switch-link a:hover{text-decoration:underline}
-
-    /* Rate limit timer */
-    .rate-bar{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:13px 16px;margin-bottom:16px}
-    .rate-bar.show{display:flex;align-items:center;gap:10px}
-
-    /* Security footer */
-    .sec-footer{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:28px;color:#94a3b8;font-size:0.75rem}
-    .sec-footer svg{flex-shrink:0}
+    /* Security footer inside card */
+    .card-footer{padding:14px 36px 22px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;gap:6px;color:#cbd5e1;font-size:0.71rem}
+    @media(max-width:500px){.card-footer{padding:14px 22px 18px}}
   </style>
 </head>
 <body>
 
-<!-- ── LEFT DECORATIVE PANEL ── -->
+<!-- ═══════════════════════════════════════════
+     LEFT PANEL
+═══════════════════════════════════════════ -->
 <div class="lp">
-  <div class="lp-bg"></div>
-  <div class="lp-orb1"></div>
-  <div class="lp-orb2"></div>
+  <!-- Corner brackets -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
 
-  <div class="lp-logo">
-    <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
-    <div>
-      <h1>DUCOR</h1>
-      <p>International Pharmacy</p>
-    </div>
-  </div>
+  <!-- Background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
 
-  <h2 class="lp-title">Secure <span>Client</span> Portal</h2>
-  <p class="lp-sub">Your personal health account — order medications, track prescriptions, and manage your health profile safely.</p>
+  <div class="lp-inner">
 
-  <div class="lp-badges">
-    <div class="lp-badge">
-      <div class="lp-badge-icon gold">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <!-- Brand -->
+    <div class="lp-brand">
+      <div class="lp-logo-ring">
+        <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
       </div>
-      <div class="lp-badge-text"><p>256-bit Encryption</p><span>All data is encrypted end-to-end</span></div>
-    </div>
-    <div class="lp-badge">
-      <div class="lp-badge-icon teal">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      <div class="lp-name">DUCOR<span>.</span></div>
+      <div class="lp-sub-name">International Pharmacy &nbsp;·&nbsp; Liberia</div>
+      <div class="lp-portal-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Secure Client Portal
       </div>
-      <div class="lp-badge-text"><p>Privacy Protected</p><span>HIPAA-compliant data handling</span></div>
     </div>
-    <div class="lp-badge">
-      <div class="lp-badge-icon blue">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+
+    <!-- Pharmacy Cross -->
+    <div class="cross-wrap">
+      <div class="cross-ring ring-1"></div>
+      <div class="cross-ring ring-2"></div>
+      <div class="cross-ring ring-3"></div>
+      <div class="cross-glow"></div>
+      <div class="cross-symbol">
+        <div class="cross-v"></div>
+        <div class="cross-h"></div>
+        <div class="cross-dot dot-tl"></div>
+        <div class="cross-dot dot-tr"></div>
+        <div class="cross-dot dot-bl"></div>
+        <div class="cross-dot dot-br"></div>
       </div>
-      <div class="lp-badge-text"><p>Auto Session Timeout</p><span>Account locks after 30 min inactivity</span></div>
     </div>
+
+    <!-- Trust strip -->
+    <div class="trust-strip">
+      <div class="trust-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        256-bit Encrypted
+      </div>
+      <div class="trust-dot"></div>
+      <div class="trust-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        HIPAA Compliant
+      </div>
+      <div class="trust-dot"></div>
+      <div class="trust-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Licensed Pharmacy
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- ── RIGHT FORM PANEL ── -->
+<!-- ═══════════════════════════════════════════
+     RIGHT PANEL
+═══════════════════════════════════════════ -->
 <div class="rp">
   <div class="rp-card">
+    <div class="rp-card-inner">
 
-    <a href="/index.html" class="mobile-logo">
-      <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
-      <span>Ducor International Pharmacy</span>
-    </a>
-
-    <a href="/index.html" class="rp-back">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Back to Website
-    </a>
-
-    <!-- TABS -->
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
-    </div>
-
-    <!-- ═══ LOGIN FORM ═══ -->
-    <div class="auth-form active" id="form-login">
-      <h2 class="form-title">Welcome back</h2>
-      <p class="form-sub">Sign in to access your health account and order history.</p>
-
-      <div class="alert error" id="login-err">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        <span id="login-err-msg"></span>
-      </div>
-      <div class="rate-bar" id="login-rate">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span style="color:#991b1b;font-size:0.83rem;font-weight:500">Too many failed attempts. Please wait <strong id="rate-timer">15:00</strong> before trying again.</span>
+      <!-- Mobile brand -->
+      <div class="mob-top">
+        <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
+        <span>Ducor International Pharmacy</span>
       </div>
 
-      <!-- Honeypot — bots fill this, humans don't see it -->
-      <div class="hp-field" aria-hidden="true">
-        <input type="text" name="website" id="hp-login" tabindex="-1" autocomplete="off"/>
+      <!-- Back link -->
+      <a href="/index.html" class="rp-back">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to website
+      </a>
+
+      <!-- Heading -->
+      <div class="rp-heading">
+        <h2 id="rp-title">Welcome back</h2>
+        <p id="rp-sub">Sign in to your health account.</p>
+        <div class="checkout-note" id="checkout-note">
+          Sign in to complete your order →
+        </div>
       </div>
 
-      <form id="login-form" novalidate>
-        <div class="field">
-          <label for="login-email">Email Address</label>
-          <div class="field-wrap">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-            <input type="email" id="login-email" name="email" placeholder="your@email.com" class="has-icon" autocomplete="email" required/>
-          </div>
-          <div class="field-err" id="login-email-err"></div>
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- ══ LOGIN FORM ══ -->
+      <div class="auth-form active" id="form-login">
+
+        <div class="alert error" id="login-err">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span id="login-err-msg"></span>
+        </div>
+        <div class="rate-bar" id="login-rate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span style="color:#991b1b;font-weight:500">Too many attempts — wait <strong id="rate-timer">15:00</strong></span>
         </div>
 
-        <div class="field">
-          <label for="login-pw">Password</label>
-          <div class="field-wrap">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <input type="password" id="login-pw" name="password" placeholder="Your password" class="has-icon" autocomplete="current-password" required/>
-            <button type="button" class="field-toggle" onclick="togglePw('login-pw',this)" aria-label="Show password">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div class="field-err" id="login-pw-err"></div>
-        </div>
+        <!-- Honeypot -->
+        <div class="hp" aria-hidden="true"><input type="text" id="hp-login" name="website" tabindex="-1" autocomplete="off"/></div>
 
-        <div class="forgot"><a href="#" onclick="showForgot();return false">Forgot password?</a></div>
-
-        <div class="check-row">
-          <input type="checkbox" id="remember-me" name="remember"/>
-          <label for="remember-me">Keep me signed in for 7 days on this device</label>
-        </div>
-
-        <button type="submit" class="btn-submit" id="login-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Sign In Securely
-        </button>
-      </form>
-
-      <div class="switch-link">Don't have an account? <a onclick="switchTab('signup')">Create one free</a></div>
-    </div>
-
-    <!-- ═══ SIGNUP FORM ═══ -->
-    <div class="auth-form" id="form-signup">
-      <h2 class="form-title">Create Your Account</h2>
-      <p class="form-sub">Join thousands of Liberians managing their health with Ducor Pharmacy.</p>
-
-      <div class="alert error" id="signup-err">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        <span id="signup-err-msg"></span>
-      </div>
-      <div class="alert success" id="signup-ok">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span>Account created! Redirecting to your dashboard...</span>
-      </div>
-
-      <div class="hp-field" aria-hidden="true">
-        <input type="text" name="website2" id="hp-signup" tabindex="-1" autocomplete="off"/>
-      </div>
-
-      <form id="signup-form" novalidate>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <form id="login-form" novalidate>
           <div class="field">
-            <label for="su-fname">First Name</label>
+            <label>Email Address</label>
             <div class="field-wrap">
-              <input type="text" id="su-fname" name="fname" placeholder="First" autocomplete="given-name" required/>
+              <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" required/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
             </div>
-            <div class="field-err" id="su-fname-err"></div>
+            <div class="field-err-msg" id="login-email-err"></div>
           </div>
+
           <div class="field">
-            <label for="su-lname">Last Name</label>
+            <label>Password</label>
             <div class="field-wrap">
-              <input type="text" id="su-lname" name="lname" placeholder="Last" autocomplete="family-name" required/>
+              <input type="password" id="login-pw" placeholder="Your password" autocomplete="current-password" required/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <button type="button" class="field-eye" onclick="togglePw('login-pw',this)" aria-label="Show password">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-err-msg" id="login-pw-err"></div>
+          </div>
+
+          <div class="forgot"><a href="#" onclick="showForgot();return false">Forgot password?</a></div>
+
+          <div class="check-row">
+            <input type="checkbox" id="remember-me"/>
+            <label for="remember-me">Keep me signed in for 7 days</label>
+          </div>
+
+          <button type="submit" class="btn-submit" id="login-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Sign In Securely
+          </button>
+        </form>
+
+        <div class="switch-lnk">New to Ducor? <a onclick="switchTab('signup')">Create a free account</a></div>
+      </div>
+
+      <!-- ══ SIGNUP FORM ══ -->
+      <div class="auth-form" id="form-signup">
+
+        <div class="alert error" id="signup-err">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span id="signup-err-msg"></span>
+        </div>
+        <div class="alert success" id="signup-ok">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Account created! Taking you in now...</span>
+        </div>
+
+        <div class="hp" aria-hidden="true"><input type="text" id="hp-signup" name="website2" tabindex="-1" autocomplete="off"/></div>
+
+        <form id="signup-form" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label>First Name</label>
+              <div class="field-wrap">
+                <input type="text" id="su-fname" placeholder="First" autocomplete="given-name" required/>
+                <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="field-err-msg" id="su-fname-err"></div>
+            </div>
+            <div class="field">
+              <label>Last Name</label>
+              <div class="field-wrap">
+                <input type="text" id="su-lname" placeholder="Last" autocomplete="family-name"/>
+                <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="field">
-          <label for="su-email">Email Address</label>
-          <div class="field-wrap">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-            <input type="email" id="su-email" name="email" placeholder="your@email.com" class="has-icon" autocomplete="email" required/>
-          </div>
-          <div class="field-err" id="su-email-err"></div>
-        </div>
-
-        <div class="field">
-          <label for="su-phone">Phone Number</label>
-          <div class="field-wrap">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            <input type="tel" id="su-phone" name="phone" placeholder="+231 880 000 000" class="has-icon" autocomplete="tel"/>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="su-dob">Date of Birth <span style="color:#94a3b8;font-weight:400">(for prescription eligibility)</span></label>
-          <div class="field-wrap">
-            <input type="date" id="su-dob" name="dob" autocomplete="bday"/>
-          </div>
-          <div class="field-err" id="su-dob-err"></div>
-        </div>
-
-        <div class="field">
-          <label for="su-pw">Password</label>
-          <div class="field-wrap">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <input type="password" id="su-pw" name="password" placeholder="Create a strong password" class="has-icon" autocomplete="new-password" required oninput="checkStrength(this.value)"/>
-            <button type="button" class="field-toggle" onclick="togglePw('su-pw',this)" aria-label="Show password">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div class="pw-strength" id="pw-strength" style="display:none">
-            <div class="pw-bars">
-              <div class="pw-bar" id="bar1"></div>
-              <div class="pw-bar" id="bar2"></div>
-              <div class="pw-bar" id="bar3"></div>
-              <div class="pw-bar" id="bar4"></div>
+          <div class="field">
+            <label>Email Address</label>
+            <div class="field-wrap">
+              <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" required/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
             </div>
-            <div class="pw-label" id="pw-label"></div>
+            <div class="field-err-msg" id="su-email-err"></div>
           </div>
-          <div class="field-err" id="su-pw-err"></div>
-        </div>
 
-        <div class="field">
-          <label for="su-pw2">Confirm Password</label>
-          <div class="field-wrap">
-            <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <input type="password" id="su-pw2" name="password2" placeholder="Repeat your password" class="has-icon" autocomplete="new-password" required/>
-            <button type="button" class="field-toggle" onclick="togglePw('su-pw2',this)" aria-label="Show password">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
+          <div class="field">
+            <label>Phone Number</label>
+            <div class="field-wrap">
+              <input type="tel" id="su-phone" placeholder="+231 880 000 000" autocomplete="tel"/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            </div>
           </div>
-          <div class="field-err" id="su-pw2-err"></div>
-        </div>
 
-        <div class="check-row">
-          <input type="checkbox" id="agree-terms" name="terms" required/>
-          <label for="agree-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand my medical data is protected under Liberian health privacy laws.</label>
-        </div>
+          <div class="field">
+            <label>Date of Birth <span style="text-transform:none;font-weight:400;color:#94a3b8">(for prescription eligibility)</span></label>
+            <div class="field-wrap">
+              <input type="date" id="su-dob" autocomplete="bday"/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="field-err-msg" id="su-dob-err"></div>
+          </div>
 
-        <button type="submit" class="btn-submit" id="signup-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-          Create My Account
-        </button>
-      </form>
+          <div class="field">
+            <label>Password</label>
+            <div class="field-wrap">
+              <input type="password" id="su-pw" placeholder="Create a strong password" autocomplete="new-password" required oninput="checkStrength(this.value)"/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <button type="button" class="field-eye" onclick="togglePw('su-pw',this)" aria-label="Show password">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="pw-str" id="pw-str">
+              <div class="pw-str-bars">
+                <div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div>
+                <div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div>
+              </div>
+              <div class="pw-str-lbl" id="pw-lbl"></div>
+            </div>
+            <div class="field-err-msg" id="su-pw-err"></div>
+          </div>
 
-      <div class="switch-link">Already have an account? <a onclick="switchTab('login')">Sign in</a></div>
+          <div class="field">
+            <label>Confirm Password</label>
+            <div class="field-wrap">
+              <input type="password" id="su-pw2" placeholder="Repeat your password" autocomplete="new-password" required/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <button type="button" class="field-eye" onclick="togglePw('su-pw2',this)" aria-label="Show password">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-err-msg" id="su-pw2-err"></div>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="agree-terms"/>
+            <label for="agree-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. My medical data is protected under Liberian health privacy law.</label>
+          </div>
+
+          <button type="submit" class="btn-submit" id="signup-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Create My Account
+          </button>
+        </form>
+
+        <div class="switch-lnk">Already have an account? <a onclick="switchTab('login')">Sign in</a></div>
+      </div>
+
     </div>
 
-    <!-- Security indicator -->
-    <div class="sec-footer">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      Secured with 256-bit SSL encryption &nbsp;·&nbsp; Ducor International Pharmacy © 2025
+    <!-- Card footer -->
+    <div class="card-footer">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      SSL secured &nbsp;·&nbsp; Ducor International Pharmacy © 2025
     </div>
   </div>
 </div>
@@ -394,352 +520,151 @@
 <script>
 'use strict';
 
-/* ══════════════════════════════════════
-   SECURITY UTILITIES
-══════════════════════════════════════ */
-
-// SHA-256 hash via Web Crypto API
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+/* ══ SECURITY UTILITIES ══ */
+async function sha256(str){
+  var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
 }
+function randomToken(len){var a=new Uint8Array(len);crypto.getRandomValues(a);return Array.from(a).map(function(b){return b.toString(16).padStart(2,'0');}).join('');}
+function sanitize(s){return String(s).replace(/[<>"'&]/g,function(c){return{'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','&':'&amp;'}[c];});}
 
-// Cryptographically random token
-function randomToken(len) {
-  const arr = new Uint8Array(len);
-  crypto.getRandomValues(arr);
-  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+/* ══ RATE LIMITING ══ */
+var _RL_MAX=5,_RL_WIN=15*60*1000,_RL_TIMER=null;
+function rlKey(e){return 'ducor_rl_'+btoa(e.trim().toLowerCase()).replace(/=/g,'');}
+function isRateLimited(email){try{var d=JSON.parse(localStorage.getItem(rlKey(email))||'null');if(!d)return false;if(Date.now()>d.reset)return false;return d.n>_RL_MAX;}catch(e){return false;}}
+function checkRateLimit(email){try{var k=rlKey(email),d=JSON.parse(localStorage.getItem(k)||'null')||{n:0,reset:Date.now()+_RL_WIN};if(Date.now()>d.reset)d={n:0,reset:Date.now()+_RL_WIN};d.n++;localStorage.setItem(k,JSON.stringify(d));if(d.n>_RL_MAX){startRateTimer(d.reset-Date.now());return false;}}catch(e){}return true;}
+function startRateTimer(ms){var el=document.getElementById('rate-timer'),bar=document.getElementById('login-rate');bar.classList.add('show');if(_RL_TIMER)clearInterval(_RL_TIMER);_RL_TIMER=setInterval(function(){ms-=1000;if(ms<=0){clearInterval(_RL_TIMER);bar.classList.remove('show');return;}var m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);el.textContent=m+':'+String(s).padStart(2,'0');},1000);}
+
+/* ══ SESSION ══ */
+var SESSION_KEY='ducor_sess_v2',TIMEOUT_MS=30*60*1000;
+function createSession(id,remember){var token=randomToken(32),expiry=Date.now()+(remember?7*24*3600*1000:TIMEOUT_MS),sess={userId:id,token:token,expiry:expiry,remember:!!remember};(remember?localStorage:sessionStorage).setItem(SESSION_KEY,JSON.stringify(sess));return sess;}
+function getSession(){try{var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);if(!raw)return null;var s=JSON.parse(raw);if(!s||!s.userId||!s.token)return null;if(Date.now()>s.expiry){sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(SESSION_KEY);return null;}if(!s.remember){s.expiry=Date.now()+TIMEOUT_MS;sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));}return s;}catch(e){return null;}}
+
+/* ══ USERS ══ */
+var USERS_KEY='ducor_users_v2';
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]');}catch(e){return[];}}
+function saveUsers(u){try{localStorage.setItem(USERS_KEY,JSON.stringify(u));}catch(e){}}
+function findUser(email){return getUsers().find(function(u){return u.email===email.trim().toLowerCase();})||null;}
+
+/* ══ UI HELPERS ══ */
+function switchTab(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
+  document.getElementById('form-login').classList.toggle('active',tab==='login');
+  document.getElementById('form-signup').classList.toggle('active',tab==='signup');
+  document.getElementById('rp-title').textContent=tab==='login'?'Welcome back':'Create your account';
+  document.getElementById('rp-sub').textContent=tab==='login'?'Sign in to your health account.':'Join Ducor Pharmacy — it only takes a minute.';
+  ['login-err','signup-err','signup-ok'].forEach(function(id){document.getElementById(id).classList.remove('show');});
 }
-
-// Sanitize string — strip HTML tags to prevent XSS
-function sanitize(str) {
-  return String(str).replace(/[<>"'&]/g, function(c) {
-    return {'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','&':'&amp;'}[c];
-  });
+function showAlert(id,msg){var el=document.getElementById(id),sp=el.querySelector('span');if(sp)sp.textContent=msg;el.classList.add('show');}
+function hideAlert(id){document.getElementById(id).classList.remove('show');}
+function setErr(id,msg){var el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.toggle('show',!!msg);}
+function togglePw(inputId,btn){
+  var inp=document.getElementById(inputId),show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.innerHTML=show?
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>':
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 }
-
-/* ══════════════════════════════════════
-   RATE LIMITING (max 5 attempts / 15 min per email)
-══════════════════════════════════════ */
-var _RL_MAX = 5, _RL_WIN = 15 * 60 * 1000, _RL_TIMER = null;
-
-function rlKey(email) { return 'ducor_rl_' + btoa(email.trim().toLowerCase()).replace(/=/g,''); }
-
-function checkRateLimit(email) {
-  try {
-    var k = rlKey(email);
-    var d = JSON.parse(localStorage.getItem(k) || 'null') || {n:0, reset: Date.now() + _RL_WIN};
-    if (Date.now() > d.reset) { d = {n:0, reset: Date.now() + _RL_WIN}; }
-    d.n++;
-    localStorage.setItem(k, JSON.stringify(d));
-    if (d.n > _RL_MAX) {
-      startRateTimer(d.reset - Date.now());
-      return false;
-    }
-  } catch(e) {}
-  return true;
+function checkStrength(pw){
+  var wrap=document.getElementById('pw-str');
+  if(!pw){wrap.style.display='none';return 0;}
+  wrap.style.display='block';
+  var sc=0;
+  if(pw.length>=8)sc++;if(pw.length>=12)sc++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))sc++;
+  if(/[0-9]/.test(pw))sc++;if(/[^A-Za-z0-9]/.test(pw))sc++;
+  var lv=sc<=1?0:sc<=2?1:sc<=3?2:3;
+  var cls=['w','f','g','s'],lbs=['Weak — add uppercase, numbers & symbols','Fair — add numbers or symbols','Good password','Strong password'];
+  for(var i=1;i<=4;i++){var b=document.getElementById('bar'+i);b.className='pw-bar'+(i<=lv+1?' '+cls[lv]:'');}
+  document.getElementById('pw-lbl').textContent=lbs[lv];
+  return lv;
 }
+function showForgot(){showAlert('login-err','Reset your password: contact us on WhatsApp +231 880 187 490 or email info@ducorpharmacy.com — we will reset it securely within 24 hours.');}
 
-function isRateLimited(email) {
-  try {
-    var d = JSON.parse(localStorage.getItem(rlKey(email)) || 'null');
-    if (!d) return false;
-    if (Date.now() > d.reset) return false;
-    return d.n > _RL_MAX;
-  } catch(e) { return false; }
-}
-
-function startRateTimer(msLeft) {
-  var el = document.getElementById('rate-timer');
-  var bar = document.getElementById('login-rate');
-  bar.classList.add('show');
-  if (_RL_TIMER) clearInterval(_RL_TIMER);
-  _RL_TIMER = setInterval(function() {
-    msLeft -= 1000;
-    if (msLeft <= 0) {
-      clearInterval(_RL_TIMER);
-      bar.classList.remove('show');
-      return;
-    }
-    var m = Math.floor(msLeft / 60000), s = Math.floor((msLeft % 60000) / 1000);
-    el.textContent = m + ':' + String(s).padStart(2,'0');
-  }, 1000);
-}
-
-/* ══════════════════════════════════════
-   SESSION MANAGEMENT (30 min inactivity / 7 day remember)
-══════════════════════════════════════ */
-var SESSION_KEY = 'ducor_sess_v2';
-var TIMEOUT_MS  = 30 * 60 * 1000;
-
-function createSession(userId, remember) {
-  var token = randomToken(32);
-  var expiry = Date.now() + (remember ? 7 * 24 * 60 * 60 * 1000 : TIMEOUT_MS);
-  var sess = {userId: userId, token: token, expiry: expiry, remember: !!remember};
-  var store = remember ? localStorage : sessionStorage;
-  store.setItem(SESSION_KEY, JSON.stringify(sess));
-  return sess;
-}
-
-function getSession() {
-  try {
-    var raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    var s = JSON.parse(raw);
-    if (!s || !s.userId || !s.token) return null;
-    if (Date.now() > s.expiry) { clearSession(); return null; }
-    // Refresh expiry on activity (only for non-remember sessions)
-    if (!s.remember) { s.expiry = Date.now() + TIMEOUT_MS; sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
-    return s;
-  } catch(e) { return null; }
-}
-
-function clearSession() {
-  sessionStorage.removeItem(SESSION_KEY);
-  localStorage.removeItem(SESSION_KEY);
-}
-
-/* ══════════════════════════════════════
-   USER STORE (localStorage — structured, sanitized)
-══════════════════════════════════════ */
-var USERS_KEY = 'ducor_users_v2';
-
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); }
-  catch(e) { return []; }
-}
-
-function saveUsers(users) {
-  try { localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch(e) {}
-}
-
-function findUser(email) {
-  return getUsers().find(function(u) { return u.email === email.trim().toLowerCase(); }) || null;
-}
-
-/* ══════════════════════════════════════
-   UI HELPERS
-══════════════════════════════════════ */
-function switchTab(tab) {
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
-  document.getElementById('form-login').classList.toggle('active', tab === 'login');
-  document.getElementById('form-signup').classList.toggle('active', tab === 'signup');
-  // Clear all alerts on switch
-  ['login-err','signup-err','signup-ok'].forEach(function(id) { document.getElementById(id).classList.remove('show'); });
-}
-
-function showAlert(id, msg) {
-  var el = document.getElementById(id);
-  var msgEl = el.querySelector('span');
-  if (msgEl) msgEl.textContent = msg;
-  el.classList.add('show');
-}
-
-function hideAlert(id) { document.getElementById(id).classList.remove('show'); }
-
-function setFieldError(id, msg) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.toggle('show', !!msg);
-  // Mark input red/clear
-  var input = el.previousElementSibling && el.previousElementSibling.querySelector ? el.previousElementSibling.querySelector('input') : null;
-  if (!input) { var wrap = el.parentElement; input = wrap && wrap.querySelector('input'); }
-  if (input) input.classList.toggle('error', !!msg);
-}
-
-function togglePw(inputId, btn) {
-  var inp = document.getElementById(inputId);
-  var show = inp.type === 'password';
-  inp.type = show ? 'text' : 'password';
-  btn.innerHTML = show
-    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
-    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-}
-
-/* ── Password strength checker ── */
-function checkStrength(pw) {
-  var wrap = document.getElementById('pw-strength');
-  if (!pw) { wrap.style.display = 'none'; return 0; }
-  wrap.style.display = 'block';
-  var score = 0;
-  if (pw.length >= 8)  score++;
-  if (pw.length >= 12) score++;
-  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  var level = score <= 1 ? 0 : score <= 2 ? 1 : score <= 3 ? 2 : 3;
-  var labels = ['Weak', 'Fair', 'Good', 'Strong'];
-  var cls    = ['weak', 'fair', 'good', 'strong'];
-  var colors = ['weak', 'fair', 'good', 'strong'];
-  for (var i = 1; i <= 4; i++) {
-    var bar = document.getElementById('bar' + i);
-    bar.className = 'pw-bar ' + (i <= level + 1 ? colors[level] : '');
+/* ══ ?next REDIRECT ══ */
+var _nextUrl=(function(){var p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
+(function(){
+  if(_nextUrl==='/checkout.html'){
+    document.getElementById('checkout-note').classList.add('show');
+    switchTab('login');
   }
-  document.getElementById('pw-label').textContent = labels[level] + ' password' + (level < 2 ? ' — add numbers & symbols to strengthen' : '');
-  return level;
-}
+})();
+(function(){if(getSession())window.location.href=_nextUrl;})();
 
-function showForgot() {
-  showAlert('login-err', 'Password reset: contact us at +231 880 187 490 (WhatsApp) or info@ducorpharmacy.com and we will reset your account securely.');
-}
-
-/* ══════════════════════════════════════
-   LOGIN SUBMIT
-══════════════════════════════════════ */
-document.getElementById('login-form').addEventListener('submit', async function(e) {
+/* ══ LOGIN SUBMIT ══ */
+document.getElementById('login-form').addEventListener('submit',async function(e){
   e.preventDefault();
   hideAlert('login-err');
-
-  // Bot check — honeypot
-  if (document.getElementById('hp-login').value) { return; }
-
-  var email = document.getElementById('login-email').value.trim().toLowerCase();
-  var pw    = document.getElementById('login-pw').value;
-  var remember = document.getElementById('remember-me').checked;
-
-  // Clear previous field errors
-  setFieldError('login-email-err', '');
-  setFieldError('login-pw-err', '');
-
-  // Basic validation
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    setFieldError('login-email-err', 'Enter a valid email address');
-    return;
-  }
-  if (!pw) { setFieldError('login-pw-err', 'Enter your password'); return; }
-
-  // Rate limit check
-  if (isRateLimited(email)) { return; }
-
-  var btn = document.getElementById('login-btn');
-  btn.disabled = true;
-  btn.textContent = 'Verifying...';
-
-  try {
-    // Hash the password
-    var hash = await sha256(pw + 'ducor_ph_salt_2025_' + email);
-    var user = findUser(email);
-
-    if (!user || user.pwHash !== hash) {
+  if(document.getElementById('hp-login').value)return;
+  var email=document.getElementById('login-email').value.trim().toLowerCase();
+  var pw=document.getElementById('login-pw').value;
+  var remember=document.getElementById('remember-me').checked;
+  setErr('login-email-err','');setErr('login-pw-err','');
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setErr('login-email-err','Enter a valid email address');return;}
+  if(!pw){setErr('login-pw-err','Enter your password');return;}
+  if(isRateLimited(email))return;
+  var btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Verifying...';
+  try{
+    var hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
+    var user=findUser(email);
+    if(!user||user.pwHash!==hash){
       checkRateLimit(email);
-      showAlert('login-err', 'Incorrect email or password. Please check and try again.');
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In Securely';
+      showAlert('login-err','Incorrect email or password. Please try again.');
+      btn.disabled=false;
+      btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In Securely';
       return;
     }
-
-    // Success
-    createSession(user.id, remember);
-    window.location.href = _nextUrl;
-  } catch(err) {
-    showAlert('login-err', 'A security error occurred. Please refresh and try again.');
-    btn.disabled = false;
-    btn.textContent = 'Sign In Securely';
+    createSession(user.id,remember);
+    window.location.href=_nextUrl;
+  }catch(err){
+    showAlert('login-err','A security error occurred. Please refresh and try again.');
+    btn.disabled=false;btn.textContent='Sign In Securely';
   }
 });
 
-/* ══════════════════════════════════════
-   SIGNUP SUBMIT
-══════════════════════════════════════ */
-document.getElementById('signup-form').addEventListener('submit', async function(e) {
+/* ══ SIGNUP SUBMIT ══ */
+document.getElementById('signup-form').addEventListener('submit',async function(e){
   e.preventDefault();
-  hideAlert('signup-err');
-  hideAlert('signup-ok');
-
-  // Bot check — honeypot
-  if (document.getElementById('hp-signup').value) { return; }
-
-  var fname  = sanitize(document.getElementById('su-fname').value.trim());
-  var lname  = sanitize(document.getElementById('su-lname').value.trim());
-  var email  = document.getElementById('su-email').value.trim().toLowerCase();
-  var phone  = sanitize(document.getElementById('su-phone').value.trim());
-  var dob    = document.getElementById('su-dob').value;
-  var pw     = document.getElementById('su-pw').value;
-  var pw2    = document.getElementById('su-pw2').value;
-  var agreed = document.getElementById('agree-terms').checked;
-
-  // Clear errors
-  ['su-fname-err','su-email-err','su-dob-err','su-pw-err','su-pw2-err'].forEach(function(id) { setFieldError(id,''); });
-
-  // Validation
-  var ok = true;
-  if (!fname) { setFieldError('su-fname-err','First name is required'); ok = false; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFieldError('su-email-err','Enter a valid email address'); ok = false; }
-  if (dob) {
-    var age = (Date.now() - new Date(dob)) / (365.25 * 24 * 3600 * 1000);
-    if (age < 16) { setFieldError('su-dob-err','You must be at least 16 to register'); ok = false; }
-  }
-  var pwLevel = checkStrength(pw);
-  if (!pw || pw.length < 8) { setFieldError('su-pw-err','Password must be at least 8 characters'); ok = false; }
-  else if (pwLevel < 1) { setFieldError('su-pw-err','Password is too weak — add uppercase, numbers, or symbols'); ok = false; }
-  if (pw !== pw2) { setFieldError('su-pw2-err','Passwords do not match'); ok = false; }
-  if (!agreed) { showAlert('signup-err','You must agree to the Terms of Service to register.'); ok = false; }
-  if (!ok) return;
-
-  // Check existing user
-  if (findUser(email)) {
-    setFieldError('su-email-err','An account with this email already exists');
-    return;
-  }
-
-  var btn = document.getElementById('signup-btn');
-  btn.disabled = true;
-  btn.textContent = 'Creating your account...';
-
-  try {
-    var hash = await sha256(pw + 'ducor_ph_salt_2025_' + email);
-    var userId = randomToken(16);
-    var users  = getUsers();
-    users.push({
-      id:        userId,
-      email:     email,
-      fname:     fname,
-      lname:     lname,
-      phone:     phone,
-      dob:       dob,
-      pwHash:    hash,
-      createdAt: Date.now(),
-      orders:    [],
-      prescriptions: []
-    });
+  hideAlert('signup-err');hideAlert('signup-ok');
+  if(document.getElementById('hp-signup').value)return;
+  var fname=sanitize(document.getElementById('su-fname').value.trim());
+  var lname=sanitize(document.getElementById('su-lname').value.trim());
+  var email=document.getElementById('su-email').value.trim().toLowerCase();
+  var phone=sanitize(document.getElementById('su-phone').value.trim());
+  var dob=document.getElementById('su-dob').value;
+  var pw=document.getElementById('su-pw').value;
+  var pw2=document.getElementById('su-pw2').value;
+  var agreed=document.getElementById('agree-terms').checked;
+  ['su-fname-err','su-email-err','su-dob-err','su-pw-err','su-pw2-err'].forEach(function(id){setErr(id,'');});
+  var ok=true;
+  if(!fname){setErr('su-fname-err','First name is required');ok=false;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setErr('su-email-err','Enter a valid email address');ok=false;}
+  if(dob){var age=(Date.now()-new Date(dob))/(365.25*24*3600*1000);if(age<16){setErr('su-dob-err','You must be at least 16 to register');ok=false;}}
+  var pwLv=checkStrength(pw);
+  if(!pw||pw.length<8){setErr('su-pw-err','Password must be at least 8 characters');ok=false;}
+  else if(pwLv<1){setErr('su-pw-err','Password is too weak — add uppercase letters and numbers');ok=false;}
+  if(pw!==pw2){setErr('su-pw2-err','Passwords do not match');ok=false;}
+  if(!agreed){showAlert('signup-err','Please agree to the Terms of Service to register.');ok=false;}
+  if(!ok)return;
+  if(findUser(email)){setErr('su-email-err','An account with this email already exists');return;}
+  var btn=document.getElementById('signup-btn');
+  btn.disabled=true;btn.textContent='Creating your account...';
+  try{
+    var hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
+    var userId=randomToken(16);
+    var users=getUsers();
+    users.push({id:userId,email:email,fname:fname,lname:lname,phone:phone,dob:dob,pwHash:hash,createdAt:Date.now(),orders:[],prescriptions:[]});
     saveUsers(users);
-
-    // Create session
-    createSession(userId, false);
+    createSession(userId,false);
     document.getElementById('signup-ok').classList.add('show');
-
-    setTimeout(function() { window.location.href = _nextUrl; }, 1800);
-  } catch(err) {
+    setTimeout(function(){window.location.href=_nextUrl;},1600);
+  }catch(err){
     showAlert('signup-err','Account creation failed. Please try again.');
-    btn.disabled = false;
-    btn.textContent = 'Create My Account';
+    btn.disabled=false;btn.textContent='Create My Account';
   }
 });
-
-/* ── Read ?next redirect param ── */
-var _nextUrl = (function(){
-  var p = new URLSearchParams(window.location.search).get('next');
-  // Only allow redirects to same-origin paths
-  if (p && p.startsWith('/') && !p.startsWith('//')) return p;
-  return '/account.html';
-})();
-
-/* ── Show contextual message if coming from checkout ── */
-(function(){
-  if (_nextUrl === '/checkout.html') {
-    var sub = document.querySelector('#form-login .form-sub');
-    if (sub) sub.textContent = 'You need to sign in before placing your order.';
-    var sub2 = document.querySelector('#form-signup .form-sub');
-    if (sub2) sub2.textContent = 'Create a free account to place your order — takes 30 seconds.';
-  }
-})();
-
-/* ── Redirect if already logged in ── */
-(function() {
-  if (getSession()) { window.location.href = _nextUrl; }
-})();
 </script>
 </body>
 </html>
