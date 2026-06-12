@@ -9,183 +9,116 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{
-      --navy:#071a3e;--navy2:#020c1b;--navy3:#0a2558;--gold:#c9a055;--gold2:#e8c97a;
-      --teal:#0d9488;--red:#dc2626;--green:#16a34a;--gray:#64748b;
+      --navy:#071a3e;--navy2:#020c1b;--navy3:#0a2558;
+      --gold:#c9a055;--gold2:#e8c97a;--teal:#0d9488;
+      --red:#dc2626;--green:#16a34a;--gray:#94a3b8;
     }
-    html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif}
-    body{display:flex;min-height:100vh;background:var(--navy2)}
+    html,body{min-height:100%;font-family:'Segoe UI',system-ui,sans-serif}
 
-    /* ═══════════════════════════════
-       LEFT PANEL — dramatic showcase
-    ═══════════════════════════════ */
-    .lp{
-      width:58%;flex-shrink:0;position:relative;overflow:hidden;
-      background:radial-gradient(ellipse at 30% 50%,#0d3a6e 0%,#071a3e 45%,#020c1b 100%);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      padding:60px 56px;
+    body{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:radial-gradient(ellipse at 30% 20%,#0d3a6e 0%,#071a3e 40%,#020c1b 100%);
+      padding:24px 16px;position:relative;overflow-x:hidden;
     }
-    @media(max-width:860px){.lp{display:none}}
 
     /* Background grid */
-    .lp::before{
-      content:'';position:absolute;inset:0;
+    body::before{
+      content:'';position:fixed;inset:0;pointer-events:none;
       background-image:
-        linear-gradient(rgba(201,160,85,0.04) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(201,160,85,0.04) 1px,transparent 1px);
-      background-size:48px 48px;pointer-events:none;
+        linear-gradient(rgba(201,160,85,0.035) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(201,160,85,0.035) 1px,transparent 1px);
+      background-size:52px 52px;
     }
 
     /* Animated glow blobs */
-    .blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
-    .blob-1{width:500px;height:500px;background:rgba(13,148,136,0.18);top:-120px;right:-120px;animation:blobMove 10s ease-in-out infinite}
-    .blob-2{width:380px;height:380px;background:rgba(201,160,85,0.14);bottom:-80px;left:-80px;animation:blobMove 13s ease-in-out infinite 3s}
-    .blob-3{width:260px;height:260px;background:rgba(10,37,88,0.4);top:40%;left:20%;animation:blobMove 8s ease-in-out infinite 1.5s}
-    @keyframes blobMove{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.12) translate(20px,-20px)}}
+    .blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0}
+    .blob-1{width:600px;height:600px;background:rgba(13,148,136,0.14);top:-160px;right:-160px;animation:blobMove 12s ease-in-out infinite}
+    .blob-2{width:440px;height:440px;background:rgba(201,160,85,0.10);bottom:-100px;left:-100px;animation:blobMove 16s ease-in-out infinite 4s}
+    .blob-3{width:300px;height:300px;background:rgba(10,37,88,0.5);top:35%;left:15%;animation:blobMove 9s ease-in-out infinite 2s}
+    @keyframes blobMove{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.14) translate(24px,-24px)}}
 
-    /* Content wrapper */
-    .lp-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;max-width:520px}
-
-    /* Brand */
-    .lp-brand{display:flex;flex-direction:column;align-items:center;margin-bottom:52px}
-    .lp-logo-ring{
-      width:78px;height:78px;border-radius:50%;
-      border:2px solid rgba(201,160,85,0.6);
-      background:rgba(255,255,255,0.06);
-      display:flex;align-items:center;justify-content:center;
-      margin-bottom:18px;
-      box-shadow:0 0 28px rgba(201,160,85,0.2),inset 0 0 20px rgba(201,160,85,0.05);
-    }
-    .lp-logo-ring img{width:58px;height:58px;border-radius:50%;object-fit:contain}
-    .lp-name{font-size:2.4rem;font-weight:900;letter-spacing:6px;color:#fff;line-height:1;text-align:center;margin-bottom:6px;text-transform:uppercase}
-    .lp-name span{color:var(--gold)}
-    .lp-sub-name{font-size:0.62rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:14px}
-    .lp-portal-badge{
-      display:inline-flex;align-items:center;gap:7px;
-      background:rgba(201,160,85,0.12);border:1px solid rgba(201,160,85,0.35);
-      color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:3px;
-      text-transform:uppercase;padding:7px 18px;border-radius:50px;
-    }
-
-    /* ── PHARMACY CROSS ── */
-    .cross-wrap{position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center;margin-bottom:52px}
-
-    /* Outer rotating ring */
-    .cross-ring{position:absolute;border-radius:50%;border-style:solid}
-    .ring-1{width:220px;height:220px;border-color:rgba(201,160,85,0.18) rgba(201,160,85,0.04) rgba(201,160,85,0.18) rgba(201,160,85,0.04);border-width:1px;animation:spinRing 18s linear infinite}
-    .ring-2{width:188px;height:188px;border-color:rgba(13,148,136,0.22) rgba(13,148,136,0.05) rgba(13,148,136,0.22) rgba(13,148,136,0.05);border-width:1px;animation:spinRing 12s linear infinite reverse}
-    .ring-3{width:155px;height:155px;border-color:rgba(201,160,85,0.30) rgba(201,160,85,0.08) rgba(201,160,85,0.30) rgba(201,160,85,0.08);border-width:1px;animation:spinRing 25s linear infinite 0.5s}
-    @keyframes spinRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-
-    /* Glow orb behind cross */
-    .cross-glow{position:absolute;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(201,160,85,0.35) 0%,transparent 70%);animation:glowPulse 3s ease-in-out infinite}
-    @keyframes glowPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
-
-    /* The cross symbol */
-    .cross-symbol{position:relative;width:72px;height:72px;animation:crossFloat 4s ease-in-out infinite}
-    @keyframes crossFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-    .cross-v{position:absolute;left:50%;top:0;width:20px;height:72px;transform:translateX(-50%);background:linear-gradient(180deg,var(--gold2),var(--gold),rgba(201,160,85,0.6));border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.7),0 0 48px rgba(201,160,85,0.3)}
-    .cross-h{position:absolute;top:50%;left:0;height:20px;width:72px;transform:translateY(-50%);background:linear-gradient(90deg,rgba(201,160,85,0.6),var(--gold),var(--gold2),var(--gold),rgba(201,160,85,0.6));border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.7),0 0 48px rgba(201,160,85,0.3)}
-
-    /* Corner dots on cross */
-    .cross-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold2);box-shadow:0 0 8px var(--gold)}
-    .dot-tl{top:-4px;left:-4px}.dot-tr{top:-4px;right:-4px}
-    .dot-bl{bottom:-4px;left:-4px}.dot-br{bottom:-4px;right:-4px}
-
-    /* ── TRUST STRIP ── */
-    .trust-strip{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
-    .trust-item{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:0.72rem;font-weight:600;letter-spacing:0.5px}
-    .trust-item svg{flex-shrink:0}
-    .trust-dot{width:3px;height:3px;border-radius:50%;background:rgba(201,160,85,0.4);flex-shrink:0}
-
-    /* Corner bracket decorations */
-    .corner{position:absolute;width:36px;height:36px;border-color:rgba(201,160,85,0.3);border-style:solid}
-    .corner-tl{top:24px;left:24px;border-width:2px 0 0 2px}
-    .corner-tr{top:24px;right:24px;border-width:2px 2px 0 0}
-    .corner-bl{bottom:24px;left:24px;border-width:0 0 2px 2px}
-    .corner-br{bottom:24px;right:24px;border-width:0 2px 2px 0}
-
-    /* ═══════════════════════════════
-       RIGHT PANEL — clean form
-    ═══════════════════════════════ */
-    .rp{
-      flex:1;display:flex;align-items:center;justify-content:center;
-      padding:40px 32px;
-      background:linear-gradient(160deg,#f8fafc 0%,#eef2ff 100%);
-      position:relative;
-    }
-    .rp::before{
-      content:'';position:absolute;inset:0;
-      background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230a2558' fill-opacity='0.025'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
-      pointer-events:none;
-    }
-
-    .rp-card{
-      width:100%;max-width:420px;position:relative;z-index:1;
-      background:#fff;border-radius:24px;
-      box-shadow:0 20px 60px rgba(10,37,88,0.12),0 4px 16px rgba(10,37,88,0.06);
+    /* ── MAIN CARD ── */
+    .card{
+      position:relative;z-index:1;width:100%;max-width:480px;
+      background:rgba(7,26,62,0.75);
+      backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      border:1px solid rgba(201,160,85,0.2);
+      border-radius:28px;
+      box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.04),inset 0 1px 0 rgba(255,255,255,0.06);
       overflow:hidden;
     }
 
-    /* Card top accent bar */
-    .rp-card::before{content:'';display:block;height:4px;background:linear-gradient(90deg,var(--teal),var(--navy3),var(--gold))}
+    /* Gold top bar */
+    .card-topbar{height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),var(--gold),transparent)}
 
-    .rp-card-inner{padding:36px 36px 28px}
-    @media(max-width:500px){.rp-card-inner{padding:28px 22px 22px}}
+    .card-body{padding:40px 40px 32px}
+    @media(max-width:520px){.card-body{padding:28px 22px 24px}}
 
-    /* Mobile top logo */
-    .mob-top{display:none;align-items:center;gap:10px;margin-bottom:24px}
-    @media(max-width:860px){.mob-top{display:flex}}
-    .mob-top img{width:36px;height:36px;border-radius:50%;border:1px solid rgba(10,37,88,0.15);object-fit:contain}
-    .mob-top span{font-weight:800;font-size:0.95rem;color:var(--navy3)}
-
-    /* Back link */
-    .rp-back{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-size:0.78rem;text-decoration:none;margin-bottom:22px;transition:color .2s;font-weight:500}
-    .rp-back:hover{color:var(--navy3)}
-
-    /* Card heading */
-    .rp-heading{margin-bottom:24px}
-    .rp-heading h2{font-size:1.5rem;font-weight:800;color:var(--navy3);margin-bottom:4px;line-height:1.2}
-    .rp-heading p{font-size:0.84rem;color:var(--gray);line-height:1.55}
-    .rp-heading .checkout-note{display:none;margin-top:8px;padding:8px 12px;background:rgba(13,148,136,0.08);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;color:#0d6e66;font-size:0.8rem;font-weight:600}
-    .rp-heading .checkout-note.show{display:block}
-
-    /* Tabs */
-    .auth-tabs{display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:26px;gap:4px}
-    .auth-tab{
-      flex:1;text-align:center;padding:9px 0;border-radius:9px;font-size:0.87rem;font-weight:700;
-      cursor:pointer;border:none;background:none;color:#94a3b8;transition:all .22s;letter-spacing:0.2px;
+    /* ── BRAND HEADER ── */
+    .brand{display:flex;flex-direction:column;align-items:center;margin-bottom:32px}
+    .logo-ring{
+      width:74px;height:74px;border-radius:50%;
+      border:1.5px solid rgba(201,160,85,0.5);
+      background:rgba(255,255,255,0.06);
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:14px;
+      box-shadow:0 0 32px rgba(201,160,85,0.18),inset 0 0 20px rgba(201,160,85,0.04);
     }
-    .auth-tab.active{
-      background:var(--navy3);color:#fff;
-      box-shadow:0 3px 10px rgba(10,37,88,0.25);
+    .logo-ring img{width:56px;height:56px;border-radius:50%;object-fit:contain}
+    .brand-name{font-size:1.6rem;font-weight:900;letter-spacing:5px;color:#fff;text-transform:uppercase;line-height:1}
+    .brand-name span{color:var(--gold)}
+    .brand-sub{font-size:0.6rem;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-top:5px;margin-bottom:12px}
+    .brand-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(201,160,85,0.1);border:1px solid rgba(201,160,85,0.3);
+      color:var(--gold);font-size:0.62rem;font-weight:700;letter-spacing:2.5px;
+      text-transform:uppercase;padding:5px 14px;border-radius:50px;
     }
 
-    /* Forms */
-    .auth-form{display:none}
-    .auth-form.active{display:block}
+    /* ── TABS ── */
+    .tabs{display:flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:4px;margin-bottom:28px;gap:4px}
+    .tab{
+      flex:1;text-align:center;padding:10px;border-radius:9px;
+      font-size:0.88rem;font-weight:700;cursor:pointer;border:none;
+      background:none;color:rgba(255,255,255,0.4);transition:all .22s;letter-spacing:0.2px;
+    }
+    .tab.active{background:linear-gradient(135deg,var(--navy3),#0d3a6e);color:#fff;box-shadow:0 3px 12px rgba(0,0,0,0.4);border:1px solid rgba(201,160,85,0.25)}
+
+    /* ── FORMS ── */
+    .form{display:none}
+    .form.active{display:block}
+
+    /* Heading per form */
+    .form-head{margin-bottom:22px}
+    .form-head h2{font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:3px}
+    .form-head p{font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.5}
+    .checkout-note{display:none;margin-top:8px;padding:8px 12px;background:rgba(13,148,136,0.12);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;color:#5eead4;font-size:0.79rem;font-weight:600}
+    .checkout-note.show{display:block}
 
     /* Fields */
-    .field{margin-bottom:16px}
-    .field label{display:block;font-size:0.76rem;font-weight:700;color:var(--navy3);margin-bottom:6px;letter-spacing:0.4px;text-transform:uppercase}
+    .field{margin-bottom:15px}
+    .field label{display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase}
     .field-wrap{position:relative}
     .field input{
-      width:100%;padding:12px 14px 12px 40px;
-      border:1.5px solid #e2e8f0;border-radius:10px;
-      font-size:0.92rem;color:#1e293b;background:#f8fafc;
+      width:100%;padding:12px 14px 12px 42px;
+      border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;
+      font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);
       transition:all .2s;outline:none;font-family:inherit;
     }
-    .field input:focus{border-color:var(--navy3);background:#fff;box-shadow:0 0 0 3px rgba(10,37,88,0.07)}
-    .field input.err{border-color:var(--red);background:#fff9f9}
-    .field-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#cbd5e1;pointer-events:none;transition:color .2s}
-    .field input:focus~.field-ico,.field input:not(:placeholder-shown)~.field-ico{color:var(--navy3)}
-    .field-ico{pointer-events:none} /* keep above */
-    .field-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#cbd5e1;padding:2px;transition:color .2s;display:flex;align-items:center}
-    .field-eye:hover{color:var(--navy3)}
-    .field-err-msg{font-size:0.72rem;color:var(--red);margin-top:4px;font-weight:500;display:none}
-    .field-err-msg.show{display:block}
+    .field input::placeholder{color:rgba(255,255,255,0.25)}
+    .field input:focus{border-color:rgba(201,160,85,0.5);background:rgba(255,255,255,0.1);box-shadow:0 0 0 3px rgba(201,160,85,0.1)}
+    .field input.err{border-color:rgba(220,38,38,0.6);background:rgba(220,38,38,0.06)}
+    .field input[type=date]{color-scheme:dark}
+    .field-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none;transition:color .2s}
+    .field input:focus~.field-ico{color:var(--gold)}
+    .field-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);padding:2px;transition:color .2s;display:flex;align-items:center}
+    .field-eye:hover{color:rgba(255,255,255,0.7)}
+    .field-err{font-size:0.71rem;color:#fca5a5;margin-top:4px;font-weight:500;display:none}
+    .field-err.show{display:block}
 
-    /* Two-col grid for name */
+    /* Two col */
     .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:380px){.field-row{grid-template-columns:1fr}}
 
     /* Honeypot */
     .hp{position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;pointer-events:none}
@@ -193,422 +126,383 @@
     /* Password strength */
     .pw-str{margin-top:7px;display:none}
     .pw-str-bars{display:flex;gap:3px;margin-bottom:4px}
-    .pw-bar{flex:1;height:3px;border-radius:2px;background:#e2e8f0;transition:background .3s}
+    .pw-bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.1);transition:background .3s}
     .pw-bar.w{background:#dc2626}.pw-bar.f{background:#f59e0b}
     .pw-bar.g{background:#3b82f6}.pw-bar.s{background:#16a34a}
-    .pw-str-lbl{font-size:0.7rem;color:var(--gray);font-weight:600}
+    .pw-str-lbl{font-size:0.69rem;color:rgba(255,255,255,0.4);font-weight:600}
 
     /* Checkbox */
     .check-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:18px}
-    .check-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;accent-color:var(--navy3);flex-shrink:0;cursor:pointer}
-    .check-row label{font-size:0.79rem;color:var(--gray);line-height:1.5;cursor:pointer}
-    .check-row a{color:var(--navy3);font-weight:600;text-decoration:none}
-    .check-row a:hover{text-decoration:underline}
+    .check-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;accent-color:var(--gold);flex-shrink:0;cursor:pointer}
+    .check-row label{font-size:0.78rem;color:rgba(255,255,255,0.45);line-height:1.5;cursor:pointer}
+    .check-row a{color:var(--gold);font-weight:600;text-decoration:none}
 
     /* Forgot */
-    .forgot{text-align:right;margin:-4px 0 16px}
-    .forgot a{font-size:0.77rem;color:var(--teal);font-weight:600;text-decoration:none}
-    .forgot a:hover{text-decoration:underline}
+    .forgot{text-align:right;margin:-2px 0 14px}
+    .forgot a{font-size:0.76rem;color:var(--teal);font-weight:600;text-decoration:none;cursor:pointer}
+    .forgot a:hover{color:#5eead4}
 
     /* Alert */
-    .alert{display:none;padding:11px 14px;border-radius:9px;font-size:0.82rem;font-weight:500;margin-bottom:14px;align-items:flex-start;gap:9px;line-height:1.5}
+    .alert{display:none;padding:11px 14px;border-radius:10px;font-size:0.81rem;font-weight:500;margin-bottom:14px;align-items:flex-start;gap:9px;line-height:1.5}
     .alert.show{display:flex}
-    .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
-    .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+    .alert.error{background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);color:#fca5a5}
+    .alert.success{background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.3);color:#86efac}
 
-    /* Rate limit bar */
-    .rate-bar{display:none;padding:11px 14px;border-radius:9px;font-size:0.8rem;margin-bottom:14px;background:#fef2f2;border:1px solid #fecaca;align-items:center;gap:8px}
+    /* Rate bar */
+    .rate-bar{display:none;padding:11px 14px;border-radius:10px;font-size:0.79rem;margin-bottom:14px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.25);align-items:center;gap:8px}
     .rate-bar.show{display:flex}
 
     /* Submit button */
     .btn-submit{
-      width:100%;padding:13px;border:none;border-radius:11px;font-size:0.95rem;font-weight:700;
+      width:100%;padding:14px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;
       cursor:pointer;transition:all .22s;font-family:inherit;
       display:flex;align-items:center;justify-content:center;gap:8px;
-      background:linear-gradient(135deg,var(--navy3) 0%,#0d3a6e 100%);
-      color:#fff;box-shadow:0 4px 16px rgba(10,37,88,0.3);
-      letter-spacing:0.3px;
+      background:linear-gradient(135deg,var(--gold) 0%,#a87830 100%);
+      color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);letter-spacing:0.3px;
     }
-    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,37,88,0.35);background:linear-gradient(135deg,#0d3a6e 0%,var(--navy3) 100%)}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,160,85,0.4)}
     .btn-submit:active{transform:translateY(0)}
-    .btn-submit:disabled{opacity:0.55;cursor:not-allowed;transform:none;box-shadow:none}
-
-    /* Divider */
-    .or-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#cbd5e1;font-size:0.75rem;font-weight:600}
-    .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
+    .btn-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
 
     /* Switch link */
-    .switch-lnk{text-align:center;font-size:0.82rem;color:var(--gray);margin-top:18px}
-    .switch-lnk a{color:var(--navy3);font-weight:700;cursor:pointer;text-decoration:none}
-    .switch-lnk a:hover{text-decoration:underline}
+    .switch-lnk{text-align:center;font-size:0.81rem;color:rgba(255,255,255,0.4);margin-top:18px}
+    .switch-lnk a{color:var(--gold);font-weight:700;cursor:pointer;text-decoration:none}
+    .switch-lnk a:hover{color:var(--gold2)}
 
-    /* Security footer inside card */
-    .card-footer{padding:14px 36px 22px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;gap:6px;color:#cbd5e1;font-size:0.71rem}
-    @media(max-width:500px){.card-footer{padding:14px 22px 18px}}
+    /* Card footer */
+    .card-footer{
+      padding:14px 40px 20px;border-top:1px solid rgba(255,255,255,0.06);
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:8px;
+    }
+    @media(max-width:520px){.card-footer{padding:14px 22px 18px}}
+    .footer-secure{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.25);font-size:0.69rem}
+    .footer-back{display:inline-flex;align-items:center;gap:4px;color:rgba(255,255,255,0.3);font-size:0.69rem;text-decoration:none;transition:color .2s}
+    .footer-back:hover{color:rgba(255,255,255,0.6)}
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════
-     LEFT PANEL
-═══════════════════════════════════════════ -->
-<div class="lp">
-  <!-- Corner brackets -->
-  <div class="corner corner-tl"></div>
-  <div class="corner corner-tr"></div>
-  <div class="corner corner-bl"></div>
-  <div class="corner corner-br"></div>
+<!-- Background blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
 
-  <!-- Background blobs -->
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
-
-  <div class="lp-inner">
+<div class="card">
+  <div class="card-topbar"></div>
+  <div class="card-body">
 
     <!-- Brand -->
-    <div class="lp-brand">
-      <div class="lp-logo-ring">
+    <div class="brand">
+      <div class="logo-ring">
         <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
       </div>
-      <div class="lp-name">DUCOR<span>.</span></div>
-      <div class="lp-sub-name">International Pharmacy &nbsp;·&nbsp; Liberia</div>
-      <div class="lp-portal-badge">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <div class="brand-name">DUCOR<span>.</span></div>
+      <div class="brand-sub">International Pharmacy &nbsp;·&nbsp; Liberia</div>
+      <div class="brand-badge">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         Secure Client Portal
       </div>
     </div>
 
-    <!-- Pharmacy Cross -->
-    <div class="cross-wrap">
-      <div class="cross-ring ring-1"></div>
-      <div class="cross-ring ring-2"></div>
-      <div class="cross-ring ring-3"></div>
-      <div class="cross-glow"></div>
-      <div class="cross-symbol">
-        <div class="cross-v"></div>
-        <div class="cross-h"></div>
-        <div class="cross-dot dot-tl"></div>
-        <div class="cross-dot dot-tr"></div>
-        <div class="cross-dot dot-bl"></div>
-        <div class="cross-dot dot-br"></div>
-      </div>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
+      <button class="tab"        id="tab-signup" onclick="switchTab('signup')">Create Account</button>
     </div>
 
-    <!-- Trust strip -->
-    <div class="trust-strip">
-      <div class="trust-item">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        256-bit Encrypted
+    <!-- ══ LOGIN FORM ══ -->
+    <div class="form active" id="form-login">
+
+      <div class="form-head">
+        <h2>Welcome back</h2>
+        <p>Sign in to access your health account and orders.</p>
+        <div class="checkout-note" id="checkout-note">Sign in to complete your purchase →</div>
       </div>
-      <div class="trust-dot"></div>
-      <div class="trust-item">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        HIPAA Compliant
+
+      <div class="alert error" id="login-err">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span id="login-err-msg"></span>
       </div>
-      <div class="trust-dot"></div>
-      <div class="trust-item">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-        Licensed Pharmacy
+      <div class="rate-bar" id="login-rate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span style="color:#fca5a5;font-weight:500">Too many attempts — wait <strong id="rate-timer">15:00</strong></span>
       </div>
+
+      <div class="hp" aria-hidden="true"><input type="text" id="hp-login" name="website" tabindex="-1" autocomplete="off"/></div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label>Email Address</label>
+          <div class="field-wrap">
+            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" required/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+          </div>
+          <div class="field-err" id="login-email-err"></div>
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <div class="field-wrap">
+            <input type="password" id="login-pw" placeholder="Your password" autocomplete="current-password" required/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <button type="button" class="field-eye" onclick="togglePw('login-pw',this)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-err" id="login-pw-err"></div>
+        </div>
+
+        <div class="forgot"><a onclick="showForgot()">Forgot password?</a></div>
+
+        <div class="check-row">
+          <input type="checkbox" id="remember-me"/>
+          <label for="remember-me">Keep me signed in for 7 days</label>
+        </div>
+
+        <button type="submit" class="btn-submit" id="login-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Sign In Securely
+        </button>
+      </form>
+
+      <div class="switch-lnk">New to Ducor? <a onclick="switchTab('signup')">Create a free account</a></div>
+    </div>
+
+    <!-- ══ SIGNUP FORM ══ -->
+    <div class="form" id="form-signup">
+
+      <div class="form-head">
+        <h2>Create your account</h2>
+        <p>Join Ducor Pharmacy — it only takes a minute.</p>
+      </div>
+
+      <div class="alert error" id="signup-err">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span id="signup-err-msg"></span>
+      </div>
+      <div class="alert success" id="signup-ok">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>Account created! Taking you in now...</span>
+      </div>
+
+      <div class="hp" aria-hidden="true"><input type="text" id="hp-signup" name="website2" tabindex="-1" autocomplete="off"/></div>
+
+      <form id="signup-form" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label>First Name</label>
+            <div class="field-wrap">
+              <input type="text" id="su-fname" placeholder="First" autocomplete="given-name" required/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="field-err" id="su-fname-err"></div>
+          </div>
+          <div class="field">
+            <label>Last Name</label>
+            <div class="field-wrap">
+              <input type="text" id="su-lname" placeholder="Last" autocomplete="family-name"/>
+              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Email Address</label>
+          <div class="field-wrap">
+            <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" required/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+          </div>
+          <div class="field-err" id="su-email-err"></div>
+        </div>
+
+        <div class="field">
+          <label>Phone Number</label>
+          <div class="field-wrap">
+            <input type="tel" id="su-phone" placeholder="+231 880 000 000" autocomplete="tel"/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Date of Birth <span style="text-transform:none;font-weight:400;color:rgba(255,255,255,0.25)">(prescription eligibility)</span></label>
+          <div class="field-wrap">
+            <input type="date" id="su-dob" autocomplete="bday"/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="field-err" id="su-dob-err"></div>
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <div class="field-wrap">
+            <input type="password" id="su-pw" placeholder="Create a strong password" autocomplete="new-password" required oninput="checkStrength(this.value)"/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <button type="button" class="field-eye" onclick="togglePw('su-pw',this)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="pw-str" id="pw-str">
+            <div class="pw-str-bars">
+              <div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div>
+              <div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div>
+            </div>
+            <div class="pw-str-lbl" id="pw-lbl"></div>
+          </div>
+          <div class="field-err" id="su-pw-err"></div>
+        </div>
+
+        <div class="field">
+          <label>Confirm Password</label>
+          <div class="field-wrap">
+            <input type="password" id="su-pw2" placeholder="Repeat your password" autocomplete="new-password" required/>
+            <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <button type="button" class="field-eye" onclick="togglePw('su-pw2',this)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-err" id="su-pw2-err"></div>
+        </div>
+
+        <div class="check-row">
+          <input type="checkbox" id="agree-terms"/>
+          <label for="agree-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. My medical data is protected under Liberian health privacy law.</label>
+        </div>
+
+        <button type="submit" class="btn-submit" id="signup-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          Create My Account
+        </button>
+      </form>
+
+      <div class="switch-lnk">Already have an account? <a onclick="switchTab('login')">Sign in</a></div>
     </div>
 
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════
-     RIGHT PANEL
-═══════════════════════════════════════════ -->
-<div class="rp">
-  <div class="rp-card">
-    <div class="rp-card-inner">
-
-      <!-- Mobile brand -->
-      <div class="mob-top">
-        <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
-        <span>Ducor International Pharmacy</span>
-      </div>
-
-      <!-- Back link -->
-      <a href="/index.html" class="rp-back">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        Back to website
-      </a>
-
-      <!-- Heading -->
-      <div class="rp-heading">
-        <h2 id="rp-title">Welcome back</h2>
-        <p id="rp-sub">Sign in to your health account.</p>
-        <div class="checkout-note" id="checkout-note">
-          Sign in to complete your order →
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
-        <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Create Account</button>
-      </div>
-
-      <!-- ══ LOGIN FORM ══ -->
-      <div class="auth-form active" id="form-login">
-
-        <div class="alert error" id="login-err">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          <span id="login-err-msg"></span>
-        </div>
-        <div class="rate-bar" id="login-rate">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span style="color:#991b1b;font-weight:500">Too many attempts — wait <strong id="rate-timer">15:00</strong></span>
-        </div>
-
-        <!-- Honeypot -->
-        <div class="hp" aria-hidden="true"><input type="text" id="hp-login" name="website" tabindex="-1" autocomplete="off"/></div>
-
-        <form id="login-form" novalidate>
-          <div class="field">
-            <label>Email Address</label>
-            <div class="field-wrap">
-              <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" required/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-            </div>
-            <div class="field-err-msg" id="login-email-err"></div>
-          </div>
-
-          <div class="field">
-            <label>Password</label>
-            <div class="field-wrap">
-              <input type="password" id="login-pw" placeholder="Your password" autocomplete="current-password" required/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              <button type="button" class="field-eye" onclick="togglePw('login-pw',this)" aria-label="Show password">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-            <div class="field-err-msg" id="login-pw-err"></div>
-          </div>
-
-          <div class="forgot"><a href="#" onclick="showForgot();return false">Forgot password?</a></div>
-
-          <div class="check-row">
-            <input type="checkbox" id="remember-me"/>
-            <label for="remember-me">Keep me signed in for 7 days</label>
-          </div>
-
-          <button type="submit" class="btn-submit" id="login-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Sign In Securely
-          </button>
-        </form>
-
-        <div class="switch-lnk">New to Ducor? <a onclick="switchTab('signup')">Create a free account</a></div>
-      </div>
-
-      <!-- ══ SIGNUP FORM ══ -->
-      <div class="auth-form" id="form-signup">
-
-        <div class="alert error" id="signup-err">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          <span id="signup-err-msg"></span>
-        </div>
-        <div class="alert success" id="signup-ok">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Account created! Taking you in now...</span>
-        </div>
-
-        <div class="hp" aria-hidden="true"><input type="text" id="hp-signup" name="website2" tabindex="-1" autocomplete="off"/></div>
-
-        <form id="signup-form" novalidate>
-          <div class="field-row">
-            <div class="field">
-              <label>First Name</label>
-              <div class="field-wrap">
-                <input type="text" id="su-fname" placeholder="First" autocomplete="given-name" required/>
-                <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-              <div class="field-err-msg" id="su-fname-err"></div>
-            </div>
-            <div class="field">
-              <label>Last Name</label>
-              <div class="field-wrap">
-                <input type="text" id="su-lname" placeholder="Last" autocomplete="family-name"/>
-                <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Email Address</label>
-            <div class="field-wrap">
-              <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" required/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-            </div>
-            <div class="field-err-msg" id="su-email-err"></div>
-          </div>
-
-          <div class="field">
-            <label>Phone Number</label>
-            <div class="field-wrap">
-              <input type="tel" id="su-phone" placeholder="+231 880 000 000" autocomplete="tel"/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Date of Birth <span style="text-transform:none;font-weight:400;color:#94a3b8">(for prescription eligibility)</span></label>
-            <div class="field-wrap">
-              <input type="date" id="su-dob" autocomplete="bday"/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <div class="field-err-msg" id="su-dob-err"></div>
-          </div>
-
-          <div class="field">
-            <label>Password</label>
-            <div class="field-wrap">
-              <input type="password" id="su-pw" placeholder="Create a strong password" autocomplete="new-password" required oninput="checkStrength(this.value)"/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              <button type="button" class="field-eye" onclick="togglePw('su-pw',this)" aria-label="Show password">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-            <div class="pw-str" id="pw-str">
-              <div class="pw-str-bars">
-                <div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div>
-                <div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div>
-              </div>
-              <div class="pw-str-lbl" id="pw-lbl"></div>
-            </div>
-            <div class="field-err-msg" id="su-pw-err"></div>
-          </div>
-
-          <div class="field">
-            <label>Confirm Password</label>
-            <div class="field-wrap">
-              <input type="password" id="su-pw2" placeholder="Repeat your password" autocomplete="new-password" required/>
-              <svg class="field-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              <button type="button" class="field-eye" onclick="togglePw('su-pw2',this)" aria-label="Show password">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-            <div class="field-err-msg" id="su-pw2-err"></div>
-          </div>
-
-          <div class="check-row">
-            <input type="checkbox" id="agree-terms"/>
-            <label for="agree-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. My medical data is protected under Liberian health privacy law.</label>
-          </div>
-
-          <button type="submit" class="btn-submit" id="signup-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Create My Account
-          </button>
-        </form>
-
-        <div class="switch-lnk">Already have an account? <a onclick="switchTab('login')">Sign in</a></div>
-      </div>
-
+  <!-- Card footer -->
+  <div class="card-footer">
+    <div class="footer-secure">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      SSL secured · Ducor International Pharmacy © 2025
     </div>
-
-    <!-- Card footer -->
-    <div class="card-footer">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      SSL secured &nbsp;·&nbsp; Ducor International Pharmacy © 2025
-    </div>
+    <a href="/index.html" class="footer-back">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to website
+    </a>
   </div>
 </div>
 
-<script>
+<script type="module">
 'use strict';
 
-/* ══ SECURITY UTILITIES ══ */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const _app = initializeApp({
+  apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
+  authDomain:"ducor-pharmacy.firebaseapp.com",
+  projectId:"ducor-pharmacy",
+  storageBucket:"ducor-pharmacy.firebasestorage.app",
+  messagingSenderId:"952933384266",
+  appId:"1:952933384266:web:55b906e903d96940d426b3"
+});
+const _db = getFirestore(_app);
+
+/* ── SECURITY ── */
 async function sha256(str){
-  var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-function randomToken(len){var a=new Uint8Array(len);crypto.getRandomValues(a);return Array.from(a).map(function(b){return b.toString(16).padStart(2,'0');}).join('');}
-function sanitize(s){return String(s).replace(/[<>"'&]/g,function(c){return{'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','&':'&amp;'}[c];});}
+function randomToken(len){const a=new Uint8Array(len);crypto.getRandomValues(a);return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function sanitize(s){return String(s).replace(/[<>"'&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','&':'&amp;'}[c]));}
 
-/* ══ RATE LIMITING ══ */
-var _RL_MAX=5,_RL_WIN=15*60*1000,_RL_TIMER=null;
-function rlKey(e){return 'ducor_rl_'+btoa(e.trim().toLowerCase()).replace(/=/g,'');}
-function isRateLimited(email){try{var d=JSON.parse(localStorage.getItem(rlKey(email))||'null');if(!d)return false;if(Date.now()>d.reset)return false;return d.n>_RL_MAX;}catch(e){return false;}}
-function checkRateLimit(email){try{var k=rlKey(email),d=JSON.parse(localStorage.getItem(k)||'null')||{n:0,reset:Date.now()+_RL_WIN};if(Date.now()>d.reset)d={n:0,reset:Date.now()+_RL_WIN};d.n++;localStorage.setItem(k,JSON.stringify(d));if(d.n>_RL_MAX){startRateTimer(d.reset-Date.now());return false;}}catch(e){}return true;}
-function startRateTimer(ms){var el=document.getElementById('rate-timer'),bar=document.getElementById('login-rate');bar.classList.add('show');if(_RL_TIMER)clearInterval(_RL_TIMER);_RL_TIMER=setInterval(function(){ms-=1000;if(ms<=0){clearInterval(_RL_TIMER);bar.classList.remove('show');return;}var m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);el.textContent=m+':'+String(s).padStart(2,'0');},1000);}
+/* ── RATE LIMIT ── */
+const _RL_MAX=5,_RL_WIN=15*60*1000;let _RL_TIMER=null;
+function rlKey(e){return'ducor_rl_'+btoa(e.trim().toLowerCase()).replace(/=/g,'');}
+function isRateLimited(email){try{const d=JSON.parse(localStorage.getItem(rlKey(email))||'null');if(!d)return false;if(Date.now()>d.reset)return false;return d.n>_RL_MAX;}catch(e){return false;}}
+function checkRateLimit(email){try{const k=rlKey(email);let d=JSON.parse(localStorage.getItem(k)||'null')||{n:0,reset:Date.now()+_RL_WIN};if(Date.now()>d.reset)d={n:0,reset:Date.now()+_RL_WIN};d.n++;localStorage.setItem(k,JSON.stringify(d));if(d.n>_RL_MAX){startRateTimer(d.reset-Date.now());return false;}}catch(e){}return true;}
+function startRateTimer(ms){const el=document.getElementById('rate-timer'),bar=document.getElementById('login-rate');bar.classList.add('show');if(_RL_TIMER)clearInterval(_RL_TIMER);_RL_TIMER=setInterval(()=>{ms-=1000;if(ms<=0){clearInterval(_RL_TIMER);bar.classList.remove('show');return;}const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);el.textContent=m+':'+String(s).padStart(2,'0');},1000);}
 
-/* ══ SESSION ══ */
-var SESSION_KEY='ducor_sess_v2',TIMEOUT_MS=30*60*1000;
-function createSession(id,remember){var token=randomToken(32),expiry=Date.now()+(remember?7*24*3600*1000:TIMEOUT_MS),sess={userId:id,token:token,expiry:expiry,remember:!!remember};(remember?localStorage:sessionStorage).setItem(SESSION_KEY,JSON.stringify(sess));return sess;}
-function getSession(){try{var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);if(!raw)return null;var s=JSON.parse(raw);if(!s||!s.userId||!s.token)return null;if(Date.now()>s.expiry){sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(SESSION_KEY);return null;}if(!s.remember){s.expiry=Date.now()+TIMEOUT_MS;sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));}return s;}catch(e){return null;}}
+/* ── SESSION ── */
+const SESSION_KEY='ducor_sess_v2',TIMEOUT_MS=30*60*1000;
+function createSession(id,remember){const token=randomToken(32),expiry=Date.now()+(remember?7*24*3600*1000:TIMEOUT_MS),sess={userId:id,token,expiry,remember:!!remember};(remember?localStorage:sessionStorage).setItem(SESSION_KEY,JSON.stringify(sess));}
+function getSession(){try{const raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);if(!raw)return null;const s=JSON.parse(raw);if(!s||!s.userId||!s.token)return null;if(Date.now()>s.expiry){sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(SESSION_KEY);return null;}if(!s.remember){s.expiry=Date.now()+TIMEOUT_MS;sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));}return s;}catch(e){return null;}}
 
-/* ══ USERS ══ */
-var USERS_KEY='ducor_users_v2';
-function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]');}catch(e){return[];}}
-function saveUsers(u){try{localStorage.setItem(USERS_KEY,JSON.stringify(u));}catch(e){}}
-function findUser(email){return getUsers().find(function(u){return u.email===email.trim().toLowerCase();})||null;}
+/* ── LOCAL USERS (fallback + cache) ── */
+const USERS_KEY='ducor_users_v2';
+function getLocalUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]');}catch(e){return[];}}
+function saveLocalUser(u){try{const users=getLocalUsers();users.push(u);localStorage.setItem(USERS_KEY,JSON.stringify(users));}catch(e){}}
+function findLocalUser(email){return getLocalUsers().find(u=>u.email===email.trim().toLowerCase())||null;}
 
-/* ══ UI HELPERS ══ */
-function switchTab(tab){
+/* ── FIND USER (check Firestore then local) ── */
+async function findUser(email) {
+  const e = email.trim().toLowerCase();
+  // Try Firestore first
+  try {
+    const snap = await getDocs(query(collection(_db,'customers'), where('email','==',e)));
+    if (!snap.empty) return snap.docs[0].data();
+  } catch(ex) {}
+  // Fallback to localStorage
+  return findLocalUser(e);
+}
+
+/* ── UI HELPERS ── */
+window.switchTab = function(tab) {
   document.getElementById('tab-login').classList.toggle('active',tab==='login');
   document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
   document.getElementById('form-login').classList.toggle('active',tab==='login');
   document.getElementById('form-signup').classList.toggle('active',tab==='signup');
-  document.getElementById('rp-title').textContent=tab==='login'?'Welcome back':'Create your account';
-  document.getElementById('rp-sub').textContent=tab==='login'?'Sign in to your health account.':'Join Ducor Pharmacy — it only takes a minute.';
-  ['login-err','signup-err','signup-ok'].forEach(function(id){document.getElementById(id).classList.remove('show');});
-}
-function showAlert(id,msg){var el=document.getElementById(id),sp=el.querySelector('span');if(sp)sp.textContent=msg;el.classList.add('show');}
+  ['login-err','signup-err','signup-ok'].forEach(id=>document.getElementById(id).classList.remove('show'));
+};
+function showAlert(id,msg){const el=document.getElementById(id),sp=el.querySelector('span');if(sp)sp.textContent=msg;el.classList.add('show');}
 function hideAlert(id){document.getElementById(id).classList.remove('show');}
-function setErr(id,msg){var el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.toggle('show',!!msg);}
-function togglePw(inputId,btn){
-  var inp=document.getElementById(inputId),show=inp.type==='password';
+function setErr(id,msg){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.toggle('show',!!msg);}
+window.togglePw = function(inputId,btn){
+  const inp=document.getElementById(inputId),show=inp.type==='password';
   inp.type=show?'text':'password';
   btn.innerHTML=show?
     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>':
     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-}
-function checkStrength(pw){
-  var wrap=document.getElementById('pw-str');
+};
+window.checkStrength = function(pw){
+  const wrap=document.getElementById('pw-str');
   if(!pw){wrap.style.display='none';return 0;}
   wrap.style.display='block';
-  var sc=0;
+  let sc=0;
   if(pw.length>=8)sc++;if(pw.length>=12)sc++;
   if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))sc++;
   if(/[0-9]/.test(pw))sc++;if(/[^A-Za-z0-9]/.test(pw))sc++;
-  var lv=sc<=1?0:sc<=2?1:sc<=3?2:3;
-  var cls=['w','f','g','s'],lbs=['Weak — add uppercase, numbers & symbols','Fair — add numbers or symbols','Good password','Strong password'];
-  for(var i=1;i<=4;i++){var b=document.getElementById('bar'+i);b.className='pw-bar'+(i<=lv+1?' '+cls[lv]:'');}
+  const lv=sc<=1?0:sc<=2?1:sc<=3?2:3;
+  const cls=['w','f','g','s'],lbs=['Weak — add uppercase, numbers & symbols','Fair — add numbers or symbols','Good password','Strong password'];
+  for(let i=1;i<=4;i++){const b=document.getElementById('bar'+i);b.className='pw-bar'+(i<=lv+1?' '+cls[lv]:'');}
   document.getElementById('pw-lbl').textContent=lbs[lv];
   return lv;
-}
-function showForgot(){showAlert('login-err','Reset your password: contact us on WhatsApp +231 880 187 490 or email info@ducorpharmacy.com — we will reset it securely within 24 hours.');}
+};
+window.showForgot = function(){showAlert('login-err','To reset your password, contact us on WhatsApp +231 880 187 490 or email info@ducorpharmacy.com — we will reset it within 24 hours.');};
 
-/* ══ ?next REDIRECT ══ */
-var _nextUrl=(function(){var p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
-(function(){
-  if(_nextUrl==='/checkout.html'){
-    document.getElementById('checkout-note').classList.add('show');
-    switchTab('login');
-  }
-})();
-(function(){if(getSession())window.location.href=_nextUrl;})();
+/* ── REDIRECT ── */
+const _nextUrl=(()=>{const p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
+(()=>{if(_nextUrl==='/checkout.html')document.getElementById('checkout-note').classList.add('show');})();
+(()=>{if(getSession())window.location.href=_nextUrl;})();
 
-/* ══ LOGIN SUBMIT ══ */
-document.getElementById('login-form').addEventListener('submit',async function(e){
+/* ── LOGIN ── */
+document.getElementById('login-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   hideAlert('login-err');
   if(document.getElementById('hp-login').value)return;
-  var email=document.getElementById('login-email').value.trim().toLowerCase();
-  var pw=document.getElementById('login-pw').value;
-  var remember=document.getElementById('remember-me').checked;
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  const pw=document.getElementById('login-pw').value;
+  const remember=document.getElementById('remember-me').checked;
   setErr('login-email-err','');setErr('login-pw-err','');
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setErr('login-email-err','Enter a valid email address');return;}
   if(!pw){setErr('login-pw-err','Enter your password');return;}
   if(isRateLimited(email))return;
-  var btn=document.getElementById('login-btn');
+  const btn=document.getElementById('login-btn');
   btn.disabled=true;btn.textContent='Verifying...';
   try{
-    var hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
-    var user=findUser(email);
+    const hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
+    const user=await findUser(email);
     if(!user||user.pwHash!==hash){
       checkRateLimit(email);
       showAlert('login-err','Incorrect email or password. Please try again.');
@@ -616,7 +510,7 @@ document.getElementById('login-form').addEventListener('submit',async function(e
       btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In Securely';
       return;
     }
-    createSession(user.id,remember);
+    createSession(user.id||user.userId,remember);
     window.location.href=_nextUrl;
   }catch(err){
     showAlert('login-err','A security error occurred. Please refresh and try again.');
@@ -624,42 +518,60 @@ document.getElementById('login-form').addEventListener('submit',async function(e
   }
 });
 
-/* ══ SIGNUP SUBMIT ══ */
-document.getElementById('signup-form').addEventListener('submit',async function(e){
+/* ── SIGNUP ── */
+document.getElementById('signup-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   hideAlert('signup-err');hideAlert('signup-ok');
   if(document.getElementById('hp-signup').value)return;
-  var fname=sanitize(document.getElementById('su-fname').value.trim());
-  var lname=sanitize(document.getElementById('su-lname').value.trim());
-  var email=document.getElementById('su-email').value.trim().toLowerCase();
-  var phone=sanitize(document.getElementById('su-phone').value.trim());
-  var dob=document.getElementById('su-dob').value;
-  var pw=document.getElementById('su-pw').value;
-  var pw2=document.getElementById('su-pw2').value;
-  var agreed=document.getElementById('agree-terms').checked;
-  ['su-fname-err','su-email-err','su-dob-err','su-pw-err','su-pw2-err'].forEach(function(id){setErr(id,'');});
-  var ok=true;
+  const fname=sanitize(document.getElementById('su-fname').value.trim());
+  const lname=sanitize(document.getElementById('su-lname').value.trim());
+  const email=document.getElementById('su-email').value.trim().toLowerCase();
+  const phone=sanitize(document.getElementById('su-phone').value.trim());
+  const dob=document.getElementById('su-dob').value;
+  const pw=document.getElementById('su-pw').value;
+  const pw2=document.getElementById('su-pw2').value;
+  const agreed=document.getElementById('agree-terms').checked;
+  ['su-fname-err','su-email-err','su-dob-err','su-pw-err','su-pw2-err'].forEach(id=>setErr(id,''));
+  let ok=true;
   if(!fname){setErr('su-fname-err','First name is required');ok=false;}
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setErr('su-email-err','Enter a valid email address');ok=false;}
-  if(dob){var age=(Date.now()-new Date(dob))/(365.25*24*3600*1000);if(age<16){setErr('su-dob-err','You must be at least 16 to register');ok=false;}}
-  var pwLv=checkStrength(pw);
+  if(dob){const age=(Date.now()-new Date(dob))/(365.25*24*3600*1000);if(age<16){setErr('su-dob-err','You must be at least 16 to register');ok=false;}}
+  const pwLv=checkStrength(pw);
   if(!pw||pw.length<8){setErr('su-pw-err','Password must be at least 8 characters');ok=false;}
   else if(pwLv<1){setErr('su-pw-err','Password is too weak — add uppercase letters and numbers');ok=false;}
   if(pw!==pw2){setErr('su-pw2-err','Passwords do not match');ok=false;}
   if(!agreed){showAlert('signup-err','Please agree to the Terms of Service to register.');ok=false;}
   if(!ok)return;
-  if(findUser(email)){setErr('su-email-err','An account with this email already exists');return;}
-  var btn=document.getElementById('signup-btn');
+
+  // Check duplicate
+  const existing=await findUser(email);
+  if(existing){setErr('su-email-err','An account with this email already exists');return;}
+
+  const btn=document.getElementById('signup-btn');
   btn.disabled=true;btn.textContent='Creating your account...';
   try{
-    var hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
-    var userId=randomToken(16);
-    var users=getUsers();
-    users.push({id:userId,email:email,fname:fname,lname:lname,phone:phone,dob:dob,pwHash:hash,createdAt:Date.now(),orders:[],prescriptions:[]});
-    saveUsers(users);
+    const hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
+    const userId=randomToken(16);
+    const userData={
+      id:userId,email,fname,lname,phone,dob,pwHash:hash,
+      createdAt:serverTimestamp(),
+      orders:[],prescriptions:[]
+    };
+
+    // Save to Firestore (appears in admin dashboard automatically)
+    try {
+      await addDoc(collection(_db,'customers'), userData);
+    } catch(ex) {
+      // Firestore failed — save locally as fallback
+      saveLocalUser({...userData, createdAt:Date.now()});
+    }
+
+    // Also keep local copy for fast login
+    saveLocalUser({...userData, createdAt:Date.now()});
+
     createSession(userId,false);
     document.getElementById('signup-ok').classList.add('show');
-    setTimeout(function(){window.location.href=_nextUrl;},1600);
+    setTimeout(()=>window.location.href=_nextUrl, 1600);
   }catch(err){
     showAlert('signup-err','Account creation failed. Please try again.');
     btn.disabled=false;btn.textContent='Create My Account';
