@@ -632,7 +632,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
 
     // Success
     createSession(user.id, remember);
-    window.location.href = '/account.html';
+    window.location.href = _nextUrl;
   } catch(err) {
     showAlert('login-err', 'A security error occurred. Please refresh and try again.');
     btn.disabled = false;
@@ -710,7 +710,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
     createSession(userId, false);
     document.getElementById('signup-ok').classList.add('show');
 
-    setTimeout(function() { window.location.href = '/account.html'; }, 1800);
+    setTimeout(function() { window.location.href = _nextUrl; }, 1800);
   } catch(err) {
     showAlert('signup-err','Account creation failed. Please try again.');
     btn.disabled = false;
@@ -718,9 +718,27 @@ document.getElementById('signup-form').addEventListener('submit', async function
   }
 });
 
+/* ── Read ?next redirect param ── */
+var _nextUrl = (function(){
+  var p = new URLSearchParams(window.location.search).get('next');
+  // Only allow redirects to same-origin paths
+  if (p && p.startsWith('/') && !p.startsWith('//')) return p;
+  return '/account.html';
+})();
+
+/* ── Show contextual message if coming from checkout ── */
+(function(){
+  if (_nextUrl === '/checkout.html') {
+    var sub = document.querySelector('#form-login .form-sub');
+    if (sub) sub.textContent = 'You need to sign in before placing your order.';
+    var sub2 = document.querySelector('#form-signup .form-sub');
+    if (sub2) sub2.textContent = 'Create a free account to place your order — takes 30 seconds.';
+  }
+})();
+
 /* ── Redirect if already logged in ── */
 (function() {
-  if (getSession()) { window.location.href = '/account.html'; }
+  if (getSession()) { window.location.href = _nextUrl; }
 })();
 </script>
 </body>
