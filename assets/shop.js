@@ -239,7 +239,7 @@ const PRODUCTS = {
     {id:'vit020',name:'Magnesium Oxide 400mg',price:20.00},
     {id:'vit021',name:"Men's Olly Multivitamin",price:18.00},
     {id:'vit022',name:"Men's One A Day Multivitamin",price:18.00},
-    {id:'vit023',name:'Poly-Vi-Sol Children's Vitamins',price:7.00},
+    {id:'vit023',name:"Poly-Vi-Sol Children's Vitamins",price:7.00},
     {id:'vit024',name:'Poly-Vi-Sol with Iron',price:7.00},
     {id:'vit025',name:'Prenatal Vitamins',price:12.00},
     {id:'vit026',name:'Probiotics Formula Capsules',price:24.00},
