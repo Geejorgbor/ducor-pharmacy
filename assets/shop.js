@@ -1152,7 +1152,7 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   container.innerHTML = list.map(p => `
     <div class="product-card">
-      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="ProductModal.open('${p.id}','${category}')">${icon[category]}</div>
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${icon[category]}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
