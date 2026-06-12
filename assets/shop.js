@@ -953,13 +953,20 @@ function _processImgQueue() {
     const testImg = new Image();
     testImg.onload = () => {
       _applyImage(productId, localUrl, svgFallback);
+      const card = document.getElementById('pcard-' + productId);
+      if (card) card.style.opacity = '1';
       _imgActive--;
       _processImgQueue();
     };
     testImg.onerror = () => {
-      // No local photo yet — show clean placeholder
-      const el = document.getElementById('pimg-' + productId);
-      if (el) el.innerHTML = svgFallback;
+      // No real photo on server — remove this product from the public shop
+      const card = document.getElementById('pcard-' + productId);
+      if (card) card.remove();
+      const countEl = document.getElementById('results-count');
+      if (countEl) {
+        const n = document.querySelectorAll('#products-grid .product-card').length;
+        countEl.textContent = n + ' medication' + (n !== 1 ? 's' : '');
+      }
       _imgActive--;
       _processImgQueue();
     };
@@ -979,6 +986,8 @@ function _startImageLoading(list, category) {
     // Admin-set custom photo takes highest priority
     if (_customPhotos[p.id]) {
       _applyImage(p.id, _customPhotos[p.id], svgFallback);
+      const card = document.getElementById('pcard-' + p.id);
+      if (card) card.style.opacity = '1';
       return;
     }
     // Show placeholder while checking for local photo
@@ -1141,7 +1150,7 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
   if (count) count.textContent = `${list.length} medication${list.length !== 1 ? 's' : ''}`;
 
   container.innerHTML = list.map(p => `
-    <div class="product-card">
+    <div class="product-card" id="pcard-${p.id}" style="opacity:0;transition:opacity .4s">
       <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${icon[category]}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
