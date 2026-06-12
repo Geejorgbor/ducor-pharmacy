@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>My Account – Ducor International Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--navy:#0a2558;--navy2:#071a3e;--gold:#c9a055;--teal:#0d9488;--red:#dc2626;--green:#16a34a;--gray:#64748b;--light:#f8fafc;--r:14px}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--light);color:#1e293b}
+
+    /* ── TOP NAV ── */
+    .top-nav{
+      background:var(--navy);padding:0 28px;height:64px;
+      display:flex;align-items:center;justify-content:space-between;
+      box-shadow:0 2px 16px rgba(10,37,88,0.35);position:sticky;top:0;z-index:100;
+    }
+    .tn-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+    .tn-brand img{width:38px;height:38px;border-radius:50%;border:1px solid rgba(201,160,85,0.4);object-fit:contain}
+    .tn-brand span{color:#fff;font-weight:800;font-size:1rem;letter-spacing:0.5px}
+    .tn-right{display:flex;align-items:center;gap:14px}
+    .tn-user{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.8);font-size:0.85rem}
+    .tn-avatar{width:34px;height:34px;border-radius:50%;background:rgba(201,160,85,0.25);border:1.5px solid rgba(201,160,85,0.5);display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:700;font-size:0.9rem;flex-shrink:0}
+    .btn-logout{
+      background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+      color:rgba(255,255,255,0.8);padding:7px 16px;border-radius:8px;cursor:pointer;
+      font-size:0.82rem;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:6px;
+      font-family:inherit;
+    }
+    .btn-logout:hover{background:rgba(220,38,38,0.2);border-color:#dc2626;color:#fff}
+
+    /* ── LAYOUT ── */
+    .layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 64px)}
+    @media(max-width:860px){.layout{grid-template-columns:1fr}.sidebar{display:none}}
+
+    /* ── SIDEBAR ── */
+    .sidebar{background:#fff;border-right:1px solid #e2e8f0;padding:24px 0}
+    .sb-section{padding:0 16px;margin-bottom:24px}
+    .sb-label{font-size:0.67rem;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:0 8px;margin-bottom:8px}
+    .sb-link{
+      display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+      color:var(--gray);font-size:0.88rem;font-weight:500;cursor:pointer;
+      border:none;background:none;width:100%;text-align:left;transition:all .2s;text-decoration:none;
+    }
+    .sb-link:hover{background:var(--light);color:var(--navy)}
+    .sb-link.active{background:rgba(10,37,88,0.07);color:var(--navy);font-weight:700}
+    .sb-link svg{flex-shrink:0;color:inherit}
+
+    /* ── MAIN ── */
+    .main{padding:32px 28px;max-width:900px}
+    @media(max-width:600px){.main{padding:20px 16px}}
+
+    /* Page sections */
+    .page-section{display:none}
+    .page-section.active{display:block}
+
+    /* Welcome banner */
+    .welcome-banner{
+      background:linear-gradient(120deg,var(--navy2) 0%,var(--navy) 60%,#0d3a6e 100%);
+      border-radius:var(--r);padding:28px 32px;margin-bottom:28px;
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+      position:relative;overflow:hidden;
+    }
+    .wb-orb{position:absolute;right:-30px;top:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(13,148,136,0.3) 0%,transparent 70%);pointer-events:none}
+    .wb-text h2{color:#fff;font-size:1.4rem;font-weight:800;margin-bottom:4px;position:relative}
+    .wb-text p{color:rgba(255,255,255,0.6);font-size:0.88rem;position:relative}
+    .wb-badge{background:rgba(201,160,85,0.18);border:1px solid rgba(201,160,85,0.4);color:var(--gold);font-size:0.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border-radius:50px}
+
+    /* Stat cards */
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+    @media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr}}
+    .stat-card{background:#fff;border-radius:var(--r);padding:20px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(10,37,88,0.05)}
+    .stat-num{font-size:1.8rem;font-weight:800;color:var(--navy);margin-bottom:4px}
+    .stat-label{font-size:0.78rem;color:var(--gray);font-weight:500}
+    .stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+    .ic-gold{background:rgba(201,160,85,0.12)}
+    .ic-teal{background:rgba(13,148,136,0.12)}
+    .ic-navy{background:rgba(10,37,88,0.08)}
+
+    /* Quick actions */
+    .section-title{font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:16px}
+    .qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+    @media(max-width:600px){.qa-grid{grid-template-columns:1fr}}
+    .qa-card{
+      background:#fff;border-radius:var(--r);padding:20px;border:1px solid #e2e8f0;
+      display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;
+      text-decoration:none;color:inherit;
+    }
+    .qa-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(10,37,88,0.1);transform:translateY(-2px)}
+    .qa-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .qa-card h4{font-size:0.9rem;font-weight:700;color:var(--navy);margin-bottom:2px}
+    .qa-card p{font-size:0.78rem;color:var(--gray)}
+
+    /* Orders table */
+    .orders-box{background:#fff;border-radius:var(--r);border:1px solid #e2e8f0;overflow:hidden}
+    .orders-head{padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
+    .orders-head h3{font-size:0.97rem;font-weight:700;color:var(--navy)}
+    .empty-state{text-align:center;padding:48px 24px;color:var(--gray)}
+    .empty-state svg{margin:0 auto 14px;display:block;opacity:0.3}
+    .empty-state p{font-size:0.9rem;line-height:1.6}
+    .order-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid #f1f5f9;font-size:0.88rem}
+    .order-row:last-child{border-bottom:none}
+    .order-status{padding:4px 11px;border-radius:50px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+    .status-pending{background:#fffbeb;color:#d97706}
+    .status-processing{background:rgba(13,148,136,0.1);color:#0d9488}
+    .status-completed{background:#f0fdf4;color:#16a34a}
+
+    /* Profile form */
+    .profile-card{background:#fff;border-radius:var(--r);border:1px solid #e2e8f0;padding:28px;margin-bottom:20px}
+    .profile-head{display:flex;align-items:center;gap:18px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #f1f5f9}
+    .profile-avatar{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--navy),#0d3a6e);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;color:var(--gold);flex-shrink:0;border:3px solid rgba(201,160,85,0.3)}
+    .profile-head-text h3{color:var(--navy);font-weight:800;font-size:1.05rem;margin-bottom:3px}
+    .profile-head-text p{color:var(--gray);font-size:0.83rem}
+    .verified-badge{display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;color:#16a34a;font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;border:1px solid #bbf7d0;margin-top:5px}
+    .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    @media(max-width:600px){.pf-grid{grid-template-columns:1fr}}
+    .pf-field label{display:block;font-size:0.78rem;font-weight:700;color:var(--navy);margin-bottom:6px}
+    .pf-field input,.pf-field select{
+      width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+      font-size:0.9rem;color:#1e293b;background:#f8fafc;outline:none;font-family:inherit;
+      transition:border-color .2s;
+    }
+    .pf-field input:focus,.pf-field select:focus{border-color:var(--navy);background:#fff}
+    .pf-field input:read-only{color:var(--gray);cursor:not-allowed}
+    .btn-save{background:var(--navy);color:#fff;padding:11px 28px;border-radius:10px;font-size:0.88rem;font-weight:700;border:none;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-save:hover{background:#0d3a6e}
+    .save-ok{display:none;align-items:center;gap:6px;color:#16a34a;font-size:0.84rem;font-weight:600;margin-left:14px}
+    .save-ok.show{display:inline-flex}
+
+    /* Security section */
+    .sec-card{background:#fff;border-radius:var(--r);border:1px solid #e2e8f0;margin-bottom:16px;overflow:hidden}
+    .sec-row{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid #f1f5f9}
+    .sec-row:last-child{border-bottom:none}
+    .sec-row-left{display:flex;align-items:center;gap:12px}
+    .sec-row-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .sec-row h4{font-size:0.88rem;font-weight:700;color:var(--navy);margin-bottom:2px}
+    .sec-row p{font-size:0.75rem;color:var(--gray)}
+    .badge-on{background:#f0fdf4;color:#16a34a;font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;border:1px solid #bbf7d0}
+    .badge-off{background:#fef2f2;color:#dc2626;font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;border:1px solid #fecaca}
+    .btn-sm{padding:7px 16px;border-radius:8px;font-size:0.8rem;font-weight:600;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .2s;font-family:inherit;color:var(--navy)}
+    .btn-sm:hover{border-color:var(--navy);background:var(--light)}
+    .btn-danger{border-color:#fecaca;color:#dc2626}
+    .btn-danger:hover{background:#fef2f2;border-color:#dc2626}
+
+    /* Session list */
+    .sess-list{padding:0 22px 16px}
+    .sess-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9;font-size:0.83rem}
+    .sess-item:last-child{border-bottom:none}
+    .sess-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;margin-right:8px;flex-shrink:0}
+
+    /* Alert */
+    .alert{display:none;padding:13px 16px;border-radius:10px;font-size:0.85rem;font-weight:500;margin-bottom:16px;align-items:center;gap:10px}
+    .alert.show{display:flex}
+    .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+    .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+
+    /* Mobile bottom nav */
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;padding:8px 0;z-index:50}
+    @media(max-width:860px){.mobile-nav{display:flex;justify-content:space-around}}
+    .mn-btn{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--gray);font-size:0.65rem;font-weight:600;border:none;background:none;cursor:pointer;padding:4px 14px;transition:color .2s;font-family:inherit}
+    .mn-btn.active{color:var(--navy)}
+    @media(max-width:860px){.main{padding-bottom:80px}}
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <a href="/index.html" class="tn-brand">
+    <img src="/assets/company-logo.jpg" alt="Ducor" onerror="this.style.display='none'"/>
+    <span>Ducor Pharmacy</span>
+  </a>
+  <div class="tn-right">
+    <div class="tn-user">
+      <div class="tn-avatar" id="nav-avatar">?</div>
+      <span id="nav-name">Loading...</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Main Menu</div>
+      <button class="sb-link active" onclick="showPage('overview')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="sb-link" onclick="showPage('orders')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        My Orders
+      </button>
+      <a href="/prescription.html" class="sb-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Prescriptions
+      </a>
+      <a href="/checkout.html" class="sb-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        Order Medications
+      </a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Account</div>
+      <button class="sb-link" onclick="showPage('profile')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Profile
+      </button>
+      <button class="sb-link" onclick="showPage('security')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Security
+      </button>
+    </div>
+    <div class="sb-section" style="margin-top:auto">
+      <a href="/index.html" class="sb-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Back to Website
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="page-section active" id="page-overview">
+      <div class="welcome-banner">
+        <div class="wb-orb"></div>
+        <div class="wb-text">
+          <h2>Welcome back, <span id="wb-name">Client</span>!</h2>
+          <p>Manage your medications and health records securely.</p>
+        </div>
+        <span class="wb-badge">Verified Client</span>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon ic-gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
+          <div class="stat-num" id="stat-orders">0</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon ic-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="stat-num" id="stat-rx">0</div>
+          <div class="stat-label">Prescriptions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon ic-navy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a2558" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="stat-num" style="color:#16a34a">✓</div>
+          <div class="stat-label">Account Secured</div>
+        </div>
+      </div>
+
+      <div class="section-title">Quick Actions</div>
+      <div class="qa-grid">
+        <a href="/checkout.html" class="qa-card">
+          <div class="qa-icon ic-gold"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
+          <div><h4>Order Medications</h4><p>Browse &amp; request medicines</p></div>
+        </a>
+        <a href="/prescription.html" class="qa-card">
+          <div class="qa-icon ic-teal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div><h4>Prescription Drugs</h4><p>View licensed medications</p></div>
+        </a>
+        <a href="https://wa.me/231880187490" target="_blank" rel="noopener" class="qa-card">
+          <div class="qa-icon" style="background:rgba(37,211,102,0.12)"><svg width="22" height="22" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+          <div><h4>WhatsApp Support</h4><p>Chat with our pharmacist</p></div>
+        </a>
+      </div>
+
+      <div class="section-title">Recent Orders</div>
+      <div class="orders-box">
+        <div class="orders-head"><h3>Order History</h3></div>
+        <div id="overview-orders-body"></div>
+      </div>
+    </div>
+
+    <!-- ══ ORDERS ══ -->
+    <div class="page-section" id="page-orders">
+      <div style="margin-bottom:22px">
+        <h2 style="color:var(--navy);font-size:1.3rem;font-weight:800">My Orders</h2>
+        <p style="color:var(--gray);font-size:0.88rem;margin-top:4px">All your medication orders and their current status.</p>
+      </div>
+      <div class="orders-box">
+        <div class="orders-head">
+          <h3>All Orders</h3>
+          <a href="/checkout.html" style="font-size:0.83rem;color:var(--teal);font-weight:700;text-decoration:none">+ New Order</a>
+        </div>
+        <div id="orders-body"></div>
+      </div>
+    </div>
+
+    <!-- ══ PROFILE ══ -->
+    <div class="page-section" id="page-profile">
+      <div style="margin-bottom:22px">
+        <h2 style="color:var(--navy);font-size:1.3rem;font-weight:800">My Profile</h2>
+        <p style="color:var(--gray);font-size:0.88rem;margin-top:4px">Update your personal information and contact details.</p>
+      </div>
+      <div class="alert success" id="profile-ok">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Profile updated successfully.
+      </div>
+      <div class="profile-card">
+        <div class="profile-head">
+          <div class="profile-avatar" id="pf-avatar-big">?</div>
+          <div class="profile-head-text">
+            <h3 id="pf-name-display">Loading...</h3>
+            <p id="pf-email-display"></p>
+            <div class="verified-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Verified Account</div>
+          </div>
+        </div>
+        <form id="profile-form" novalidate>
+          <div class="pf-grid" style="margin-bottom:18px">
+            <div class="pf-field">
+              <label>First Name</label>
+              <input type="text" id="pf-fname" autocomplete="given-name"/>
+            </div>
+            <div class="pf-field">
+              <label>Last Name</label>
+              <input type="text" id="pf-lname" autocomplete="family-name"/>
+            </div>
+            <div class="pf-field">
+              <label>Email Address</label>
+              <input type="email" id="pf-email" readonly style="color:var(--gray)"/>
+            </div>
+            <div class="pf-field">
+              <label>Phone Number</label>
+              <input type="tel" id="pf-phone" autocomplete="tel"/>
+            </div>
+            <div class="pf-field">
+              <label>Date of Birth</label>
+              <input type="date" id="pf-dob" autocomplete="bday"/>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0">
+            <button type="submit" class="btn-save">Save Changes</button>
+            <span class="save-ok" id="profile-ok-inline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Saved!
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ══ SECURITY ══ -->
+    <div class="page-section" id="page-security">
+      <div style="margin-bottom:22px">
+        <h2 style="color:var(--navy);font-size:1.3rem;font-weight:800">Account Security</h2>
+        <p style="color:var(--gray);font-size:0.88rem;margin-top:4px">Manage your password, sessions, and security settings.</p>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-row">
+          <div class="sec-row-left">
+            <div class="sec-row-icon ic-gold"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+            <div><h4>Password</h4><p>Last changed: account creation</p></div>
+          </div>
+          <button class="btn-sm" onclick="showChangePw()">Change Password</button>
+        </div>
+        <div class="sec-row" id="pw-change-row" style="display:none;flex-direction:column;align-items:stretch;gap:14px;padding:20px 22px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="pf-field"><label>Current Password</label><input type="password" id="pw-cur" placeholder="Current password"/></div>
+            <div></div>
+            <div class="pf-field"><label>New Password</label><input type="password" id="pw-new" placeholder="New password" oninput="checkStrengthInline(this.value)"/></div>
+            <div class="pf-field"><label>Confirm New Password</label><input type="password" id="pw-new2" placeholder="Repeat new password"/></div>
+          </div>
+          <div id="pw-strength-inline" style="display:none;margin-top:-6px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <div id="sb1" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s"></div>
+              <div id="sb2" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s"></div>
+              <div id="sb3" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s"></div>
+              <div id="sb4" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s"></div>
+            </div>
+            <span id="sbl" style="font-size:0.72rem;color:var(--gray);font-weight:600"></span>
+          </div>
+          <div id="pw-change-err" style="display:none;color:#dc2626;font-size:0.8rem;font-weight:500"></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-save" onclick="changePassword()" style="padding:9px 20px;font-size:0.84rem">Update Password</button>
+            <button class="btn-sm" onclick="document.getElementById('pw-change-row').style.display='none'">Cancel</button>
+          </div>
+        </div>
+
+        <div class="sec-row">
+          <div class="sec-row-left">
+            <div class="sec-row-icon ic-teal"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+            <div><h4>Session Timeout</h4><p>Auto-logout after 30 minutes of inactivity</p></div>
+          </div>
+          <span class="badge-on">Active</span>
+        </div>
+
+        <div class="sec-row">
+          <div class="sec-row-left">
+            <div class="sec-row-icon ic-navy"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0a2558" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div><h4>HTTPS Encryption</h4><p>All data encrypted in transit (TLS 1.3)</p></div>
+          </div>
+          <span class="badge-on">Active</span>
+        </div>
+
+        <div class="sec-row">
+          <div class="sec-row-left">
+            <div class="sec-row-icon" style="background:#fef2f2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div><h4>Login Brute-Force Protection</h4><p>Account locks after 5 failed attempts (15 min)</p></div>
+          </div>
+          <span class="badge-on">Active</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;font-size:1rem;font-weight:700;color:var(--navy)">Active Sessions</div>
+      <div class="sec-card">
+        <div class="sess-list" id="sess-list"></div>
+      </div>
+
+      <div style="margin-top:24px;padding:18px 22px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r)">
+        <h4 style="color:#991b1b;font-size:0.9rem;font-weight:700;margin-bottom:6px">Danger Zone</h4>
+        <p style="color:#991b1b;font-size:0.82rem;margin-bottom:14px">Permanently delete your account and all associated data. This cannot be undone.</p>
+        <button class="btn-sm btn-danger" onclick="confirmDelete()">Delete My Account</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav class="mobile-nav">
+  <button class="mn-btn active" id="mn-overview" onclick="showPage('overview')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Home
+  </button>
+  <button class="mn-btn" id="mn-orders" onclick="showPage('orders')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+    Orders
+  </button>
+  <button class="mn-btn" id="mn-profile" onclick="showPage('profile')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Profile
+  </button>
+  <button class="mn-btn" id="mn-security" onclick="showPage('security')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Security
+  </button>
+</nav>
+
+<script>
+'use strict';
+
+/* ── Session / User helpers (shared with auth.html) ── */
+var SESSION_KEY = 'ducor_sess_v2';
+var USERS_KEY   = 'ducor_users_v2';
+var TIMEOUT_MS  = 30 * 60 * 1000;
+
+function getSession() {
+  try {
+    var raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    var s = JSON.parse(raw);
+    if (!s || !s.userId || !s.token) return null;
+    if (Date.now() > s.expiry) { clearSession(); return null; }
+    if (!s.remember) { s.expiry = Date.now() + TIMEOUT_MS; sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+    return s;
+  } catch(e) { return null; }
+}
+function clearSession() { sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); }
+function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch(e) { return []; } }
+function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch(e) {} }
+function getCurrentUser() {
+  var s = getSession();
+  if (!s) return null;
+  return getUsers().find(function(u) { return u.id === s.userId; }) || null;
+}
+async function sha256(str) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+/* ── Guard: redirect to login if not authenticated ── */
+(function() {
+  var s = getSession();
+  if (!s) { window.location.href = '/auth.html'; return; }
+
+  // Inactivity logout after 30 min
+  var _idle;
+  function resetIdle() {
+    clearTimeout(_idle);
+    _idle = setTimeout(function() { logout(); }, TIMEOUT_MS);
+  }
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(function(ev) {
+    document.addEventListener(ev, resetIdle, {passive:true});
+  });
+  resetIdle();
+})();
+
+/* ── Page navigation ── */
+function showPage(name) {
+  document.querySelectorAll('.page-section').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.sb-link').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.mn-btn').forEach(function(el){ el.classList.remove('active'); });
+  var pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  var mn = document.getElementById('mn-' + name);
+  if (mn) mn.classList.add('active');
+  // Sidebar button
+  document.querySelectorAll('.sb-link').forEach(function(btn){
+    if (btn.getAttribute('onclick') === "showPage('" + name + "')") btn.classList.add('active');
+  });
+}
+
+/* ── Logout ── */
+function logout() {
+  clearSession();
+  window.location.href = '/auth.html';
+}
+
+/* ── Load user data into UI ── */
+function loadUI() {
+  var user = getCurrentUser();
+  if (!user) { window.location.href = '/auth.html'; return; }
+
+  var initials = ((user.fname || '?')[0] + (user.lname || '')[0]).toUpperCase();
+  var fullName = (user.fname + ' ' + (user.lname || '')).trim();
+
+  // Nav
+  document.getElementById('nav-avatar').textContent = initials;
+  document.getElementById('nav-name').textContent = user.fname || user.email;
+
+  // Welcome
+  document.getElementById('wb-name').textContent = user.fname || 'Client';
+
+  // Stats
+  document.getElementById('stat-orders').textContent = (user.orders || []).length;
+  document.getElementById('stat-rx').textContent = (user.prescriptions || []).length;
+
+  // Profile form
+  document.getElementById('pf-avatar-big').textContent = initials;
+  document.getElementById('pf-name-display').textContent = fullName || user.email;
+  document.getElementById('pf-email-display').textContent = user.email;
+  document.getElementById('pf-fname').value  = user.fname  || '';
+  document.getElementById('pf-lname').value  = user.lname  || '';
+  document.getElementById('pf-email').value  = user.email  || '';
+  document.getElementById('pf-phone').value  = user.phone  || '';
+  document.getElementById('pf-dob').value    = user.dob    || '';
+
+  // Orders
+  renderOrders(user.orders || [], 'overview-orders-body', 3);
+  renderOrders(user.orders || [], 'orders-body', 999);
+
+  // Sessions
+  renderSessions();
+}
+
+function renderOrders(orders, containerId, limit) {
+  var el = document.getElementById(containerId);
+  if (!orders.length) {
+    el.innerHTML = '<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg><p>No orders yet.<br>Browse our medications to place your first order.</p></div>';
+    return;
+  }
+  var shown = orders.slice(-limit).reverse();
+  el.innerHTML = shown.map(function(o) {
+    var statusCls = o.status === 'Completed' ? 'status-completed' : o.status === 'Processing' ? 'status-processing' : 'status-pending';
+    return '<div class="order-row"><div><strong style="font-size:0.88rem">' + (o.name || 'Medication Order') + '</strong><br><span style="color:var(--gray);font-size:0.78rem">' + new Date(o.date).toLocaleDateString() + '</span></div><span style="font-size:0.88rem;font-weight:700;color:var(--navy)">' + (o.amount || '') + '</span><span class="order-status ' + statusCls + '">' + (o.status || 'Pending') + '</span></div>';
+  }).join('');
+}
+
+function renderSessions() {
+  var el = document.getElementById('sess-list');
+  var s  = getSession();
+  var expStr = s ? new Date(s.expiry).toLocaleString() : 'Unknown';
+  el.innerHTML = '<div class="sess-item"><div style="display:flex;align-items:center"><div class="sess-dot"></div><div><strong style="font-size:0.85rem">Current Session</strong><br><span style="color:var(--gray);font-size:0.75rem">This device · Expires ' + expStr + '</span></div></div><span class="badge-on">Active</span></div>';
+}
+
+/* ── Profile save ── */
+document.getElementById('profile-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var user = getCurrentUser();
+  if (!user) return;
+  var users = getUsers();
+  var idx   = users.findIndex(function(u){ return u.id === user.id; });
+  if (idx < 0) return;
+  users[idx].fname = document.getElementById('pf-fname').value.trim();
+  users[idx].lname = document.getElementById('pf-lname').value.trim();
+  users[idx].phone = document.getElementById('pf-phone').value.trim();
+  users[idx].dob   = document.getElementById('pf-dob').value;
+  saveUsers(users);
+  var ok = document.getElementById('profile-ok-inline');
+  ok.classList.add('show');
+  setTimeout(function(){ ok.classList.remove('show'); }, 2500);
+  loadUI();
+});
+
+/* ── Change password ── */
+function showChangePw() {
+  var row = document.getElementById('pw-change-row');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  row.style.flexDirection = 'column';
+}
+
+function checkStrengthInline(pw) {
+  var wrap = document.getElementById('pw-strength-inline');
+  if (!pw) { wrap.style.display = 'none'; return 0; }
+  wrap.style.display = 'block';
+  var score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  var level = score <= 1 ? 0 : score <= 2 ? 1 : score <= 3 ? 2 : 3;
+  var cls   = ['#dc2626','#f59e0b','#3b82f6','#16a34a'];
+  for (var i = 1; i <= 4; i++) {
+    document.getElementById('sb' + i).style.background = i <= level + 1 ? cls[level] : '#e2e8f0';
+  }
+  document.getElementById('sbl').textContent = ['Weak','Fair','Good','Strong'][level] + ' password';
+  return level;
+}
+
+async function changePassword() {
+  var errEl = document.getElementById('pw-change-err');
+  errEl.style.display = 'none';
+  var user = getCurrentUser();
+  if (!user) return;
+  var cur  = document.getElementById('pw-cur').value;
+  var nw   = document.getElementById('pw-new').value;
+  var nw2  = document.getElementById('pw-new2').value;
+  if (!cur || !nw || !nw2) { errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return; }
+  var curHash = await sha256(cur + 'ducor_ph_salt_2025_' + user.email);
+  if (curHash !== user.pwHash) { errEl.textContent = 'Current password is incorrect.'; errEl.style.display = 'block'; return; }
+  if (nw.length < 8) { errEl.textContent = 'New password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+  if (nw !== nw2) { errEl.textContent = 'New passwords do not match.'; errEl.style.display = 'block'; return; }
+  var newHash = await sha256(nw + 'ducor_ph_salt_2025_' + user.email);
+  var users = getUsers();
+  var idx = users.findIndex(function(u){ return u.id === user.id; });
+  users[idx].pwHash = newHash;
+  saveUsers(users);
+  document.getElementById('pw-change-row').style.display = 'none';
+  document.getElementById('pw-cur').value = document.getElementById('pw-new').value = document.getElementById('pw-new2').value = '';
+  alert('Password updated successfully!');
+}
+
+/* ── Delete account ── */
+function confirmDelete() {
+  if (confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
+    var s = getSession();
+    if (!s) return;
+    var users = getUsers().filter(function(u){ return u.id !== s.userId; });
+    saveUsers(users);
+    clearSession();
+    window.location.href = '/index.html';
+  }
+}
+
+// Init
+loadUI();
+</script>
+</body>
+</html>
