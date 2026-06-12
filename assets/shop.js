@@ -1037,12 +1037,18 @@ const ProductModal = {
               </svg>
               Add to Cart
             </button>
-            <a class="pm-btn-wa" id="pm-btn-wa" target="_blank" rel="noopener">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.559 4.14 1.535 5.875L.057 23.882l6.213-1.454A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.924 0-3.74-.509-5.31-1.397l-.38-.225-3.688.864.904-3.597-.247-.37A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+            <button class="pm-btn-buynow" id="pm-btn-buynow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
               </svg>
-              Order via WhatsApp
-            </a>
+              Buy Now — Card / Mobile Money
+            </button>
+            <p class="pm-pay-icons">
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#1A1F71"/><text x="24" y="20" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="sans-serif">VISA</text></svg>
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#eb001b"/><circle cx="19" cy="15" r="10" fill="#eb001b"/><circle cx="29" cy="15" r="10" fill="#f79e1b"/><path d="M24 8.5a10 10 0 0 1 0 13A10 10 0 0 1 24 8.5z" fill="#ff5f00"/></svg>
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#FFD700"/><text x="24" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="#333" font-family="sans-serif">MTN</text></svg>
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#FF7900"/><text x="24" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="sans-serif">Orange</text></svg>
+            </p>
           </div>
         </div>
       </div>`;
@@ -1096,12 +1102,10 @@ const ProductModal = {
       this.close();
     };
 
-    const msg = encodeURIComponent(
-      'Hello Ducor Pharmacy! I would like to order:\n\n*' +
-      product.name + '*\nPrice: $' + product.price.toFixed(2) +
-      '\n\nPlease confirm availability. Thank you!'
-    );
-    document.getElementById('pm-btn-wa').href = 'https://wa.me/231880187490?text=' + msg;
+    document.getElementById('pm-btn-buynow').onclick = () => {
+      addToCart(productId, category);
+      window.location.href = '/checkout.html';
+    };
 
     document.getElementById('pm-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
