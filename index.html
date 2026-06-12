@@ -135,6 +135,19 @@
     .hsp-r1{animation:hsp-spin 38s linear infinite;transform-origin:50% 50%}
     .hsp-r2{animation:hsp-spin-rev 26s linear infinite;transform-origin:50% 50%}
 
+    /* ── Slide-0 Ultra Premium Animations ── */
+    @keyframes hs0-pulse{0%,100%{opacity:0.5;transform:translateY(-50%) scale(1)}50%{opacity:1;transform:translateY(-50%) scale(1.16)}}
+    @keyframes hs0-pulse2{0%,100%{opacity:0.35;transform:translateY(-50%) scale(1)}50%{opacity:0.75;transform:translateY(-50%) scale(1.1)}}
+    @keyframes hs0-floatA{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(-10px) translateY(-5px)}}
+    @keyframes hs0-floatB{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(-7px) translateY(6px)}}
+    @keyframes hs0-floatC{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(-12px) translateY(-4px)}}
+    @keyframes hs0-scan{0%{top:-1px}100%{top:100%}}
+    @keyframes hs0-crossglow{0%,100%{opacity:0.65}50%{opacity:1}}
+    @keyframes hs0-ring{0%{transform:translate(-50%,-50%) scale(1);opacity:0.5}50%{transform:translate(-50%,-50%) scale(1.1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0.5}}
+    .hs0-rp{display:flex;flex-direction:column;gap:14px}
+    .hs0-deco{display:block}
+    @media(max-width:900px){.hs0-rp,.hs0-deco,.hs0-cross,.hs0-glows{display:none}}
+
     /* ── SECTIONS ── */
     .section{padding:88px 5%}
     .sh{text-align:center;margin-bottom:56px}
@@ -269,10 +282,83 @@
 
   <!-- SLIDES: video is always slide 0; extra photos added by admin show as slide 1, 2 -->
   <div class="hero-slides" id="hero-slides">
+    <!-- ═══ SLIDE 0 — ULTRA PREMIUM HERO ═══ -->
     <div class="hero-slide active" id="hs-0">
-      <video autoplay muted loop playsinline>
-        <source src="/assets/hero-background-video.mp4" type="video/mp4"/>
-      </video>
+      <!-- Vivid background image — deep color-enhanced pharmacy product photo -->
+      <img src="/assets/product-supplies.jpg"
+           alt="Ducor International Pharmacy — Premium Healthcare Liberia"
+           style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.5) contrast(1.12) brightness(0.75)"
+           onerror="this.onerror=null;this.src='/assets/product-vitamins.jpg'">
+
+      <!-- === FULL ANIMATED OVERLAY === -->
+      <div style="position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden">
+
+        <!-- Glow orb 1 — teal -->
+        <div class="hs0-glows" style="position:absolute;right:32%;top:50%;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(13,148,136,0.30) 0%,transparent 68%);animation:hs0-pulse 4.5s ease-in-out infinite"></div>
+        <!-- Glow orb 2 — gold -->
+        <div class="hs0-glows" style="position:absolute;right:10%;top:38%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,160,85,0.22) 0%,transparent 70%);animation:hs0-pulse2 6s ease-in-out infinite 1.5s"></div>
+
+        <!-- Pharmacy Cross — glowing gold, centered on right panel -->
+        <div class="hs0-cross" style="position:absolute;right:27%;top:50%;transform:translate(50%,-50%);animation:hs0-crossglow 3.5s ease-in-out infinite">
+          <!-- Outer ring -->
+          <div style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;border:1px solid rgba(201,160,85,0.4);transform:translate(-50%,-50%);animation:hs0-ring 4s ease-in-out infinite"></div>
+          <div style="position:absolute;left:50%;top:50%;width:80px;height:80px;border-radius:50%;border:1px solid rgba(201,160,85,0.25);transform:translate(-50%,-50%);animation:hs0-ring 4s ease-in-out infinite 0.5s"></div>
+          <!-- Cross -->
+          <div style="position:relative;width:70px;height:70px">
+            <div style="position:absolute;left:50%;top:0;width:20px;height:70px;background:linear-gradient(180deg,rgba(201,160,85,0.95),rgba(201,160,85,0.5));transform:translateX(-50%);border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.6)"></div>
+            <div style="position:absolute;top:50%;left:0;height:20px;width:70px;background:linear-gradient(90deg,rgba(201,160,85,0.5),rgba(201,160,85,0.95),rgba(201,160,85,0.5));transform:translateY(-50%);border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.6)"></div>
+          </div>
+        </div>
+
+        <!-- THREE FLOATING FEATURE CARDS -->
+        <div class="hs0-rp" style="position:absolute;right:3%;top:50%;transform:translateY(-50%)">
+
+          <!-- Card 1: Licensed -->
+          <div style="background:rgba(8,26,64,0.82);border:1px solid rgba(201,160,85,0.55);border-radius:14px;padding:15px 20px;display:flex;align-items:center;gap:13px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);min-width:245px;animation:hs0-floatA 5.5s ease-in-out infinite;box-shadow:0 8px 32px rgba(0,0,0,0.35)">
+            <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(201,160,85,0.35),rgba(201,160,85,0.1));border-radius:12px;border:1px solid rgba(201,160,85,0.45);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+            </div>
+            <div>
+              <p style="color:#c9a055;font-size:0.57rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:4px">Licensed &amp; Certified</p>
+              <p style="color:rgba(255,255,255,0.94);font-size:0.88rem;font-weight:600;line-height:1.3">Government Regulated Pharmacy</p>
+            </div>
+          </div>
+
+          <!-- Card 2: Authentic -->
+          <div style="background:rgba(8,26,64,0.82);border:1px solid rgba(13,148,136,0.55);border-radius:14px;padding:15px 20px;display:flex;align-items:center;gap:13px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);min-width:245px;animation:hs0-floatB 6.5s ease-in-out infinite 0.6s;box-shadow:0 8px 32px rgba(0,0,0,0.35)">
+            <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(13,148,136,0.35),rgba(13,148,136,0.1));border-radius:12px;border:1px solid rgba(13,148,136,0.45);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            </div>
+            <div>
+              <p style="color:#0d9488;font-size:0.57rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:4px">Quality Assured</p>
+              <p style="color:rgba(255,255,255,0.94);font-size:0.88rem;font-weight:600;line-height:1.3">100% Authentic Medications</p>
+            </div>
+          </div>
+
+          <!-- Card 3: Expert Care -->
+          <div style="background:rgba(8,26,64,0.82);border:1px solid rgba(255,255,255,0.18);border-radius:14px;padding:15px 20px;display:flex;align-items:center;gap:13px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);min-width:245px;animation:hs0-floatC 5s ease-in-out infinite 1.1s;box-shadow:0 8px 32px rgba(0,0,0,0.35)">
+            <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));border-radius:12px;border:1px solid rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </div>
+            <div>
+              <p style="color:rgba(255,255,255,0.55);font-size:0.57rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:4px">Expert Pharmacists</p>
+              <p style="color:rgba(255,255,255,0.94);font-size:0.88rem;font-weight:600;line-height:1.3">Professional Health Guidance</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gold scan line sweeping down -->
+        <div style="position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(201,160,85,0.0) 10%,rgba(201,160,85,0.55) 45%,rgba(13,148,136,0.55) 55%,rgba(13,148,136,0.0) 90%,transparent 100%);animation:hs0-scan 8s linear infinite"></div>
+
+        <!-- Bottom gold accent bar -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,rgba(201,160,85,0.75) 20%,rgba(13,148,136,0.75) 80%,transparent)"></div>
+
+        <!-- Corner decorations (desktop only) -->
+        <div class="hs0-deco" style="position:absolute;top:18px;right:18px;width:44px;height:44px;border-top:2px solid rgba(201,160,85,0.65);border-right:2px solid rgba(201,160,85,0.65)"></div>
+        <div class="hs0-deco" style="position:absolute;bottom:18px;right:18px;width:44px;height:44px;border-bottom:2px solid rgba(201,160,85,0.65);border-right:2px solid rgba(201,160,85,0.65)"></div>
+        <div class="hs0-deco" style="position:absolute;top:18px;left:18px;width:44px;height:44px;border-top:2px solid rgba(201,160,85,0.35);border-left:2px solid rgba(201,160,85,0.35)"></div>
+        <div class="hs0-deco" style="position:absolute;bottom:18px;left:18px;width:44px;height:44px;border-bottom:2px solid rgba(201,160,85,0.35);border-left:2px solid rgba(201,160,85,0.35)"></div>
+      </div>
     </div>
     <!-- ═══ REAL PHOTO SLIDE 1 — Medicines / Pharmacy ═══ -->
     <div class="hero-slide" id="hs-pro-1">
