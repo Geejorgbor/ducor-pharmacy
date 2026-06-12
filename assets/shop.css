@@ -308,15 +308,18 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 }
 .pm-btn-cart:hover { background: var(--navy-light); }
 .pm-btn-cart:active { transform: scale(0.98); }
-.pm-btn-wa {
-  width: 100%; padding: 15px; background: #25D366; color: white;
-  border-radius: 12px; font-size: 16px; font-weight: 600;
+.pm-btn-buynow {
+  width: 100%; padding: 15px; background: #f59e0b; color: #1a1a2e;
+  border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
   font-family: inherit; cursor: pointer; transition: background 0.2s, transform 0.1s;
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  text-decoration: none;
 }
-.pm-btn-wa:hover { background: #20bd5c; }
-.pm-btn-wa:active { transform: scale(0.98); }
+.pm-btn-buynow:hover { background: #d97706; }
+.pm-btn-buynow:active { transform: scale(0.98); }
+.pm-pay-icons {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: -4px; flex-wrap: wrap;
+}
 @media (max-width: 660px) {
   .pm-overlay { padding: 0; align-items: flex-end; }
   .pm-panel {
