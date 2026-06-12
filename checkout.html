@@ -106,6 +106,20 @@
     .spinner { width: 44px; height: 44px; border: 4px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
+<script>
+// Session guard — redirect to login if not authenticated
+(function(){
+  var SESSION_KEY='ducor_sess_v2';
+  try{
+    var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
+    if(!raw){throw new Error('no session');}
+    var s=JSON.parse(raw);
+    if(!s||!s.userId||!s.token||Date.now()>s.expiry){throw new Error('expired');}
+  }catch(e){
+    window.location.replace('/auth.html?next=/checkout.html');
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -511,6 +525,31 @@
   Cart.updateBadge();
   renderSummary();
   document.getElementById('cart-overlay').addEventListener('click', () => Cart.close());
+</script>
+<script>
+// Pre-fill checkout form with logged-in user's saved info
+(function(){
+  var SESSION_KEY='ducor_sess_v2';
+  var USERS_KEY='ducor_users_v2';
+  try{
+    var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
+    var s=JSON.parse(raw);
+    var users=JSON.parse(localStorage.getItem(USERS_KEY)||'[]');
+    var user=users.find(function(u){return u.id===s.userId;});
+    if(!user) return;
+    // Auto-fill personal info
+    if(user.fname) document.getElementById('first-name').value=user.fname;
+    if(user.lname) document.getElementById('last-name').value=user.lname;
+    if(user.email) document.getElementById('email').value=user.email;
+    if(user.phone){var ph=document.getElementById('phone');if(ph)ph.value=user.phone;}
+    // Show welcome strip
+    var strip=document.createElement('div');
+    strip.style.cssText='background:linear-gradient(90deg,rgba(10,37,88,0.06),rgba(13,148,136,0.06));border:1px solid rgba(13,148,136,0.2);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:0.84rem;';
+    strip.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="color:#0a2558;font-weight:600">Checking out as <strong>'+user.fname+' '+user.lname+'</strong> ('+user.email+')</span>&nbsp;<a href="/account.html" style="color:#0d9488;font-weight:700;font-size:0.8rem;text-decoration:none">My Account</a>';
+    var body=document.getElementById('checkout-form-body');
+    if(body) body.insertBefore(strip,body.firstChild);
+  }catch(e){}
+})();
 </script>
 <script type="module" src="/assets/analytics.js"></script>
 </body>
