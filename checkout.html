@@ -180,27 +180,63 @@
       </div>
 
       <div class="form-spacer"></div>
-      <p class="form-section-title">Delivery Address</p>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Street Address *</label>
-          <input type="text" id="address" placeholder="123 Main Street"/>
+
+      <!-- International model info banner -->
+      <div style="background:linear-gradient(135deg,rgba(10,37,88,0.06),rgba(13,148,136,0.06));border:1.5px solid rgba(13,148,136,0.25);border-radius:12px;padding:14px 16px;margin-bottom:18px;display:flex;gap:12px;align-items:flex-start">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        <div>
+          <p style="font-size:0.84rem;font-weight:700;color:#0a2558;margin-bottom:3px">International Order — Pickup in Liberia</p>
+          <p style="font-size:0.78rem;color:#475569;line-height:1.6">You can order from <strong>anywhere in the world</strong>. Your medication will be ready for pickup at our pharmacy in <strong>Monrovia, Liberia</strong>. Please provide the name and phone number of the person in Liberia who will collect the order.</p>
         </div>
       </div>
+
+      <p class="form-section-title">Where Are You Ordering From?</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Country *</label>
+          <select id="buyer-country" style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:0.92rem;color:#1e293b;background:#f8fafc;outline:none;font-family:inherit;cursor:pointer;appearance:none">
+            <option value="">— Select your country —</option>
+            <option value="Liberia">🇱🇷 Liberia (I will collect myself)</option>
+            <optgroup label="── Common Countries ──">
+              <option value="United States">🇺🇸 United States</option>
+              <option value="United Kingdom">🇬🇧 United Kingdom</option>
+              <option value="Germany">🇩🇪 Germany</option>
+              <option value="France">🇫🇷 France</option>
+              <option value="Canada">🇨🇦 Canada</option>
+              <option value="Netherlands">🇳🇱 Netherlands</option>
+              <option value="Sweden">🇸🇪 Sweden</option>
+              <option value="Norway">🇳🇴 Norway</option>
+              <option value="Denmark">🇩🇰 Denmark</option>
+              <option value="Ghana">🇬🇭 Ghana</option>
+              <option value="Nigeria">🇳🇬 Nigeria</option>
+              <option value="Sierra Leone">🇸🇱 Sierra Leone</option>
+              <option value="Guinea">🇬🇳 Guinea</option>
+              <option value="Ivory Coast">🇨🇮 Ivory Coast</option>
+              <option value="Australia">🇦🇺 Australia</option>
+            </optgroup>
+            <optgroup label="── All Countries ──">
+              <option value="Afghanistan">Afghanistan</option><option value="Albania">Albania</option><option value="Algeria">Algeria</option><option value="Angola">Angola</option><option value="Argentina">Argentina</option><option value="Austria">Austria</option><option value="Bahrain">Bahrain</option><option value="Bangladesh">Bangladesh</option><option value="Belgium">Belgium</option><option value="Benin">Benin</option><option value="Bolivia">Bolivia</option><option value="Brazil">Brazil</option><option value="Burkina Faso">Burkina Faso</option><option value="Burundi">Burundi</option><option value="Cameroon">Cameroon</option><option value="Cape Verde">Cape Verde</option><option value="Chad">Chad</option><option value="Chile">Chile</option><option value="China">China</option><option value="Colombia">Colombia</option><option value="Congo">Congo</option><option value="Croatia">Croatia</option><option value="Cuba">Cuba</option><option value="Czech Republic">Czech Republic</option><option value="DR Congo">DR Congo</option><option value="Ecuador">Ecuador</option><option value="Egypt">Egypt</option><option value="Eritrea">Eritrea</option><option value="Ethiopia">Ethiopia</option><option value="Finland">Finland</option><option value="Gabon">Gabon</option><option value="Gambia">Gambia</option><option value="Greece">Greece</option><option value="Guatemala">Guatemala</option><option value="Guinea-Bissau">Guinea-Bissau</option><option value="Haiti">Haiti</option><option value="Honduras">Honduras</option><option value="Hungary">Hungary</option><option value="India">India</option><option value="Indonesia">Indonesia</option><option value="Iran">Iran</option><option value="Iraq">Iraq</option><option value="Ireland">Ireland</option><option value="Israel">Israel</option><option value="Italy">Italy</option><option value="Jamaica">Jamaica</option><option value="Japan">Japan</option><option value="Jordan">Jordan</option><option value="Kenya">Kenya</option><option value="Kuwait">Kuwait</option><option value="Lebanon">Lebanon</option><option value="Libya">Libya</option><option value="Luxembourg">Luxembourg</option><option value="Madagascar">Madagascar</option><option value="Malawi">Malawi</option><option value="Malaysia">Malaysia</option><option value="Mali">Mali</option><option value="Mauritania">Mauritania</option><option value="Mauritius">Mauritius</option><option value="Mexico">Mexico</option><option value="Morocco">Morocco</option><option value="Mozambique">Mozambique</option><option value="Myanmar">Myanmar</option><option value="Namibia">Namibia</option><option value="Nepal">Nepal</option><option value="New Zealand">New Zealand</option><option value="Niger">Niger</option><option value="Pakistan">Pakistan</option><option value="Palestine">Palestine</option><option value="Panama">Panama</option><option value="Peru">Peru</option><option value="Philippines">Philippines</option><option value="Poland">Poland</option><option value="Portugal">Portugal</option><option value="Qatar">Qatar</option><option value="Romania">Romania</option><option value="Russia">Russia</option><option value="Rwanda">Rwanda</option><option value="Saudi Arabia">Saudi Arabia</option><option value="Senegal">Senegal</option><option value="Singapore">Singapore</option><option value="Somalia">Somalia</option><option value="South Africa">South Africa</option><option value="South Korea">South Korea</option><option value="South Sudan">South Sudan</option><option value="Spain">Spain</option><option value="Sri Lanka">Sri Lanka</option><option value="Sudan">Sudan</option><option value="Switzerland">Switzerland</option><option value="Syria">Syria</option><option value="Tanzania">Tanzania</option><option value="Thailand">Thailand</option><option value="Togo">Togo</option><option value="Trinidad and Tobago">Trinidad and Tobago</option><option value="Tunisia">Tunisia</option><option value="Turkey">Turkey</option><option value="Uganda">Uganda</option><option value="Ukraine">Ukraine</option><option value="United Arab Emirates">United Arab Emirates</option><option value="Venezuela">Venezuela</option><option value="Vietnam">Vietnam</option><option value="Yemen">Yemen</option><option value="Zambia">Zambia</option><option value="Zimbabwe">Zimbabwe</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-spacer"></div>
+      <p class="form-section-title">Pickup Person in Liberia</p>
       <div class="form-row cols-2">
         <div class="form-group">
-          <label>City *</label>
-          <input type="text" id="city" placeholder="Monrovia"/>
+          <label>Collector's Full Name *</label>
+          <input type="text" id="pickup-name" placeholder="Name of person collecting"/>
         </div>
         <div class="form-group">
-          <label>County / Region</label>
-          <input type="text" id="region" placeholder="Montserrado"/>
+          <label>Collector's Phone (Liberia) *</label>
+          <input type="tel" id="pickup-phone" placeholder="+231 880 000 000"/>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Special Delivery Instructions</label>
-          <textarea id="notes" placeholder="Landmark, gate color, nearest school or church…"></textarea>
+          <label>Special Instructions (optional)</label>
+          <textarea id="notes" placeholder="Any special notes for your order…"></textarea>
         </div>
       </div>
 
@@ -395,8 +431,8 @@
   }
 
   function validate() {
-    const fields = ['first-name','last-name','email','phone','address','city'];
-    const labels = ['First Name','Last Name','Email','Phone','Address','City'];
+    const fields = ['first-name','last-name','email','phone'];
+    const labels = ['First Name','Last Name','Email','Phone'];
     for (let i = 0; i < fields.length; i++) {
       if (!document.getElementById(fields[i]).value.trim()) {
         showToast('Please fill in: ' + labels[i]);
@@ -407,6 +443,21 @@
     const email = document.getElementById('email').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showToast('Please enter a valid email address');
+      return false;
+    }
+    if (!document.getElementById('buyer-country').value) {
+      showToast('Please select your country');
+      document.getElementById('buyer-country').focus();
+      return false;
+    }
+    if (!document.getElementById('pickup-name').value.trim()) {
+      showToast('Please enter the name of the person collecting in Liberia');
+      document.getElementById('pickup-name').focus();
+      return false;
+    }
+    if (!document.getElementById('pickup-phone').value.trim()) {
+      showToast('Please enter the collector\'s Liberia phone number');
+      document.getElementById('pickup-phone').focus();
       return false;
     }
     if (Cart.items.length === 0) {
@@ -461,8 +512,9 @@
       },
       meta: {
         source: 'ducor-international-pharmacy.com',
-        address: document.getElementById('address').value.trim(),
-        city: document.getElementById('city').value.trim(),
+        buyer_country: document.getElementById('buyer-country').value,
+        pickup_name: document.getElementById('pickup-name').value.trim(),
+        pickup_phone: document.getElementById('pickup-phone').value.trim(),
         notes: document.getElementById('notes').value.trim(),
       },
       customizations: {
