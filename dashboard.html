@@ -46,6 +46,7 @@
     .status-pill{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--success)}
     .status-dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes spin{to{transform:rotate(360deg)}}
     .page-content{padding:28px;flex:1}
 
     /* ── SECTIONS ── */
@@ -654,9 +655,19 @@
           </div>
         </div>
         <div class="panel-body">
-          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;font-size:12px;color:#166534;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <div><strong>How to use:</strong> Click <strong>"Upload Photo"</strong> under any medication to pick a photo from your phone or computer. The real bottle photo will show on the website immediately. The red × button removes a custom photo.</div>
+          <!-- GitHub token setup banner -->
+          <div id="gh-token-setup" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:16px 18px;margin-bottom:18px">
+            <p style="font-size:13px;font-weight:700;color:#9a3412;margin-bottom:6px">⚙️ One-time setup required</p>
+            <p style="font-size:12px;color:#7c2d12;margin-bottom:12px">To publish photos live for all visitors, enter the GitHub access token. This is stored only on your device and never sent to anyone except GitHub.</p>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input id="gh-token-input" type="password" placeholder="Paste GitHub token here (ghp_…)" style="flex:1;min-width:220px;padding:9px 12px;border:1.5px solid #fed7aa;border-radius:8px;font-size:12px;font-family:monospace;outline:none">
+              <button onclick="saveGHToken()" style="background:#ea580c;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer">Save Token</button>
+            </div>
+          </div>
+          <!-- GitHub token saved bar -->
+          <div id="gh-token-ok" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 16px;font-size:12px;color:#166534;margin-bottom:18px;display:none;align-items:center;gap:10px;justify-content:space-between">
+            <span>✓ GitHub connected — photos upload directly to the website. Changes are live in ~1 minute.</span>
+            <button onclick="clearGHToken()" style="background:none;border:1px solid #166534;border-radius:6px;color:#166534;padding:3px 10px;font-size:11px;cursor:pointer">Change Token</button>
           </div>
           <div id="photo-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px"></div>
         </div>
@@ -1315,40 +1326,127 @@ window.saveEdit = function() {
 };
 
 // ── PRODUCT PHOTOS MANAGER ──
-let _ppCategory = 'otc';
+const _GH_REPO   = 'Geejorgbor/ducor-pharmacy';
+const _GH_BRANCH = 'main';
+let _ppCategory  = 'otc';
+let _ppLiveSet   = null;
+let _ppLoading   = false;
 
-window.renderPhotoGrid = function(cat) {
+function _getGHToken() {
+  return localStorage.getItem('ducor-gh-token') || '';
+}
+
+window.saveGHToken = function() {
+  const v = (document.getElementById('gh-token-input') || {}).value || '';
+  if (!v.trim()) return;
+  localStorage.setItem('ducor-gh-token', v.trim());
+  _ppLiveSet = null;
+  _updateTokenUI();
+  renderPhotoGrid();
+};
+
+window.clearGHToken = function() {
+  localStorage.removeItem('ducor-gh-token');
+  _ppLiveSet = null;
+  _updateTokenUI();
+  const grid = document.getElementById('photo-grid');
+  if (grid) grid.innerHTML = '';
+};
+
+function _updateTokenUI() {
+  const tok = _getGHToken();
+  const setup = document.getElementById('gh-token-setup');
+  const ok    = document.getElementById('gh-token-ok');
+  if (setup) setup.style.display = tok ? 'none' : 'block';
+  if (ok)    ok.style.display    = tok ? 'flex'  : 'none';
+}
+
+async function _fetchLiveSet() {
+  const tok = _getGHToken();
+  if (!tok) return new Set();
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${_GH_REPO}/contents/assets/products`,
+      { headers: { Authorization: `token ${tok}` } }
+    );
+    if (!r.ok) return new Set();
+    const files = await r.json();
+    return new Set(
+      files
+        .filter(f => f.type === 'file' && f.name.endsWith('.jpg'))
+        .map(f => f.name.replace('.jpg', ''))
+    );
+  } catch(e) { return new Set(); }
+}
+
+window.renderPhotoGrid = async function(cat) {
   if (cat) _ppCategory = cat;
-  // Update tab button styles
+  _updateTokenUI();
   const tabColors = { otc:'#0891b2', vitamins:'#16a34a', prescription:'#1d4ed8' };
   ['otc','vitamins','prescription'].forEach(c => {
     const btn = document.getElementById('pp-tab-' + c);
     if (!btn) return;
     btn.style.background = (c === _ppCategory) ? tabColors[c] : '#e2e8f0';
-    btn.style.color = (c === _ppCategory) ? '#fff' : '#64748b';
+    btn.style.color      = (c === _ppCategory) ? '#fff'      : '#64748b';
   });
-  const catKey = _ppCategory;
-  const list = PRODUCTS[catKey] || [];
-  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+  if (!_getGHToken()) {
+    const grid = document.getElementById('photo-grid');
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:#94a3b8;font-size:12px">Enter your GitHub token above to manage product photos.</div>`;
+    return;
+  }
+
   const grid = document.getElementById('photo-grid');
   if (!grid) return;
+
+  // Show loading while fetching GitHub status
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#64748b;font-size:13px">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;display:inline-block;margin-bottom:8px;vertical-align:middle"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    &nbsp;Checking which medications are live on the website…
+  </div>`;
+
+  if (!_ppLiveSet) _ppLiveSet = await _fetchLiveSet();
+
+  const list  = PRODUCTS[_ppCategory] || [];
   const color = tabColors[_ppCategory] || '#0891b2';
-  grid.innerHTML = list.map(p => {
-    const hasPhoto = !!customPhotos[p.id];
-    const photoSrc = hasPhoto ? customPhotos[p.id] : '';
-    return `<div style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''">
+
+  const liveCount  = list.filter(p => _ppLiveSet.has(p.id)).length;
+  const draftCount = list.length - liveCount;
+
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;display:flex;gap:12px;margin-bottom:4px;flex-wrap:wrap;align-items:center">
+      <span style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:#16a34a">
+        ✓ ${liveCount} Live on Website
+      </span>
+      <span style="background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:#d97706">
+        ◷ ${draftCount} Need Photo (Hidden from Customers)
+      </span>
+      <span style="font-size:11px;color:#94a3b8;margin-left:auto">Upload a photo → product appears on website in ~1 min</span>
+    </div>
+  ` + list.map(p => {
+    const isLive = _ppLiveSet.has(p.id);
+    const photoSrc = isLive ? `/assets/products/${p.id}.jpg?t=${Date.now()}` : '';
+    return `<div id="ppcard-${p.id}" style="background:#fff;border-radius:14px;border:2px solid ${isLive ? '#bbf7d0' : '#e2e8f0'};overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s;position:relative" onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''">
+      <div style="position:absolute;top:7px;left:7px;z-index:2">
+        <span style="background:${isLive ? '#16a34a' : '#d97706'};color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px">
+          ${isLive ? '✓ LIVE' : '◷ DRAFT'}
+        </span>
+      </div>
       <div style="height:130px;background:#f8fafc;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
-        ${hasPhoto
-          ? `<img src="${photoSrc}" alt="${p.name}" style="max-width:100%;max-height:130px;object-fit:contain" onerror="this.parentNode.innerHTML='<div style=color:#cbd5e1;text-align:center;font-size:10px>Photo error</div>'">`
-          : `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#cbd5e1"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span style="font-size:10px;font-weight:500">No photo yet</span></div>`
+        ${isLive
+          ? `<img src="${photoSrc}" alt="${p.name}" style="max-width:100%;max-height:130px;object-fit:contain" onerror="this.style.display='none'">`
+          : `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;color:#cbd5e1">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span style="font-size:10px;font-weight:600">No photo — hidden from customers</span>
+            </div>`
         }
-        ${hasPhoto ? `<button onclick="removePPPhoto('${p.id}')" title="Remove photo" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:700">×</button>` : ''}
+        ${isLive ? `<button onclick="removePPPhoto('${p.id}')" title="Remove photo — will hide from website" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700">×</button>` : ''}
       </div>
       <div style="padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:6px">
-        <p style="font-size:11px;font-weight:600;color:#1e293b;line-height:1.3">${p.name}</p>
-        <label style="display:flex;align-items:center;justify-content:center;gap:5px;background:${color};color:#fff;padding:7px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <p style="font-size:11px;font-weight:600;color:#1e293b;line-height:1.3;margin-top:2px">${p.name}</p>
+        <p style="font-size:10px;color:#94a3b8">$${p.price.toFixed(2)}</p>
+        <label id="ppbtn-${p.id}" style="display:flex;align-items:center;justify-content:center;gap:5px;background:${color};color:#fff;padding:7px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          ${hasPhoto ? 'Change Photo' : 'Upload Photo'}
+          ${isLive ? 'Change Photo' : 'Upload Photo'}
           <input type="file" accept="image/*" style="display:none" onchange="handlePPUpload(event,'${p.id}')">
         </label>
       </div>
@@ -1356,28 +1454,115 @@ window.renderPhotoGrid = function(cat) {
   }).join('');
 };
 
-window.handlePPUpload = function(event, productId) {
+window.handlePPUpload = async function(event, productId) {
   const file = event.target.files[0];
   if (!file) return;
+
+  // Show uploading state on the card button
+  const btn = document.getElementById('ppbtn-' + productId);
+  if (btn) btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;Uploading…';
+
   const reader = new FileReader();
-  reader.onload = function(e) {
-    const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
-    customPhotos[productId] = e.target.result;
-    localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
-    try { sessionStorage.removeItem('ducor_img_v3'); } catch(ex) {}
-    renderPhotoGrid();
-    addNotif('success','Photo Saved','Product photo uploaded and saved successfully.');
+  reader.onload = async function(e) {
+    const dataUrl  = e.target.result;
+    const base64   = dataUrl.split(',')[1];
+    const path     = `assets/products/${productId}.jpg`;
+
+    try {
+      // Get existing SHA if file exists (needed for GitHub update)
+      let sha = null;
+      try {
+        const chk = await fetch(
+          `https://api.github.com/repos/${_GH_REPO}/contents/${path}`,
+          { headers: { Authorization: `token ${_getGHToken()}` } }
+        );
+        if (chk.ok) { const d = await chk.json(); sha = d.sha; }
+      } catch(ex) {}
+
+      const payload = {
+        message: `Admin: add photo for ${productId}`,
+        content: base64,
+        branch:  _GH_BRANCH
+      };
+      if (sha) payload.sha = sha;
+
+      const resp = await fetch(
+        `https://api.github.com/repos/${_GH_REPO}/contents/${path}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `token ${_getGHToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (resp.ok) {
+        _ppLiveSet = null; // refresh on next render
+        addNotif('success', 'Photo Published!',
+          `"${productId}" photo is now on the website. Vercel is deploying — product will be live in ~1 minute.`);
+        addLog('success', `Uploaded photo for product: ${productId}`);
+        await renderPhotoGrid();
+      } else {
+        const err = await resp.json();
+        addNotif('error', 'Upload Failed', err.message || 'GitHub API error. Please try again.');
+        if (btn) btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>&nbsp;Upload Photo';
+      }
+    } catch(err) {
+      addNotif('error', 'Network Error', err.message || 'Could not connect to GitHub. Check your internet connection.');
+      if (btn) btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>&nbsp;Upload Photo';
+    }
   };
   reader.readAsDataURL(file);
 };
 
-window.removePPPhoto = function(productId) {
-  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
-  delete customPhotos[productId];
-  localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
-  try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
-  renderPhotoGrid();
-  addNotif('info','Photo Removed','Custom photo removed — auto image will be used.');
+window.removePPPhoto = async function(productId) {
+  if (!confirm('Remove this photo? The product will be hidden from the website in ~1 minute.')) return;
+
+  const path = `assets/products/${productId}.jpg`;
+
+  try {
+    // Get SHA
+    const chk = await fetch(
+      `https://api.github.com/repos/${_GH_REPO}/contents/${path}`,
+      { headers: { Authorization: `token ${_getGHToken()}` } }
+    );
+    if (!chk.ok) {
+      addNotif('info', 'Not Found', 'No photo file found on GitHub to remove.');
+      return;
+    }
+    const { sha } = await chk.json();
+
+    const resp = await fetch(
+      `https://api.github.com/repos/${_GH_REPO}/contents/${path}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `token ${_getGHToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Admin: remove photo for ${productId}`,
+          sha,
+          branch: _GH_BRANCH
+        })
+      }
+    );
+
+    if (resp.ok) {
+      _ppLiveSet = null;
+      addNotif('info', 'Photo Removed',
+        `Photo deleted. "${productId}" will be hidden from the website in ~1 minute.`);
+      addLog('info', `Removed photo for product: ${productId}`);
+      await renderPhotoGrid();
+    } else {
+      const err = await resp.json();
+      addNotif('error', 'Remove Failed', err.message || 'GitHub API error.');
+    }
+  } catch(err) {
+    addNotif('error', 'Network Error', err.message);
+  }
 };
 
 // ── ADD MODAL ──
