@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title id="page-title">Product – Ducor International Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <link rel="stylesheet" href="/assets/shop.css"/>
+  <style>
+    /* ── PRODUCT DETAIL PAGE ────────────────────────────────────────────────── */
+    .product-back {
+      max-width: 1140px; margin: 0 auto; padding: 24px 36px 0;
+    }
+    .product-back a {
+      color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+    }
+    .product-back a:hover { color: var(--gold); }
+
+    .product-detail {
+      max-width: 1140px; margin: 0 auto; padding: 28px 36px 72px;
+      display: grid; grid-template-columns: 1fr 1.15fr; gap: 56px; align-items: start;
+    }
+
+    /* ── Image column ── */
+    .pd-img-wrap {
+      border-radius: 24px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 440px; padding: 44px;
+      position: sticky; top: 88px;
+    }
+    .pd-img-wrap.rx-bg  { background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 100%); }
+    .pd-img-wrap.otc-bg { background: linear-gradient(145deg, #cffafe 0%, #ecfeff 100%); }
+    .pd-img-wrap.vit-bg { background: linear-gradient(145deg, #dcfce7 0%, #f0fdf4 100%); }
+
+    #pd-img-frame { width: 100%; display: flex; align-items: center; justify-content: center; }
+    #pd-img-frame img {
+      max-width: 100%; max-height: 350px;
+      object-fit: contain; border-radius: 14px;
+      filter: drop-shadow(0 10px 28px rgba(0,0,0,0.13));
+    }
+    #pd-img-frame svg { width: 120px; height: 120px; opacity: 0.45; }
+
+    /* ── Info column ── */
+    .pd-info-col { display: flex; flex-direction: column; gap: 22px; }
+
+    .pd-tag { align-self: flex-start; font-size: 12px; }
+
+    .pd-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px; font-weight: 700; color: var(--navy); line-height: 1.2; margin: 0;
+    }
+
+    .pd-price-row { display: flex; align-items: baseline; gap: 10px; }
+    .pd-price { font-size: 44px; font-weight: 700; color: var(--navy); letter-spacing: -2px; }
+    .pd-unit  { font-size: 16px; color: var(--muted); }
+
+    .pd-divider { border: none; border-top: 1px solid var(--border); }
+
+    /* ── About section ── */
+    .pd-section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+    }
+    .pd-about-text { font-size: 15px; color: var(--text); line-height: 1.75; }
+
+    /* ── Key facts table ── */
+    .pd-facts { list-style: none; display: flex; flex-direction: column; gap: 0; margin-top: 18px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .pd-facts li {
+      display: flex; align-items: stretch;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .pd-facts li:last-child { border-bottom: none; }
+    .pd-facts li strong {
+      width: 130px; flex-shrink: 0; padding: 13px 16px;
+      background: var(--bg); color: var(--muted); font-weight: 600; font-size: 13px;
+      border-right: 1px solid var(--border);
+    }
+    .pd-facts li span { padding: 13px 16px; color: var(--text); flex: 1; }
+
+    /* ── Notice box ── */
+    .pd-notice {
+      background: #fafbfc; border-radius: 14px;
+      border-left: 4px solid var(--gold); padding: 16px 20px;
+    }
+    .pd-notice-title {
+      font-size: 14px; font-weight: 700; color: var(--navy);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .pd-notice-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+    /* ── Action buttons ── */
+    .pd-actions { display: flex; flex-direction: column; gap: 12px; }
+    .pd-btn-cart {
+      width: 100%; padding: 16px; background: var(--navy); color: var(--white);
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: background 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .pd-btn-cart:hover { background: var(--navy-light); }
+    .pd-btn-cart:active { transform: scale(0.98); }
+    .pd-btn-cart.added { background: var(--success); }
+
+    .pd-btn-buy {
+      width: 100%; padding: 16px; background: #f59e0b; color: #1a1a2e;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: background 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .pd-btn-buy:hover { background: #d97706; }
+    .pd-btn-buy:active { transform: scale(0.98); }
+
+    /* ── Payment icons row ── */
+    .pd-pay-row {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .pd-pay-caption { font-size: 12px; color: var(--muted); }
+    .pd-pay-icons { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Trust badges ── */
+    .pd-trust {
+      display: flex; gap: 18px; flex-wrap: wrap; padding-top: 4px;
+    }
+    .pd-trust-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; color: var(--muted);
+    }
+    .pd-trust-item svg { color: var(--success); flex-shrink: 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 820px) {
+      .product-back  { padding: 18px 16px 0; }
+      .product-detail { grid-template-columns: 1fr; padding: 20px 16px 52px; gap: 28px; }
+      .pd-img-wrap   { position: static; min-height: 260px; padding: 28px; }
+      #pd-img-frame img { max-height: 200px; }
+      .pd-name  { font-size: 28px; }
+      .pd-price { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="shop-nav">
+  <a href="/index.html" class="nav-brand">
+    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <div class="nav-brand-text">
+      <h1>DUCOR</h1>
+      <p>International Pharmacy</p>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/index.html">Home</a>
+    <a href="/prescription.html">Prescription</a>
+    <a href="/otc.html">Over the Counter</a>
+    <a href="/vitamins.html">Vitamins</a>
+    <a href="/checkout.html">Checkout</a>
+  </div>
+  <button class="nav-cart-btn" onclick="Cart.open()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+    Cart <span id="cart-badge" class="cart-badge hidden">0</span>
+  </button>
+</nav>
+
+<!-- BACK LINK -->
+<div class="product-back">
+  <a href="javascript:history.back()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Back to shop
+  </a>
+</div>
+
+<!-- PRODUCT LAYOUT -->
+<section class="product-detail">
+
+  <!-- LEFT: IMAGE -->
+  <div class="pd-img-wrap rx-bg" id="pd-img-wrap">
+    <div id="pd-img-frame"></div>
+  </div>
+
+  <!-- RIGHT: INFO -->
+  <div class="pd-info-col">
+
+    <span class="pd-tag product-tag tag-rx" id="pd-tag">Loading…</span>
+
+    <h1 class="pd-name" id="pd-name">Loading…</h1>
+
+    <div class="pd-price-row">
+      <span class="pd-price" id="pd-price"></span>
+      <span class="pd-unit">/ unit</span>
+    </div>
+
+    <hr class="pd-divider">
+
+    <!-- ABOUT -->
+    <div>
+      <p class="pd-section-label">About This Medication</p>
+      <p class="pd-about-text" id="pd-about"></p>
+
+      <ul class="pd-facts" id="pd-facts"></ul>
+    </div>
+
+    <!-- NOTICE -->
+    <div class="pd-notice" id="pd-notice">
+      <div class="pd-notice-title" id="pd-notice-title"></div>
+      <p class="pd-notice-body" id="pd-notice-body"></p>
+    </div>
+
+    <hr class="pd-divider">
+
+    <!-- ACTIONS -->
+    <div class="pd-actions">
+      <button class="pd-btn-cart" id="pd-btn-cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Add to Cart
+      </button>
+      <button class="pd-btn-buy" id="pd-btn-buy">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        Buy Now — Pay Securely
+      </button>
+
+      <div class="pd-pay-row">
+        <span class="pd-pay-caption">Accepted payment methods</span>
+        <div class="pd-pay-icons">
+          <!-- VISA -->
+          <svg width="44" height="28" viewBox="0 0 52 32" fill="none">
+            <rect width="52" height="32" rx="5" fill="#1A1F71"/>
+            <text x="26" y="22" text-anchor="middle" font-size="13" font-weight="bold" fill="white" font-family="Arial,sans-serif" letter-spacing="1">VISA</text>
+          </svg>
+          <!-- Mastercard -->
+          <svg width="44" height="28" viewBox="0 0 52 32" fill="none">
+            <rect width="52" height="32" rx="5" fill="#252525"/>
+            <circle cx="20" cy="16" r="10" fill="#EB001B"/>
+            <circle cx="32" cy="16" r="10" fill="#F79E1B"/>
+            <path d="M26 8.5a10 10 0 0 1 0 15A10 10 0 0 1 26 8.5z" fill="#FF5F00"/>
+          </svg>
+          <!-- MTN Mobile Money -->
+          <svg width="44" height="28" viewBox="0 0 52 32" fill="none">
+            <rect width="52" height="32" rx="5" fill="#FFD700"/>
+            <text x="26" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a1a" font-family="Arial,sans-serif">MTN</text>
+          </svg>
+          <!-- Orange Money -->
+          <svg width="44" height="28" viewBox="0 0 52 32" fill="none">
+            <rect width="52" height="32" rx="5" fill="#FF7900"/>
+            <text x="26" y="22" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial,sans-serif">Orange</text>
+          </svg>
+          <!-- Airtel Money -->
+          <svg width="44" height="28" viewBox="0 0 52 32" fill="none">
+            <rect width="52" height="32" rx="5" fill="#E40000"/>
+            <text x="26" y="22" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial,sans-serif">Airtel</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRUST BADGES -->
+    <div class="pd-trust">
+      <div class="pd-trust-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Licensed Pharmacy
+      </div>
+      <div class="pd-trust-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Certified Medications
+      </div>
+      <div class="pd-trust-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Secure Payment
+      </div>
+      <div class="pd-trust-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Free Delivery Over $50
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CART DRAWER -->
+<div id="cart-overlay" class="cart-overlay"></div>
+<div id="cart-drawer" class="cart-drawer">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <button class="cart-close" onclick="Cart.close()">×</button>
+  </div>
+  <div id="cart-items-list" class="cart-items"></div>
+  <div id="cart-total-line" class="cart-footer" style="display:none">
+    <div class="cart-subtotal"><span>Subtotal</span><span id="cart-subtotal-val"></span></div>
+    <div class="cart-subtotal"><span>Shipping</span><span id="cart-shipping-val"></span></div>
+    <div class="cart-total"><span>Total</span><span id="cart-total-val"></span></div>
+    <button class="btn-checkout" onclick="window.location='/checkout.html'">Proceed to Checkout →</button>
+    <button class="btn-continue" onclick="Cart.close()">Continue Shopping</button>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<footer class="shop-footer">
+  <p>© 2025 <a href="/index.html">Ducor International Pharmacy</a> · Trusted Pharmaceutical &amp; Medication Supply In Liberia</p>
+</footer>
+
+<script src="/assets/shop.js"></script>
+<script>
+(function () {
+  Cart.load();
+  Cart.updateBadge();
+  document.getElementById('cart-overlay').addEventListener('click', () => Cart.close());
+
+  const params  = new URLSearchParams(window.location.search);
+  const pid     = params.get('id');
+  const cat     = params.get('cat');
+  const product = pid && cat ? (PRODUCTS[cat] || []).find(p => p.id === pid) : null;
+
+  if (!product) {
+    document.getElementById('pd-name').textContent = 'Product not found.';
+    document.getElementById('pd-tag').textContent  = '—';
+    document.getElementById('pd-about').textContent = 'We could not find this product. Please go back and try again.';
+    return;
+  }
+
+  // Page title
+  document.title = product.name + ' – Ducor International Pharmacy';
+
+  // Category display helpers
+  const dispCat   = cat === 'prescription' ? 'rx' : cat;
+  const tagLabels = { rx: 'Prescription (RX)', otc: 'Over the Counter', vitamins: 'Dietary Supplement' };
+  const tagClass  = { rx: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
+  const bgClass   = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+  const catFull   = { rx: 'Prescription (RX)', otc: 'Over the Counter (OTC)', vitamins: 'Dietary Supplement' };
+
+  // Tag badge
+  const tagEl = document.getElementById('pd-tag');
+  tagEl.textContent = tagLabels[dispCat] || 'Medication';
+  tagEl.className   = 'pd-tag product-tag ' + (tagClass[dispCat] || 'tag-rx');
+
+  // Name & price
+  document.getElementById('pd-name').textContent  = product.name;
+  document.getElementById('pd-price').textContent = '$' + product.price.toFixed(2);
+
+  // Image background
+  document.getElementById('pd-img-wrap').className = 'pd-img-wrap ' + (bgClass[dispCat] || 'rx-bg');
+
+  // Load image (photo or icon fallback)
+  const icons = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+  const frame = document.getElementById('pd-img-frame');
+  frame.innerHTML = icons[dispCat] || ICONS.rx;
+
+  const probe = new Image();
+  probe.onload = function () {
+    const img = document.createElement('img');
+    img.src = '/assets/products/' + pid + '.jpg';
+    img.alt = product.name;
+    frame.innerHTML = '';
+    frame.appendChild(img);
+  };
+  probe.src = '/assets/products/' + pid + '.jpg';
+
+  // Detect medication form from the product name
+  const nameLower = product.name.toLowerCase();
+  let form = 'Tablet / Capsule';
+  if      (/\binhaler\b/.test(nameLower))               form = 'Inhaler';
+  else if (/\binjection\b/.test(nameLower))              form = 'Injection';
+  else if (/\bointment\b/.test(nameLower))               form = 'Topical Ointment';
+  else if (/\bcream\b/.test(nameLower))                  form = 'Topical Cream';
+  else if (/\bgel\b/.test(nameLower))                    form = 'Gel';
+  else if (/\bpatch\b/.test(nameLower))                  form = 'Transdermal Patch';
+  else if (/\bdrops?\b/.test(nameLower))                 form = 'Eye / Ear Drops';
+  else if (/\/5ml\b|\bsyrup\b/.test(nameLower))         form = 'Oral Liquid / Syrup';
+  else if (/\bsusp(ension)?\b/.test(nameLower))         form = 'Oral Suspension';
+  else if (/\bsolution\b/.test(nameLower))               form = 'Solution';
+  else if (/\bchewable\b/.test(nameLower))               form = 'Chewable Tablet';
+  else if (/\bodt\b/.test(nameLower))                    form = 'Orally Disintegrating Tablet';
+  else if (/\bsoftgel\b/.test(nameLower))                form = 'Softgel Capsule';
+  else if (/\bpowder\b/.test(nameLower))                 form = 'Powder';
+  else if (/\bxl\b|\bxr\b|\ber\b/.test(nameLower))     form = 'Extended-Release Tablet';
+  else if (/\bir\b/.test(nameLower))                     form = 'Immediate-Release Tablet';
+  else if (/vaginal\b/.test(nameLower))                  form = 'Vaginal Preparation';
+  else if (/ophthalmic\b/.test(nameLower))               form = 'Ophthalmic Solution';
+
+  // Extract strength / dosage from name
+  const strengthMatch = product.name.match(/(\d[\d.,]*\s*(?:mcg|mg|g|%|iu|IU|ml|\/\S+)(?:\s*\/\s*[\d.,]+\s*\S+)?)/i);
+  const strength = strengthMatch ? strengthMatch[0] : 'See product label';
+
+  // About paragraph
+  const aboutMap = {
+    rx:      `${product.name} is a prescription-only medication dispensed exclusively through licensed pharmacies. At Ducor International Pharmacy, all prescription medications are sourced from certified international manufacturers and handled by our licensed pharmacists to ensure safety, potency, and compliance with pharmaceutical standards.`,
+    otc:     `${product.name} is an over-the-counter medication available without a prescription. It has been carefully selected and sourced from certified manufacturers. Our pharmacy team is always available to guide you on proper use, dosage, and any potential interactions.`,
+    vitamins:`${product.name} is a dietary supplement available at Ducor International Pharmacy. Our supplements are sourced from reputable, certified manufacturers and are designed to support overall health and wellbeing as part of a balanced lifestyle.`
+  };
+  document.getElementById('pd-about').textContent = aboutMap[dispCat] || aboutMap.rx;
+
+  // Key facts table
+  const facts = [
+    ['Category',     catFull[dispCat] || '—'],
+    ['Strength',     strength],
+    ['Form',         form],
+    ['Availability', 'In Stock at Ducor Pharmacy'],
+    ['Storage',      'Store below 25°C, away from light and moisture'],
+    ['Dispensed by', 'Licensed Pharmacist · Ducor International Pharmacy'],
+  ];
+  document.getElementById('pd-facts').innerHTML = facts
+    .map(([k, v]) => `<li><strong>${k}</strong><span>${v}</span></li>`)
+    .join('');
+
+  // Notice section
+  const noticeMap = {
+    rx: {
+      title: '⚕️  Prescription Required',
+      body:  'This is a prescription-only medication. A valid prescription from a licensed physician is required before dispensing. Our pharmacist will verify your prescription during order fulfillment. Please have your prescription ready at the time of pickup or delivery.'
+    },
+    otc: {
+      title: '✓  No Prescription Needed',
+      body:  'This medication is available over the counter and can be purchased without a prescription. Always read the product label and enclosed leaflet before use. If you have questions about dosage, side effects, or interactions with other medications, consult our pharmacist.'
+    },
+    vitamins: {
+      title: '✓  Dietary Supplement',
+      body:  'This product is a dietary supplement and is not intended to diagnose, treat, cure, or prevent any disease. Read the label carefully. If you are pregnant, nursing, taking medication, or have a medical condition, consult your healthcare provider before use.'
+    }
+  };
+  const notice = noticeMap[dispCat] || noticeMap.rx;
+  document.getElementById('pd-notice-title').textContent = notice.title;
+  document.getElementById('pd-notice-body').textContent  = notice.body;
+
+  // Button actions
+  document.getElementById('pd-btn-cart').addEventListener('click', function () {
+    addToCart(pid, cat);
+    this.classList.add('added');
+    this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Added to Cart!`;
+    setTimeout(() => {
+      this.classList.remove('added');
+      this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Add to Cart`;
+    }, 2500);
+  });
+
+  document.getElementById('pd-btn-buy').addEventListener('click', function () {
+    addToCart(pid, cat);
+    window.location.href = '/checkout.html';
+  });
+
+})();
+</script>
+</body>
+</html>
