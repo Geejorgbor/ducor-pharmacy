@@ -998,6 +998,121 @@ function _startImageLoading(list, category) {
   _processImgQueue();
 }
 
+// ── PRODUCT DETAIL MODAL ───────────────────────────────────────────────────────
+
+const ProductModal = {
+  _ready: false,
+
+  _ensureDOM() {
+    if (this._ready) return;
+    this._ready = true;
+    const el = document.createElement('div');
+    el.id = 'pm-overlay';
+    el.className = 'pm-overlay';
+    el.setAttribute('aria-modal', 'true');
+    el.innerHTML = `
+      <div class="pm-panel">
+        <button class="pm-close" onclick="ProductModal.close()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <div class="pm-img-side rx-bg" id="pm-img-side">
+          <div class="pm-img-frame" id="pm-img-frame"></div>
+        </div>
+        <div class="pm-info-side">
+          <span class="pm-tag product-tag" id="pm-tag"></span>
+          <h2 class="pm-name" id="pm-name"></h2>
+          <div class="pm-price-row">
+            <span class="pm-price" id="pm-price"></span>
+            <span class="pm-unit">/ unit</span>
+          </div>
+          <p class="pm-note" id="pm-note"></p>
+          <hr class="pm-divider">
+          <div class="pm-actions">
+            <button class="pm-btn-cart" id="pm-btn-cart">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              Add to Cart
+            </button>
+            <a class="pm-btn-wa" id="pm-btn-wa" target="_blank" rel="noopener">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.559 4.14 1.535 5.875L.057 23.882l6.213-1.454A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.924 0-3.74-.509-5.31-1.397l-.38-.225-3.688.864.904-3.597-.247-.37A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+              </svg>
+              Order via WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>`;
+    el.addEventListener('click', e => { if (e.target === el) this.close(); });
+    document.body.appendChild(el);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') this.close(); });
+  },
+
+  open(productId, category) {
+    this._ensureDOM();
+    const product = (PRODUCTS[category] || []).find(p => p.id === productId);
+    if (!product) return;
+
+    const dispCat = category === 'prescription' ? 'rx' : category;
+    const tagLabels  = { rx: 'RX', otc: 'OTC', vitamins: 'Supplement' };
+    const tagClasses = { rx: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
+    const bgClasses  = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+    const notes = {
+      rx: 'A valid prescription is required at checkout.',
+      otc: 'Available over the counter — no prescription needed.',
+      vitamins: 'Dietary supplement — no prescription required.'
+    };
+
+    const tagEl = document.getElementById('pm-tag');
+    tagEl.textContent = tagLabels[dispCat] || 'RX';
+    tagEl.className   = 'pm-tag product-tag ' + (tagClasses[dispCat] || 'tag-rx');
+
+    document.getElementById('pm-name').textContent  = product.name;
+    document.getElementById('pm-price').textContent = '$' + product.price.toFixed(2);
+    document.getElementById('pm-note').textContent  = notes[dispCat] || '';
+
+    const imgSide = document.getElementById('pm-img-side');
+    imgSide.className = 'pm-img-side ' + (bgClasses[dispCat] || 'rx-bg');
+
+    const frame = document.getElementById('pm-img-frame');
+    const icons = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+    frame.innerHTML = icons[dispCat] || ICONS.rx;
+
+    const t = new Image();
+    t.onload = () => {
+      const img = document.createElement('img');
+      img.src = '/assets/products/' + productId + '.jpg';
+      img.alt = product.name;
+      frame.innerHTML = '';
+      frame.appendChild(img);
+    };
+    t.src = '/assets/products/' + productId + '.jpg';
+
+    document.getElementById('pm-btn-cart').onclick = () => {
+      addToCart(productId, category);
+      this.close();
+    };
+
+    const msg = encodeURIComponent(
+      'Hello Ducor Pharmacy! I would like to order:\n\n*' +
+      product.name + '*\nPrice: $' + product.price.toFixed(2) +
+      '\n\nPlease confirm availability. Thank you!'
+    );
+    document.getElementById('pm-btn-wa').href = 'https://wa.me/231880187490?text=' + msg;
+
+    document.getElementById('pm-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  close() {
+    const o = document.getElementById('pm-overlay');
+    if (o) { o.classList.remove('open'); document.body.style.overflow = ''; }
+  }
+};
+
 // ── PRODUCT RENDERER ───────────────────────────────────────────────────────────
 
 function renderProducts(category, containerId, filterVal = '', sortVal = 'name') {
@@ -1033,7 +1148,7 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   container.innerHTML = list.map(p => `
     <div class="product-card">
-      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}">${icon[category]}</div>
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="ProductModal.open('${p.id}','${category}')">${icon[category]}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
