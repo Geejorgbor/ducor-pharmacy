@@ -382,6 +382,7 @@
             <span id="sbl" style="font-size:0.72rem;color:var(--gray);font-weight:600"></span>
           </div>
           <div id="pw-change-err" style="display:none;color:#dc2626;font-size:0.8rem;font-weight:500"></div>
+          <div id="pw-ok-inline" style="display:none;color:#16a34a;font-size:0.82rem;font-weight:600;padding:6px 0">Password updated successfully.</div>
           <div style="display:flex;gap:10px">
             <button class="btn-save" onclick="changePassword()" style="padding:9px 20px;font-size:0.84rem">Update Password</button>
             <button class="btn-sm" onclick="document.getElementById('pw-change-row').style.display='none'">Cancel</button>
@@ -448,6 +449,26 @@
   </button>
 </nav>
 
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, updateDoc, collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+const _fbCfg = {apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",authDomain:"ducor-pharmacy.firebaseapp.com",projectId:"ducor-pharmacy",storageBucket:"ducor-pharmacy.firebasestorage.app",messagingSenderId:"952933384266",appId:"1:952933384266:web:55b906e903d96940d426b3"};
+const _fapp = getApps().length ? getApps()[0] : initializeApp(_fbCfg);
+const _fdb  = getFirestore(_fapp);
+window._updateFirestoreProfile = async function(userId, fields) {
+  try { await updateDoc(doc(_fdb,'customers',userId), fields); } catch(e) {}
+};
+window._updateFirestorePassword = async function(userId, pwHash) {
+  try { await updateDoc(doc(_fdb,'customers',userId), {pwHash}); } catch(e) {}
+};
+window._loadFirestoreOrders = async function(email) {
+  try {
+    const q = query(collection(_fdb,'orders'), where('buyerEmail','==',email));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => d.data()).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch(e) { return []; }
+};
+</script>
 <script>
 'use strict';
 
@@ -547,9 +568,22 @@ function loadUI() {
   document.getElementById('pf-phone').value  = user.phone  || '';
   document.getElementById('pf-dob').value    = user.dob    || '';
 
-  // Orders
+  // Orders — load from Firestore first, fall back to localStorage
   renderOrders(user.orders || [], 'overview-orders-body', 3);
   renderOrders(user.orders || [], 'orders-body', 999);
+  document.getElementById('stat-orders').textContent = (user.orders || []).length;
+  if (window._loadFirestoreOrders) {
+    window._loadFirestoreOrders(user.email).then(function(fsOrders) {
+      if (fsOrders.length > 0) {
+        var mapped = fsOrders.map(function(o) {
+          return { name: (o.items||[]).map(function(i){return i.name;}).join(', ') || 'Medication Order', date: o.createdAt, amount: '$' + (o.total||0).toFixed(2), status: o.status || 'Pending' };
+        });
+        renderOrders(mapped, 'overview-orders-body', 3);
+        renderOrders(mapped, 'orders-body', 999);
+        document.getElementById('stat-orders').textContent = fsOrders.length;
+      }
+    });
+  }
 
   // Sessions
   renderSessions();
@@ -588,6 +622,9 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
   users[idx].phone = document.getElementById('pf-phone').value.trim();
   users[idx].dob   = document.getElementById('pf-dob').value;
   saveUsers(users);
+  if (window._updateFirestoreProfile) {
+    window._updateFirestoreProfile(user.id, {fname:users[idx].fname,lname:users[idx].lname,phone:users[idx].phone,dob:users[idx].dob});
+  }
   var ok = document.getElementById('profile-ok-inline');
   ok.classList.add('show');
   setTimeout(function(){ ok.classList.remove('show'); }, 2500);
@@ -638,9 +675,12 @@ async function changePassword() {
   var idx = users.findIndex(function(u){ return u.id === user.id; });
   users[idx].pwHash = newHash;
   saveUsers(users);
+  if (window._updateFirestorePassword) window._updateFirestorePassword(user.id, newHash);
   document.getElementById('pw-change-row').style.display = 'none';
   document.getElementById('pw-cur').value = document.getElementById('pw-new').value = document.getElementById('pw-new2').value = '';
-  alert('Password updated successfully!');
+  errEl.style.display = 'none';
+  var okEl = document.getElementById('pw-ok-inline');
+  if (okEl) { okEl.style.display = 'block'; setTimeout(function(){ okEl.style.display = 'none'; }, 3000); }
 }
 
 /* ── Delete account ── */
