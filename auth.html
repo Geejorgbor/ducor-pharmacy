@@ -732,9 +732,8 @@ function _rstErr(step, msg) {
 window.showForgot = function() {
   _rstShow('rst-step1');
   _rstErr(1,'');
-  document.getElementById('rst-email').value = document.getElementById('login-email').value || '';
   document.getElementById('reset-overlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('rst-email').focus(), 100);
+  setTimeout(() => document.getElementById('rst-phone').focus(), 100);
 };
 window.closeReset = function() {
   document.getElementById('reset-overlay').style.display = 'none';
