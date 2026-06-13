@@ -137,6 +137,7 @@
     <a href="/otc.html">Over the Counter</a>
     <a href="/vitamins.html">Vitamins</a>
     <a href="/checkout.html" class="active">Checkout</a>
+    <a href="/account.html" id="nav-account-link" style="display:none">My Account</a>
   </div>
   <button class="nav-cart-btn" onclick="Cart.open()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -296,6 +297,9 @@
         </div>
       </div>
 
+      <div id="rx-prescription-note" style="display:none;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.84rem;color:#b91c1c;font-weight:600">
+        Your cart contains prescription (RX) medications. Please have your valid prescription ready — our pharmacist will verify it before dispensing.
+      </div>
       <button class="btn-place-order" onclick="placeOrder()" id="place-order-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span id="order-btn-text">Place Order Securely</span>
@@ -399,11 +403,32 @@
 <!-- Flutterwave SDK -->
 <script src="https://checkout.flutterwave.com/v3.js"></script>
 <script src="/assets/shop.js"></script>
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const _fbCfg = {
+  apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
+  authDomain:"ducor-pharmacy.firebaseapp.com",
+  projectId:"ducor-pharmacy",
+  storageBucket:"ducor-pharmacy.firebasestorage.app",
+  messagingSenderId:"952933384266",
+  appId:"1:952933384266:web:55b906e903d96940d426b3"
+};
+const _fbApp = getApps().length ? getApps()[0] : initializeApp(_fbCfg);
+const _db = getFirestore(_fbApp);
+
+async function _saveOrderToFirestore(orderData) {
+  try {
+    await addDoc(collection(_db, 'orders'), orderData);
+  } catch(e) {}
+}
+
+window._saveOrderToFirestore = _saveOrderToFirestore;
+window._db = _db;
+</script>
 <script>
-  // ── CONFIGURATION ────────────────────────────────────────────────
-  // Replace with your Flutterwave Public Key from dashboard.flutterwave.com → Settings → API Keys
   const FLW_PUBLIC_KEY = 'FLWPUBK-REPLACE-WITH-YOUR-KEY-X';
-  // ─────────────────────────────────────────────────────────────────
 
   let selectedPayment = 'mtn';
 
@@ -411,10 +436,8 @@
     document.querySelectorAll('.pay-option').forEach(m => m.classList.remove('selected'));
     el.classList.add('selected');
     selectedPayment = method;
-    // Show/hide Flutterwave info box
     const flwBox = document.getElementById('flw-info-box');
     flwBox.style.display = method === 'cash' ? 'none' : 'flex';
-    // Update button text
     const btnText = document.getElementById('order-btn-text');
     btnText.textContent = method === 'cash' ? 'Place Order' : 'Pay Securely Now';
   }
@@ -428,6 +451,10 @@
     const sub = Cart.subtotal();
     const shipping = sub >= 50 ? 0 : 5.99;
     return parseFloat((sub + shipping).toFixed(2));
+  }
+
+  function hasRxItems() {
+    return Cart.items.some(i => i.category === 'prescription');
   }
 
   function validate() {
@@ -464,33 +491,65 @@
       showToast('Your cart is empty');
       return false;
     }
+    if (hasRxItems()) {
+      const rxNote = document.getElementById('rx-prescription-note');
+      if (rxNote) rxNote.style.display = 'block';
+    }
     return true;
+  }
+
+  function _buildOrderPayload(ref, paymentMethod, paymentStatus) {
+    const first  = document.getElementById('first-name').value.trim();
+    const last   = document.getElementById('last-name').value.trim();
+    const email  = document.getElementById('email').value.trim();
+    const phone  = document.getElementById('phone').value.trim();
+    const sub    = Cart.subtotal();
+    const ship   = sub >= 50 ? 0 : 5.99;
+    return {
+      ref,
+      status: 'Pending',
+      paymentMethod,
+      paymentStatus,
+      buyerName: first + ' ' + last,
+      buyerEmail: email,
+      buyerPhone: phone,
+      buyerCountry: document.getElementById('buyer-country').value,
+      pickupName: document.getElementById('pickup-name').value.trim(),
+      pickupPhone: document.getElementById('pickup-phone').value.trim(),
+      notes: document.getElementById('notes').value.trim(),
+      items: Cart.items.map(i => ({ id: i.id, name: i.name, category: i.category, price: i.price, qty: i.qty })),
+      subtotal: sub,
+      shipping: ship,
+      total: parseFloat((sub + ship).toFixed(2)),
+      hasRx: hasRxItems(),
+      createdAt: new Date().toISOString()
+    };
   }
 
   function placeOrder() {
     if (!validate()) return;
+
+    const ref = generateRef();
+
+    if (selectedPayment === 'cash') {
+      const payload = _buildOrderPayload(ref, 'Cash on Delivery', 'Pending');
+      if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+      document.getElementById('cod-ref').textContent = ref;
+      document.getElementById('cod-overlay').classList.add('show');
+      return;
+    }
+
+    if (FLW_PUBLIC_KEY.includes('REPLACE')) {
+      showToast('Payment setup coming soon. Use Cash on Delivery or contact us via WhatsApp.');
+      return;
+    }
 
     const first  = document.getElementById('first-name').value.trim();
     const last   = document.getElementById('last-name').value.trim();
     const email  = document.getElementById('email').value.trim();
     const phone  = document.getElementById('phone').value.trim();
     const total  = getTotal();
-    const ref    = generateRef();
 
-    // ── Cash on Delivery ──
-    if (selectedPayment === 'cash') {
-      document.getElementById('cod-ref').textContent = ref;
-      document.getElementById('cod-overlay').classList.add('show');
-      return;
-    }
-
-    // ── Online payments via Flutterwave ──
-    if (FLW_PUBLIC_KEY.includes('REPLACE')) {
-      showToast('Payment setup coming soon. Use Cash on Delivery or contact us via WhatsApp.');
-      return;
-    }
-
-    // Map selected method to Flutterwave payment_options
     const paymentOptions = {
       mtn:    'mobilemoneyliberia',
       orange: 'mobilemoneyliberia',
@@ -525,6 +584,8 @@
       callback: function(data) {
         document.getElementById('processing-overlay').classList.remove('show');
         if (data.status === 'successful' || data.status === 'completed') {
+          const payload = _buildOrderPayload(ref, selectedPayment, 'Paid');
+          if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
           document.getElementById('success-ref').textContent = ref;
           document.getElementById('success-overlay').classList.add('show');
         } else {
@@ -586,15 +647,16 @@
   try{
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     var s=JSON.parse(raw);
+    if(!s||!s.userId) return;
+    var acctLink=document.getElementById('nav-account-link');
+    if(acctLink) acctLink.style.display='';
     var users=JSON.parse(localStorage.getItem(USERS_KEY)||'[]');
     var user=users.find(function(u){return u.id===s.userId;});
     if(!user) return;
-    // Auto-fill personal info
     if(user.fname) document.getElementById('first-name').value=user.fname;
     if(user.lname) document.getElementById('last-name').value=user.lname;
     if(user.email) document.getElementById('email').value=user.email;
     if(user.phone){var ph=document.getElementById('phone');if(ph)ph.value=user.phone;}
-    // Show welcome strip
     var strip=document.createElement('div');
     strip.style.cssText='background:linear-gradient(90deg,rgba(10,37,88,0.06),rgba(13,148,136,0.06));border:1px solid rgba(13,148,136,0.2);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:0.84rem;';
     strip.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="color:#0a2558;font-weight:600">Checking out as <strong>'+user.fname+' '+user.lname+'</strong> ('+user.email+')</span>&nbsp;<a href="/account.html" style="color:#0d9488;font-weight:700;font-size:0.8rem;text-decoration:none">My Account</a>';
