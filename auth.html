@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex, nofollow"/>
   <title>Client Portal – Ducor International Pharmacy</title>
   <link rel="icon" href="/assets/company-logo.jpg"/>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{
@@ -531,6 +532,84 @@
   </div>
 </div>
 
+<!-- ══ PASSWORD RESET MODAL ══ -->
+<div id="reset-overlay" style="display:none;position:fixed;inset:0;background:rgba(2,12,27,0.85);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;padding:20px">
+  <div style="background:rgba(7,26,62,0.95);border:1px solid rgba(201,160,85,0.25);border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.6)">
+    <div style="height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),var(--gold),transparent)"></div>
+    <div style="padding:36px 36px 28px" id="reset-body">
+
+      <!-- STEP 1: Enter email -->
+      <div id="rst-step1">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,160,85,0.12);border:1.5px solid rgba(201,160,85,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Reset Your Password</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your email address and we will send you a 6-digit reset code.</p>
+        </div>
+        <div id="rst-err1" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
+        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Email Address</label>
+        <div style="position:relative;margin-bottom:18px">
+          <input id="rst-email" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px 12px 42px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')sendResetCode()"/>
+          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+        </div>
+        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Send Reset Code</button>
+      </div>
+
+      <!-- STEP 2: Enter code -->
+      <div id="rst-step2" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(13,148,136,0.12);border:1.5px solid rgba(13,148,136,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+          </div>
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Check Your Email</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">We sent a 6-digit code to <strong id="rst-email-display" style="color:var(--gold)"></strong>. Enter it below. The code expires in 15 minutes.</p>
+        </div>
+        <div id="rst-err2" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
+        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">6-Digit Code</label>
+        <input id="rst-code" type="text" maxlength="6" placeholder="_ _ _ _ _ _" style="width:100%;padding:16px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:1.6rem;font-weight:700;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:monospace;text-align:center;letter-spacing:12px;margin-bottom:18px;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyCode()"/>
+        <button onclick="verifyCode()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s;margin-bottom:12px">Verify Code</button>
+        <button onclick="sendResetCode()" style="width:100%;padding:11px;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:0.84rem;font-weight:600;cursor:pointer;background:none;color:rgba(255,255,255,0.5);font-family:inherit;transition:all .2s">Resend Code</button>
+      </div>
+
+      <!-- STEP 3: New password -->
+      <div id="rst-step3" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(22,163,74,0.12);border:1.5px solid rgba(22,163,74,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Create New Password</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Code verified! Choose a new strong password for your account.</p>
+        </div>
+        <div id="rst-err3" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
+        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">New Password</label>
+        <div style="position:relative;margin-bottom:14px">
+          <input id="rst-pw1" type="password" placeholder="New password (min 8 characters)" style="width:100%;padding:12px 42px 12px 14px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"/>
+        </div>
+        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Confirm New Password</label>
+        <div style="position:relative;margin-bottom:18px">
+          <input id="rst-pw2" type="password" placeholder="Repeat new password" style="width:100%;padding:12px 42px 12px 14px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')saveNewPassword()"/>
+        </div>
+        <button onclick="saveNewPassword()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Save New Password</button>
+      </div>
+
+      <!-- STEP 4: Done -->
+      <div id="rst-step4" style="display:none;text-align:center">
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(22,163,74,0.15);border:2px solid rgba(22,163,74,0.4);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3 style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:8px">Password Reset!</h3>
+        <p style="font-size:0.84rem;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:24px">Your password has been updated successfully. You can now sign in with your new password.</p>
+        <button onclick="closeReset()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;font-family:inherit">Go to Sign In</button>
+      </div>
+
+    </div>
+    <div style="padding:0 36px 24px;text-align:center">
+      <button onclick="closeReset()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.78rem;cursor:pointer;font-family:inherit;transition:color .2s" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 'use strict';
 
@@ -617,7 +696,145 @@ window.checkStrength = function(pw){
   document.getElementById('pw-lbl').textContent=lbs[lv];
   return lv;
 };
-window.showForgot = function(){showAlert('login-err','To reset your password, contact us on WhatsApp +231 880 187 490 or email info@ducorpharmacy.com — we will reset it within 24 hours.');};
+// ── EMAILJS CONFIG ──
+const _EJS_KEY      = 'YOUR_EMAILJS_PUBLIC_KEY';   // replace after EmailJS setup
+const _EJS_SERVICE  = 'YOUR_SERVICE_ID';
+const _EJS_TEMPLATE = 'YOUR_TEMPLATE_ID';
+
+let _rstEmail = '', _rstCode = '', _rstExpiry = 0;
+
+function _rstShow(step) {
+  ['rst-step1','rst-step2','rst-step3','rst-step4'].forEach(s => {
+    document.getElementById(s).style.display = s === step ? 'block' : 'none';
+  });
+}
+function _rstErr(step, msg) {
+  const el = document.getElementById('rst-err' + step);
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+window.showForgot = function() {
+  _rstShow('rst-step1');
+  _rstErr(1,'');
+  document.getElementById('rst-email').value = document.getElementById('login-email').value || '';
+  document.getElementById('reset-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('rst-email').focus(), 100);
+};
+window.closeReset = function() {
+  document.getElementById('reset-overlay').style.display = 'none';
+};
+
+window.sendResetCode = async function() {
+  const email = document.getElementById('rst-email').value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    _rstErr(1, 'Please enter a valid email address.'); return;
+  }
+  // Check user exists
+  const user = await findUser(email);
+  if (!user) {
+    _rstErr(1, 'No account found with this email address.'); return;
+  }
+
+  const btn = document.getElementById('rst-send-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  // Generate 6-digit code
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expiry = Date.now() + 15 * 60 * 1000; // 15 min
+  _rstEmail = email; _rstCode = code; _rstExpiry = expiry;
+
+  // Also store in Firestore so code persists across tabs
+  try {
+    const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    await setDoc(doc(_db, 'passwordResets', email), { code, expiry, email });
+  } catch(ex) {}
+
+  // Send email via EmailJS
+  try {
+    await emailjs.init(_EJS_KEY);
+    await emailjs.send(_EJS_SERVICE, _EJS_TEMPLATE, {
+      to_email:   email,
+      to_name:    (user.fname || 'Customer'),
+      reset_code: code,
+      pharmacy:   'Ducor International Pharmacy',
+    });
+    document.getElementById('rst-email-display').textContent = email;
+    _rstErr(1,'');
+    _rstShow('rst-step2');
+    setTimeout(() => document.getElementById('rst-code').focus(), 100);
+  } catch(ex) {
+    // EmailJS not configured yet — show code for testing
+    if (_EJS_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
+      _rstErr(1, '⚙️ Email service not configured yet. Contact admin on WhatsApp +231 880 187 490 to complete setup.');
+    } else {
+      _rstErr(1, 'Failed to send email. Please try again or contact us on WhatsApp.');
+    }
+  }
+  btn.disabled = false; btn.textContent = 'Send Reset Code';
+};
+
+window.verifyCode = async function() {
+  const entered = document.getElementById('rst-code').value.trim();
+  if (!entered || entered.length < 6) { _rstErr(2, 'Please enter the full 6-digit code.'); return; }
+
+  // Check local memory first
+  let valid = (entered === _rstCode && Date.now() < _rstExpiry);
+
+  // Check Firestore if local check fails
+  if (!valid) {
+    try {
+      const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      const snap = await getDoc(doc(_db, 'passwordResets', _rstEmail));
+      if (snap.exists()) {
+        const d = snap.data();
+        valid = (entered === d.code && Date.now() < d.expiry);
+      }
+    } catch(ex) {}
+  }
+
+  if (!valid) {
+    _rstErr(2, 'Incorrect or expired code. Please try again or request a new code.'); return;
+  }
+  _rstErr(2,'');
+  _rstShow('rst-step3');
+  setTimeout(() => document.getElementById('rst-pw1').focus(), 100);
+};
+
+window.saveNewPassword = async function() {
+  const pw1 = document.getElementById('rst-pw1').value;
+  const pw2 = document.getElementById('rst-pw2').value;
+  if (!pw1 || pw1.length < 8) { _rstErr(3, 'Password must be at least 8 characters.'); return; }
+  if (pw1 !== pw2) { _rstErr(3, 'Passwords do not match.'); return; }
+
+  try {
+    const newHash = await sha256(pw1 + 'ducor_ph_salt_2025_' + _rstEmail);
+
+    // Update in Firestore
+    try {
+      const { collection, getDocs, query, where, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      const snap = await getDocs(query(collection(_db,'customers'), where('email','==',_rstEmail)));
+      if (!snap.empty) await updateDoc(snap.docs[0].ref, { pwHash: newHash });
+    } catch(ex) {}
+
+    // Update in localStorage
+    try {
+      const users = getLocalUsers();
+      const u = users.find(u => u.email === _rstEmail);
+      if (u) { u.pwHash = newHash; localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+    } catch(ex) {}
+
+    // Clear reset token from Firestore
+    try {
+      const { doc: fdoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      await deleteDoc(fdoc(_db, 'passwordResets', _rstEmail));
+    } catch(ex) {}
+
+    _rstShow('rst-step4');
+  } catch(ex) {
+    _rstErr(3, 'Failed to save password. Please try again.');
+  }
+};
 
 /* ── REDIRECT ── */
 const _nextUrl=(()=>{const p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
