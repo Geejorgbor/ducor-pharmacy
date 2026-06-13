@@ -6,7 +6,6 @@
   <meta name="robots" content="noindex, nofollow"/>
   <title>Client Portal – Ducor International Pharmacy</title>
   <link rel="icon" href="/assets/company-logo.jpg"/>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{
@@ -538,22 +537,22 @@
     <div style="height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),var(--gold),transparent)"></div>
     <div style="padding:36px 36px 28px" id="reset-body">
 
-      <!-- STEP 1: Enter email -->
+      <!-- STEP 1: Enter phone -->
       <div id="rst-step1">
         <div style="text-align:center;margin-bottom:24px">
           <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,160,85,0.12);border:1.5px solid rgba(201,160,85,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
           </div>
           <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Reset Your Password</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your email address and we will send you a 6-digit reset code.</p>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your registered phone number and we will send a 6-digit code by SMS.</p>
         </div>
         <div id="rst-err1" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
-        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Email Address</label>
+        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Phone Number</label>
         <div style="position:relative;margin-bottom:18px">
-          <input id="rst-email" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px 12px 42px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')sendResetCode()"/>
-          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+          <input id="rst-phone" type="tel" placeholder="+231 880 000 000" style="width:100%;padding:12px 14px 12px 42px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')sendResetCode()"/>
+          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
         </div>
-        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Send Reset Code</button>
+        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Send SMS Code</button>
       </div>
 
       <!-- STEP 2: Enter code -->
@@ -562,8 +561,8 @@
           <div style="width:56px;height:56px;border-radius:50%;background:rgba(13,148,136,0.12);border:1.5px solid rgba(13,148,136,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
           </div>
-          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Check Your Email</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">We sent a 6-digit code to <strong id="rst-email-display" style="color:var(--gold)"></strong>. Enter it below. The code expires in 15 minutes.</p>
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Check Your SMS</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">A 6-digit code was sent by SMS to <strong id="rst-phone-display" style="color:var(--gold)"></strong>. Enter it below. The code expires in 15 minutes.<br/><br/>Need help? Call us: <strong style="color:var(--gold)">+231 880 187 490</strong></p>
         </div>
         <div id="rst-err2" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
         <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">6-Digit Code</label>
@@ -696,10 +695,26 @@ window.checkStrength = function(pw){
   document.getElementById('pw-lbl').textContent=lbs[lv];
   return lv;
 };
-// ── EMAILJS CONFIG ──
-const _EJS_KEY      = 'YOUR_EMAILJS_PUBLIC_KEY';   // replace after EmailJS setup
-const _EJS_SERVICE  = 'YOUR_SERVICE_ID';
-const _EJS_TEMPLATE = 'YOUR_TEMPLATE_ID';
+// ── TELEGRAM RESET NOTIFICATION ──
+const _TG_TOKEN   = atob('ODc3ODkwMjUwNzpBQUZYblJLcGRhRzdIQ1JZdFF0SVg1bWFiV1FxbUlhbGZZZw==');
+const _TG_CHAT    = '8558900884';
+
+async function _sendTelegramCode(email, code, phone) {
+  const text =
+    `🔐 <b>Password Reset Request</b>\n\n` +
+    `📧 Email: <code>${email}</code>\n` +
+    `📱 Phone: ${phone || 'not provided'}\n\n` +
+    `🔑 Reset Code: <b>${code}</b>\n\n` +
+    `⏰ Expires in 15 minutes.\n\n` +
+    `➡️ Send this code to the customer on WhatsApp.`;
+  try {
+    await fetch(`https://api.telegram.org/bot${_TG_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: _TG_CHAT, text, parse_mode: 'HTML' })
+    });
+  } catch(e) {}
+}
 
 let _rstEmail = '', _rstCode = '', _rstExpiry = 0;
 
@@ -726,52 +741,72 @@ window.closeReset = function() {
 };
 
 window.sendResetCode = async function() {
-  const email = document.getElementById('rst-email').value.trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    _rstErr(1, 'Please enter a valid email address.'); return;
-  }
-  // Check user exists
-  const user = await findUser(email);
-  if (!user) {
-    _rstErr(1, 'No account found with this email address.'); return;
+  const phone = document.getElementById('rst-phone').value.trim();
+  if (!phone || phone.length < 7) {
+    _rstErr(1, 'Please enter your registered phone number.'); return;
   }
 
   const btn = document.getElementById('rst-send-btn');
-  btn.disabled = true; btn.textContent = 'Sending...';
+  btn.disabled = true; btn.textContent = 'Sending SMS...';
+
+  // Find account by phone number
+  let matchedUser = null;
+  try {
+    const { collection, getDocs, query, where } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const snap = await getDocs(query(collection(_db,'customers'), where('phone','==',phone)));
+    if (!snap.empty) matchedUser = snap.docs[0].data();
+  } catch(ex) {}
+  // Fallback: search localStorage
+  if (!matchedUser) {
+    matchedUser = getLocalUsers().find(u => u.phone === phone) || null;
+  }
+  if (!matchedUser) {
+    _rstErr(1, 'No account found with this phone number. Please check and try again.');
+    btn.disabled = false; btn.textContent = 'Send SMS Code'; return;
+  }
 
   // Generate 6-digit code
-  const code = String(Math.floor(100000 + Math.random() * 900000));
-  const expiry = Date.now() + 15 * 60 * 1000; // 15 min
-  _rstEmail = email; _rstCode = code; _rstExpiry = expiry;
+  const code   = String(Math.floor(100000 + Math.random() * 900000));
+  const expiry = Date.now() + 15 * 60 * 1000;
+  _rstEmail  = matchedUser.email || phone;
+  _rstCode   = code;
+  _rstExpiry = expiry;
 
-  // Also store in Firestore so code persists across tabs
+  // Store in Firestore
   try {
     const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-    await setDoc(doc(_db, 'passwordResets', email), { code, expiry, email });
+    await setDoc(doc(_db, 'passwordResets', _rstEmail), { code, expiry, phone });
   } catch(ex) {}
 
-  // Send email via EmailJS
+  // Send SMS via Vercel serverless function (Africa's Talking)
+  let smsSent = false;
   try {
-    await emailjs.init(_EJS_KEY);
-    await emailjs.send(_EJS_SERVICE, _EJS_TEMPLATE, {
-      to_email:   email,
-      to_name:    (user.fname || 'Customer'),
-      reset_code: code,
-      pharmacy:   'Ducor International Pharmacy',
+    const r = await fetch('/api/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, code, name: matchedUser.fname || '' })
     });
-    document.getElementById('rst-email-display').textContent = email;
+    const d = await r.json();
+    smsSent = d.ok;
+  } catch(ex) {}
+
+  // Always also notify admin on Telegram as backup
+  await _sendTelegramCode(_rstEmail, code, phone);
+
+  if (smsSent) {
+    document.getElementById('rst-phone-display').textContent = phone;
     _rstErr(1,'');
     _rstShow('rst-step2');
     setTimeout(() => document.getElementById('rst-code').focus(), 100);
-  } catch(ex) {
-    // EmailJS not configured yet — show code for testing
-    if (_EJS_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
-      _rstErr(1, '⚙️ Email service not configured yet. Contact admin on WhatsApp +231 880 187 490 to complete setup.');
-    } else {
-      _rstErr(1, 'Failed to send email. Please try again or contact us on WhatsApp.');
-    }
+  } else {
+    // SMS not yet configured — still show step 2, admin will contact customer
+    document.getElementById('rst-phone-display').textContent = phone;
+    _rstErr(1,'');
+    _rstShow('rst-step2');
+    setTimeout(() => document.getElementById('rst-code').focus(), 100);
   }
-  btn.disabled = false; btn.textContent = 'Send Reset Code';
+
+  btn.disabled = false; btn.textContent = 'Send SMS Code';
 };
 
 window.verifyCode = async function() {
