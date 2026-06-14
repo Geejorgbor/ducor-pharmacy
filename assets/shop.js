@@ -961,23 +961,47 @@ function _applyImage(productId, imageUrl, svgFallback) {
   img.src = imageUrl;
 }
 
+async function _loadProductImage(productId, productName, category, svgFallback) {
+  // 1. Local photo — /assets/products/{id}.jpg
+  const localOk = await new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(true);
+    img.onerror = () => res(false);
+    img.src = '/assets/products/' + productId + '.jpg';
+  });
+  if (localOk) { _applyImage(productId, '/assets/products/' + productId + '.jpg', svgFallback); return; }
+
+  // 2. NDC-specific NIH photo (exact bottle match)
+  const ndc = _PRODUCT_NDC[productId];
+  if (ndc) {
+    const url = await _fetchNIHImageByNDC(ndc);
+    if (url) { _applyImage(productId, url, svgFallback); return; }
+  }
+
+  // 3. NIH name search
+  const nihName = _NIH_SEARCH_OVERRIDE[productId] || productName;
+  const nihUrl = await _fetchNIHImage(nihName);
+  if (nihUrl) { _applyImage(productId, nihUrl, svgFallback); return; }
+
+  // 4. DailyMed thumbnail
+  const dmUrl = await _fetchDailyMedImage(productName);
+  if (dmUrl) { _applyImage(productId, dmUrl, svgFallback); return; }
+
+  // 5. Wikipedia image
+  const wikiTitle = _getWikiTitle(productName);
+  if (wikiTitle) {
+    const wikiUrl = await _fetchWikiImage(wikiTitle);
+    if (wikiUrl) { _applyImage(productId, wikiUrl, svgFallback); return; }
+  }
+  // SVG fallback already shown as placeholder
+}
+
 function _processImgQueue() {
   while (_imgActive < _IMG_CONCURRENT && _imgQueue.length > 0) {
-    const { productId, svgFallback } = _imgQueue.shift();
+    const item = _imgQueue.shift();
     _imgActive++;
-    // Try local pharmacy photo first — /assets/products/{id}.jpg
-    const localUrl = '/assets/products/' + productId + '.jpg';
-    const testImg = new Image();
-    testImg.onload = () => {
-      _applyImage(productId, localUrl, svgFallback);
-      _imgActive--;
-      _processImgQueue();
-    };
-    testImg.onerror = () => {
-      _imgActive--;
-      _processImgQueue();
-    };
-    testImg.src = localUrl;
+    _loadProductImage(item.productId, item.productName, item.category, item.svgFallback)
+      .finally(() => { _imgActive--; _processImgQueue(); });
   }
 }
 
@@ -995,9 +1019,9 @@ function _startImageLoading(list, category) {
       _applyImage(p.id, _customPhotos[p.id], svgFallback);
       return;
     }
-    // Show placeholder while checking for local photo
+    // Show placeholder SVG while real photo loads
     el.innerHTML = svgFallback;
-    _imgQueue.push({ productId: p.id, svgFallback });
+    _imgQueue.push({ productId: p.id, productName: p.name, category, svgFallback });
   });
   _processImgQueue();
 }
