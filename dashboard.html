@@ -144,8 +144,11 @@
     .order-status{display:inline-block;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase}
     .status-new{background:#dbeafe;color:var(--rx)}
     .status-processing{background:#fef3c7;color:var(--warn)}
+    .status-ready{background:#ede9fe;color:#7c3aed}
     .status-delivered{background:#dcfce7;color:var(--success)}
     .status-cancelled{background:#fee2e2;color:var(--danger)}
+    .status-select{padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--text);background:#fff;cursor:pointer;outline:none;width:100%}
+    .status-select:focus{border-color:var(--gold)}
 
     /* ── CONTENT EDITOR ── */
     .content-card{background:var(--white);border-radius:16px;border:1px solid var(--border);padding:24px;margin-bottom:16px}
@@ -1058,9 +1061,21 @@
       <button class="modal-close" onclick="closeModal('order-modal')">×</button>
     </div>
     <div class="modal-body" id="order-modal-body"></div>
+    <div style="padding:14px 22px;border-top:1px solid var(--border);background:#fafafa">
+      <label style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Update Order Status</label>
+      <div style="display:flex;gap:10px;align-items:center">
+        <select id="order-status-select" class="status-select">
+          <option value="new">New</option>
+          <option value="processing">Processing</option>
+          <option value="ready">Ready for Delivery</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-primary" id="order-status-btn" style="white-space:nowrap">Update Status</button>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('order-modal')">Close</button>
-      <button class="btn btn-primary" id="order-status-btn">Mark as Delivered</button>
     </div>
   </div>
 </div>
@@ -1068,7 +1083,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, addDoc, setDoc, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -1681,34 +1696,50 @@ window.viewOrder = function(id) {
   if (!o) return;
   activeOrderId = id;
   document.getElementById('order-modal-title').textContent = `Order #${id.slice(-8)}`;
+  const discountRow = o.discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;color:#16a34a"><span>Discount (${o.promoCode||''})</span><strong>-$${parseFloat(o.discount||0).toFixed(2)}</strong></div>` : '';
+  const rxRow = o.prescriptionFile ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#1d4ed8"><strong>📋 Prescription uploaded</strong> — ${o.prescriptionFile.name||'file'} (${((o.prescriptionFile.size||0)/1024).toFixed(0)} KB)</div>` : '';
   document.getElementById('order-modal-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-      <div><strong style="font-size:12px;color:var(--muted)">CUSTOMER</strong><p style="margin-top:4px">${o.firstName} ${o.lastName}</p><p style="font-size:12px;color:var(--muted)">${o.email}<br>${o.phone}</p></div>
+      <div><strong style="font-size:12px;color:var(--muted)">CUSTOMER</strong><p style="margin-top:4px;font-weight:600">${o.firstName} ${o.lastName}</p><p style="font-size:12px;color:var(--muted)">${o.email||''}<br>${o.phone||''}</p></div>
       <div><strong style="font-size:12px;color:var(--muted)">DELIVERY ADDRESS</strong><p style="margin-top:4px;font-size:13px">${o.address||''}<br>${o.city||''} ${o.region||''}</p></div>
-      <div><strong style="font-size:12px;color:var(--muted)">PAYMENT</strong><p style="margin-top:4px">${o.payment}</p></div>
-      <div><strong style="font-size:12px;color:var(--muted)">STATUS</strong><p style="margin-top:4px"><span class="order-status status-${o.status||'new'}">${o.status||'new'}</span></p></div>
+      <div><strong style="font-size:12px;color:var(--muted)">PAYMENT</strong><p style="margin-top:4px">${o.payment||'—'}</p></div>
+      <div><strong style="font-size:12px;color:var(--muted)">CURRENT STATUS</strong><p style="margin-top:6px"><span class="order-status status-${o.status||'new'}">${o.status||'new'}</span></p></div>
     </div>
+    ${rxRow}
     ${o.notes ? `<p style="font-size:13px;color:var(--muted);margin-bottom:16px"><strong>Notes:</strong> ${o.notes}</p>` : ''}
     <strong style="font-size:12px;color:var(--muted)">ORDER ITEMS</strong>
     <div style="margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      ${(o.items||[]).map(item => `<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px"><span>${item.name} × ${item.qty}</span><strong>$${(item.price*item.qty).toFixed(2)}</strong></div>`).join('')}
-      <div style="display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:700;background:#fafafa"><span>Total</span><span>$${o.total}</span></div>
+      ${(o.items||[]).map(item => `<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px"><span>${item.name||item.id||'Item'} × ${item.qty||1}</span><strong>$${((item.price||0)*(item.qty||1)).toFixed(2)}</strong></div>`).join('')}
+      ${discountRow}
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:700;background:#fafafa"><span>Total</span><span>$${o.total||'0.00'}</span></div>
     </div>`;
+  const sel = document.getElementById('order-status-select');
+  sel.value = o.status || 'new';
   const btn = document.getElementById('order-status-btn');
-  btn.textContent = o.status === 'delivered' ? 'Mark as New' : 'Mark as Delivered';
-  btn.onclick = () => toggleOrderStatus(id);
+  btn.onclick = () => updateOrderStatus(id);
   openModal('order-modal');
 };
 
-window.toggleOrderStatus = function(id) {
+window.updateOrderStatus = async function(id) {
   const o = ORDERS.find(x => x.id === id);
   if (!o) return;
-  o.status = o.status === 'delivered' ? 'new' : 'delivered';
+  const sel = document.getElementById('order-status-select');
+  const newStatus = sel.value;
+  if (newStatus === o.status) { closeModal('order-modal'); return; }
+  const prev = o.status || 'new';
+  o.status = newStatus;
   localStorage.setItem('ducor-orders', JSON.stringify(ORDERS));
-  addLog('info', `Order #${id.slice(-8)} marked as ${o.status}`);
+  addLog('info', `Order #${id.slice(-8)}: ${prev} → ${newStatus}`);
+  // Sync to Firestore
+  try {
+    await updateDoc(doc(db, 'orders', id), { status: newStatus, statusUpdatedAt: new Date().toISOString() });
+  } catch(e) {
+    // Firestore may not have the doc yet (localStorage-only orders) — ignore
+  }
   closeModal('order-modal');
   renderOrders();
   renderRecentOrders();
+  updateOrderCount();
 };
 
 window.exportOrders = function() {
