@@ -611,12 +611,16 @@
   <!-- LEFT-SIDE CONTENT — right side of screen shows video clearly -->
   <div class="hero-content">
     <div class="hero-box">
-      <div class="hero-badge">
-        <svg width="13" height="13" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-        Trusted Pharmaceutical Supply in Liberia
+      <!-- DIP Brand Mark -->
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
+        <div style="background:#fff;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,0.25)">
+          <span style="font-size:1.9rem;font-weight:900;color:#1a6b2f;letter-spacing:2px;line-height:1">DIP</span>
+        </div>
+        <div style="height:44px;width:1.5px;background:rgba(255,255,255,0.18)"></div>
+        <span style="font-size:0.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.55);line-height:1.5">Ducor International<br/>Pharmacy</span>
       </div>
-      <h1>Your Health is<br/>Our <span>Top Priority</span></h1>
-      <p>Certified prescription medications, over-the-counter treatments, and premium vitamins — sourced from trusted international manufacturers.</p>
+      <h1>Liberia's <span>Premier</span><br/>Healthcare Hub</h1>
+      <p>Certified prescription medications, over-the-counter treatments, and premium vitamins — sourced from trusted international manufacturers and delivered to Liberia.</p>
       <div class="hero-btns">
         <a href="/prescription.html" class="btn-gold">Browse Medications</a>
         <a href="#services" class="btn-ghost">Our Services</a>
@@ -925,7 +929,6 @@
   try { info = JSON.parse(localStorage.getItem('ducor-storeinfo') || '{}'); } catch(e) {}
   if (info.phone)   document.getElementById('cs-phone').textContent   = info.phone;
   if (info.address) document.getElementById('cs-address').textContent = info.address;
-  if (info.ceoName) document.getElementById('ceo-name-display').textContent = info.ceoName;
 })();
 
 /* ═══════════════════════════════════════
