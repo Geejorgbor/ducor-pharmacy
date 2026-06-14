@@ -13,7 +13,7 @@
         { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.flutterwave.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' blob:; frame-src https://maps.google.com https://www.google.com https://checkout.flutterwave.com; connect-src 'self' https://rximage.nlm.nih.gov https://api.fda.gov https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.telegram.org https://checkout.flutterwave.com https://api.flutterwave.com https://openrouter.ai https://api.anthropic.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.flutterwave.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' blob:; frame-src https://maps.google.com https://www.google.com https://checkout.flutterwave.com; connect-src 'self' https://rximage.nlm.nih.gov https://dailymed.nlm.nih.gov https://en.wikipedia.org https://api.fda.gov https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.telegram.org https://checkout.flutterwave.com https://api.flutterwave.com https://openrouter.ai https://api.anthropic.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
         }
       ]
     }
