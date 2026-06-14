@@ -172,7 +172,7 @@ function initChat() {
 
   const btn = document.createElement('button');
   btn.id = 'ducor-chat-btn';
-  btn.setAttribute('aria-label', 'Chat with our AI pharmacist');
+  btn.setAttribute('aria-label', 'Chat with Ducor International Pharmacy Customer Service');
   btn.innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="ducor-chat-badge">1</span>`;
 
   const win = document.createElement('div');
@@ -181,8 +181,8 @@ function initChat() {
     <div id="ducor-chat-head">
       <div id="ducor-chat-head-avatar">💊</div>
       <div id="ducor-chat-head-info">
-        <h4>Ducor AI Pharmacist</h4>
-        <p>Online · Replies instantly</p>
+        <h4>Ducor International Pharmacy</h4>
+        <p>Customer Service · Online 24/7</p>
       </div>
       <div id="ducor-chat-status"></div>
       <button id="ducor-chat-close" aria-label="Close chat">
@@ -190,7 +190,7 @@ function initChat() {
       </button>
     </div>
     <div id="ducor-chat-messages">
-      <div class="ducor-msg bot">Hello! I'm the Ducor AI Pharmacist 👋<br><br>I can help you find medications, check prices, answer questions about ordering, or tell you anything about Ducor International Pharmacy. How can I help you today?</div>
+      <div class="ducor-msg bot">Welcome to Ducor International Pharmacy! 👋<br><br>I'm your Customer Service representative. I can help you find medications, check prices, answer questions about ordering, delivery, and anything about our pharmacy. How can I help you today?</div>
     </div>
     <div id="ducor-chat-typing"><span></span><span></span><span></span></div>
     <div id="ducor-chat-quick">
