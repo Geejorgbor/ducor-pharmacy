@@ -13,7 +13,7 @@ const PRODUCTS = {
     {id:'rx009',name:'Amlodipine 10mg',price:6.00},
     {id:'rx010',name:'Amlodipine/Valsartan 10/160mg',price:24.00},
     {id:'rx011',name:'Amlodipine/Valsartan 5/160mg',price:20.00},
-    {id:'rx012',name:'Amox/Clav 600-42.9mg/ml',price:12.00},
+    {id:'rx012',name:'Amoxicillin/Clav 600/42.9mg per 5ml',price:12.00},
     {id:'rx013',name:'Amoxicillin 500mg',price:10.00},
     {id:'rx014',name:'Amoxicillin Susp 400mg/5ml',price:8.00},
     {id:'rx015',name:'Amoxicillin/Clav 500-125mg',price:10.00},
@@ -80,7 +80,7 @@ const PRODUCTS = {
     {id:'rx076',name:'Hydroxyurea 500mg',price:32.00},
     {id:'rx077',name:'Ibuprofen 400mg (Rx)',price:10.00},
     {id:'rx078',name:'Ibuprofen 600mg',price:12.00},
-    {id:'rx079',name:'Ketotifen 0.025%',price:14.00},
+    {id:'rx079',name:'Ketotifen 0.025% Eye Drops',price:14.00},
     {id:'rx080',name:'Lancets (Rx)',price:14.00},
     {id:'rx081',name:'Lansoprazole 15mg',price:8.00},
     {id:'rx082',name:'Letrozole 2.5mg',price:8.00},
@@ -157,7 +157,7 @@ const PRODUCTS = {
     {id:'rx152',name:'Tranexamic Acid 650mg',price:24.00},
   ],
   otc: [
-    {id:'otc001',name:'A&D Ointment',price:10.00},
+    {id:'otc001',name:'A+D Ointment',price:10.00},
     {id:'otc002',name:'Acetaminophen 325mg',price:6.00},
     {id:'otc003',name:'Acetaminophen 500mg',price:8.00},
     {id:'otc004',name:'Acetaminophen Arthritis 650mg',price:12.00},
@@ -215,7 +215,7 @@ const PRODUCTS = {
     {id:'otc056',name:'Simethicone 80mg (Gas Relief)',price:8.00},
     {id:'otc057',name:'Stomach Relief Liquid',price:7.00},
     {id:'otc058',name:'Test Strips (Blood Glucose)',price:12.00},
-    {id:'otc059',name:'Triple Antibiotic Cream',price:6.00},
+    {id:'otc059',name:'Triple Antibiotic Ointment',price:6.00},
   ],
   vitamins: [
     {id:'vit001',name:'Apple Cider Vinegar 300mg',price:12.00},
@@ -879,7 +879,7 @@ function _makeSVGLabel(name, category) {
   }
   if (cur) lines.push(cur);
   const textLines = lines.slice(0,3).map((l,i) =>
-    `<text x="100" y="${88 + i*14}" text-anchor="middle" font-size="9.5" font-weight="700"
+    `<text x="100" y="${97 + i*13}" text-anchor="middle" font-size="9.5" font-weight="700"
       fill="${cfg.label}" font-family="Arial,Helvetica,sans-serif">${l}</text>`).join('');
 
   return `<svg viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
@@ -890,10 +890,10 @@ function _makeSVGLabel(name, category) {
     <rect x="70" y="48" width="60" height="12" rx="0" fill="${cfg.cap}" opacity=".6"/>
     <!-- Label area on bottle -->
     <rect x="64" y="72" width="72" height="68" rx="8" fill="white" stroke="${cfg.ring}" stroke-width="1.5"/>
-    <!-- Cross/plus icon -->
-    <rect x="93" y="80" width="14" height="4" rx="2" fill="${cfg.cross}" opacity=".7"/>
-    <rect x="98" y="75" width="4" height="14" rx="2" fill="${cfg.cross}" opacity=".7"/>
-    <!-- Drug name text -->
+    <!-- Cross/plus icon (positioned above drug name text) -->
+    <rect x="93" y="75" width="14" height="4" rx="2" fill="${cfg.cross}" opacity=".7"/>
+    <rect x="98" y="70" width="4" height="14" rx="2" fill="${cfg.cross}" opacity=".7"/>
+    <!-- Drug name text (starts below icon) -->
     ${textLines}
     <!-- Bottom brand strip -->
     <rect x="64" y="146" width="72" height="14" rx="0" fill="${cfg.cap}" opacity=".12"/>
