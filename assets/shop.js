@@ -1180,15 +1180,13 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   container.innerHTML = list.map(p => `
     <div class="product-card">
-      <div class="product-card-header">
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${icon[category]}</div>
+      <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
-      </div>
-      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'"></div>
-      <div class="product-footer">
         <p class="product-price">$${p.price.toFixed(2)} <span>/ unit</span></p>
         <button class="btn-add" id="btn-${p.id}" onclick="addToCart('${p.id}','${category}')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add to Cart
         </button>
       </div>
