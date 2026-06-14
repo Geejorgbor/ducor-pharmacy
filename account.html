@@ -105,7 +105,9 @@
     .order-status{padding:4px 11px;border-radius:50px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
     .status-pending{background:#fffbeb;color:#d97706}
     .status-processing{background:rgba(13,148,136,0.1);color:#0d9488}
-    .status-completed{background:#f0fdf4;color:#16a34a}
+    .status-ready{background:#ede9fe;color:#7c3aed}
+    .status-completed,.status-delivered{background:#f0fdf4;color:#16a34a}
+    .status-cancelled{background:#fef2f2;color:#dc2626}
 
     /* Profile form */
     .profile-card{background:#fff;border-radius:var(--r);border:1px solid #e2e8f0;padding:28px;margin-bottom:20px}
@@ -576,7 +578,7 @@ function loadUI() {
     window._loadFirestoreOrders(user.email).then(function(fsOrders) {
       if (fsOrders.length > 0) {
         var mapped = fsOrders.map(function(o) {
-          return { name: (o.items||[]).map(function(i){return i.name;}).join(', ') || 'Medication Order', date: o.createdAt, amount: '$' + (o.total||0).toFixed(2), status: o.status || 'Pending' };
+          return { name: (o.items||[]).map(function(i){return i.name||i.id||'Item';}).join(', ') || 'Medication Order', date: o.createdAt, amount: '$' + parseFloat(o.total||0).toFixed(2), status: o.status || 'new' };
         });
         renderOrders(mapped, 'overview-orders-body', 3);
         renderOrders(mapped, 'orders-body', 999);
@@ -597,8 +599,14 @@ function renderOrders(orders, containerId, limit) {
   }
   var shown = orders.slice(-limit).reverse();
   el.innerHTML = shown.map(function(o) {
-    var statusCls = o.status === 'Completed' ? 'status-completed' : o.status === 'Processing' ? 'status-processing' : 'status-pending';
-    return '<div class="order-row"><div><strong style="font-size:0.88rem">' + (o.name || 'Medication Order') + '</strong><br><span style="color:var(--gray);font-size:0.78rem">' + new Date(o.date).toLocaleDateString() + '</span></div><span style="font-size:0.88rem;font-weight:700;color:var(--navy)">' + (o.amount || '') + '</span><span class="order-status ' + statusCls + '">' + (o.status || 'Pending') + '</span></div>';
+    var st = (o.status || 'new').toLowerCase();
+    var cls = st === 'delivered' || st === 'completed' ? 'status-completed' :
+              st === 'processing' ? 'status-processing' :
+              st === 'ready' ? 'status-ready' :
+              st === 'cancelled' ? 'status-cancelled' : 'status-pending';
+    var label = st === 'new' ? 'Pending' : st === 'ready' ? 'Ready' : st.charAt(0).toUpperCase() + st.slice(1);
+    var dateStr = o.date ? new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    return '<div class="order-row"><div><strong style="font-size:0.88rem">' + (o.name || 'Medication Order') + '</strong><br><span style="color:var(--gray);font-size:0.78rem">' + dateStr + '</span></div><span style="font-size:0.88rem;font-weight:700;color:var(--navy)">' + (o.amount || '') + '</span><span class="order-status ' + cls + '">' + label + '</span></div>';
   }).join('');
 }
 
