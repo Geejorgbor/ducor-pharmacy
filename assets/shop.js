@@ -864,35 +864,41 @@ function _getWikiTitle(fullName) {
 
 function _makeSVGLabel(name, category) {
   const cfg = {
-    rx:      { bg:'#dbeafe', cap:'#1d4ed8', label:'#1e3a8a', badge:'#1d4ed8' },
-    otc:     { bg:'#cffafe', cap:'#0891b2', label:'#155e75', badge:'#0891b2' },
-    vitamins:{ bg:'#dcfce7', cap:'#16a34a', label:'#14532d', badge:'#16a34a' }
-  }[category] || { bg:'#dbeafe', cap:'#1d4ed8', label:'#1e3a8a', badge:'#1d4ed8' };
+    rx:      { cap:'#1d4ed8', ring:'#bfdbfe', cross:'#1d4ed8', label:'#1e3a8a' },
+    otc:     { cap:'#0891b2', ring:'#a5f3fc', cross:'#0891b2', label:'#155e75' },
+    vitamins:{ cap:'#16a34a', ring:'#bbf7d0', cross:'#16a34a', label:'#14532d' }
+  }[category] || { cap:'#1d4ed8', ring:'#bfdbfe', cross:'#1d4ed8', label:'#1e3a8a' };
 
+  // Wrap name into 3 lines max, 18 chars each
   const words = name.replace(/\s+/g,' ').trim().split(' ');
   const lines = [];
   let cur = '';
   for (const w of words) {
-    if ((cur + ' ' + w).trim().length > 16) { if (cur) lines.push(cur); cur = w; }
+    if ((cur + ' ' + w).trim().length > 18) { if (cur) lines.push(cur); cur = w; }
     else cur = (cur ? cur + ' ' : '') + w;
   }
   if (cur) lines.push(cur);
   const textLines = lines.slice(0,3).map((l,i) =>
-    `<text x="100" y="${74 + i*13}" text-anchor="middle" font-size="9" font-weight="700"
+    `<text x="100" y="${88 + i*14}" text-anchor="middle" font-size="9.5" font-weight="700"
       fill="${cfg.label}" font-family="Arial,Helvetica,sans-serif">${l}</text>`).join('');
 
-  return `<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
-    <rect x="62" y="32" width="76" height="98" rx="14" fill="${cfg.bg}" stroke="${cfg.cap}" stroke-width="2.5"/>
-    <rect x="74" y="17" width="52" height="24" rx="9" fill="${cfg.cap}"/>
-    <path d="M74 32 h52 v8 q-26-8-52 0z" fill="${cfg.cap}" opacity=".4"/>
-    <circle cx="100" cy="29" r="5" fill="white" opacity=".6"/>
-    <rect x="68" y="56" width="64" height="52" rx="7" fill="white" opacity=".88"/>
+  return `<svg viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bottle body -->
+    <rect x="58" y="52" width="84" height="108" rx="18" fill="#f8fafc" stroke="${cfg.cap}" stroke-width="2"/>
+    <!-- Bottle cap -->
+    <rect x="70" y="32" width="60" height="28" rx="10" fill="${cfg.cap}"/>
+    <rect x="70" y="48" width="60" height="12" rx="0" fill="${cfg.cap}" opacity=".6"/>
+    <!-- Label area on bottle -->
+    <rect x="64" y="72" width="72" height="68" rx="8" fill="white" stroke="${cfg.ring}" stroke-width="1.5"/>
+    <!-- Cross/plus icon -->
+    <rect x="93" y="80" width="14" height="4" rx="2" fill="${cfg.cross}" opacity=".7"/>
+    <rect x="98" y="75" width="4" height="14" rx="2" fill="${cfg.cross}" opacity=".7"/>
+    <!-- Drug name text -->
     ${textLines}
-    <rect x="70" y="115" width="60" height="9" rx="4.5" fill="${cfg.badge}" opacity=".15"/>
-    <text x="100" y="123" text-anchor="middle" font-size="6.5" fill="${cfg.badge}"
-      font-family="Arial,sans-serif" font-weight="700" letter-spacing=".5">DUCOR PHARMACY</text>
-    <text x="100" y="43" text-anchor="middle" font-size="13" fill="white"
-      font-family="Arial,sans-serif" font-weight="900">✚</text>
+    <!-- Bottom brand strip -->
+    <rect x="64" y="146" width="72" height="14" rx="0" fill="${cfg.cap}" opacity=".12"/>
+    <text x="100" y="156" text-anchor="middle" font-size="6" fill="${cfg.cap}"
+      font-family="Arial,sans-serif" font-weight="800" letter-spacing="1">DUCOR PHARMACY</text>
   </svg>`;
 }
 
@@ -1150,13 +1156,15 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   container.innerHTML = list.map(p => `
     <div class="product-card">
-      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${icon[category]}</div>
-      <div class="product-body">
+      <div class="product-card-header">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
+      </div>
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'"></div>
+      <div class="product-footer">
         <p class="product-price">$${p.price.toFixed(2)} <span>/ unit</span></p>
         <button class="btn-add" id="btn-${p.id}" onclick="addToCart('${p.id}','${category}')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add to Cart
         </button>
       </div>
