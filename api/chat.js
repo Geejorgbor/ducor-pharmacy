@@ -61,24 +61,23 @@ You represent a professional, trusted pharmacy. Be warm but precise.`;
   }
 
   try {
-    const isOpenRouter = (process.env.OPENROUTER_API_KEY && !process.env.ANTHROPIC_API_KEY) || process.env.ANTHROPIC_BASE_URL?.includes('openrouter');
-    const baseUrl = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
-    const modelId = process.env.ANTHROPIC_DEFAULT_SONNET_MODEL || 'claude-haiku-4-5-20251001';
+    const hasOpenRouter = !!process.env.OPENROUTER_API_KEY;
+    const hasAnthropic  = !!process.env.ANTHROPIC_API_KEY;
 
     let response;
 
-    if (isOpenRouter || process.env.ANTHROPIC_BASE_URL?.includes('openrouter')) {
-      // OpenRouter format
+    if (hasOpenRouter) {
+      // OpenRouter — use Claude 3 Haiku (reliable, cheap, fast)
       response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://ducor-international-pharmacy.com',
           'X-Title': 'Ducor International Pharmacy'
         },
         body: JSON.stringify({
-          model: modelId.includes('/') ? modelId : `anthropic/${modelId}`,
+          model: 'anthropic/claude-3-haiku',
           messages: [
             { role: 'system', content: SYSTEM },
             ...safeMessages
@@ -92,17 +91,17 @@ You represent a professional, trusted pharmacy. Be warm but precise.`;
       if (!reply) throw new Error('Empty response from OpenRouter');
       return res.status(200).json({ reply });
 
-    } else {
+    } else if (hasAnthropic) {
       // Direct Anthropic API format
-      response = await fetch(`${baseUrl}/v1/messages`, {
+      response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'x-api-key': apiKey,
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
           'anthropic-version': '2023-06-01',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: modelId,
+          model: 'claude-haiku-4-5-20251001',
           system: SYSTEM,
           messages: safeMessages,
           max_tokens: 500
@@ -112,6 +111,8 @@ You represent a professional, trusted pharmacy. Be warm but precise.`;
       const reply = data?.content?.[0]?.text?.trim();
       if (!reply) throw new Error('Empty response from Anthropic');
       return res.status(200).json({ reply });
+    } else {
+      return res.status(500).json({ reply: null, error: 'No AI API key configured' });
     }
 
   } catch (err) {
