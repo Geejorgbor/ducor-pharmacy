@@ -297,9 +297,30 @@
         </div>
       </div>
 
-      <div id="rx-prescription-note" style="display:none;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.84rem;color:#b91c1c;font-weight:600">
-        Your cart contains prescription (RX) medications. Please have your valid prescription ready — our pharmacist will verify it before dispensing.
+      <!-- Promo Code -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;gap:8px">
+          <input id="promo-input" type="text" placeholder="Promo / discount code" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--text);background:var(--bg);transition:border-color .2s;outline:none" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" oninput="this.value=this.value.toUpperCase()"/>
+          <button onclick="applyPromo()" style="padding:11px 18px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">Apply</button>
+        </div>
+        <div id="promo-msg" style="font-size:12px;margin-top:6px;display:none"></div>
       </div>
+
+      <!-- RX Prescription Upload -->
+      <div id="rx-upload-section" style="display:none;margin-bottom:16px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.3);border-radius:12px;padding:16px">
+        <p style="font-size:0.83rem;color:#b91c1c;font-weight:700;margin-bottom:10px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Your cart contains Prescription (RX) medications
+        </p>
+        <p style="font-size:0.78rem;color:#7f1d1d;margin-bottom:12px;line-height:1.5">A valid doctor's prescription is required. Please upload a clear photo or PDF of your prescription. Our pharmacist will verify it before your order is processed.</p>
+        <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px dashed rgba(220,38,38,0.4);border-radius:9px;cursor:pointer;background:#fff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="rx-file-label" style="font-size:13px;color:#b91c1c;font-weight:600">Click to upload prescription (JPG, PNG, PDF)</span>
+          <input id="rx-file-input" type="file" accept="image/*,.pdf" style="display:none" onchange="handleRxUpload(this)"/>
+        </label>
+        <div id="rx-upload-status" style="font-size:12px;margin-top:6px;color:#16a34a;display:none;font-weight:600"></div>
+      </div>
+
       <button class="btn-place-order" onclick="placeOrder()" id="place-order-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span id="order-btn-text">Place Order Securely</span>
@@ -449,12 +470,75 @@ window._db = _db;
   function getTotal() {
     Cart.load();
     const sub = Cart.subtotal();
-    const shipping = sub >= 50 ? 0 : 5.99;
-    return parseFloat((sub + shipping).toFixed(2));
+    const discount = getDiscount(sub);
+    const shipping = (sub - discount) >= 50 ? 0 : 5.99;
+    return parseFloat((sub - discount + shipping).toFixed(2));
   }
 
   function hasRxItems() {
     return Cart.items.some(i => i.category === 'prescription');
+  }
+
+  // ── Promo codes ──
+  const PROMO_CODES = {
+    'DUCOR10':  { type:'percent', value:10, label:'10% off' },
+    'WELCOME15':{ type:'percent', value:15, label:'15% off for new customers' },
+    'LIBERIA5': { type:'fixed',   value:5,  label:'$5 off' },
+    'HEALTH20': { type:'percent', value:20, label:'20% off' },
+  };
+  let activePromo = null;
+
+  function applyPromo() {
+    const code = document.getElementById('promo-input').value.trim().toUpperCase();
+    const msg  = document.getElementById('promo-msg');
+    msg.style.display = 'block';
+    if (!code) { msg.style.color='#dc2626'; msg.textContent='Please enter a promo code.'; return; }
+    const promo = PROMO_CODES[code];
+    if (!promo) { msg.style.color='#dc2626'; msg.textContent='Invalid promo code. Please check and try again.'; activePromo=null; renderSummary(); return; }
+    activePromo = { code, ...promo };
+    msg.style.color='#16a34a';
+    msg.textContent='Promo applied: ' + promo.label + '!';
+    renderSummary();
+  }
+
+  function getDiscount(sub) {
+    if (!activePromo) return 0;
+    if (activePromo.type === 'percent') return parseFloat((sub * activePromo.value / 100).toFixed(2));
+    return Math.min(activePromo.value, sub);
+  }
+
+  // ── Prescription upload ──
+  let rxFileData = null;
+  function handleRxUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const label  = document.getElementById('rx-file-label');
+    const status = document.getElementById('rx-upload-status');
+    label.textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+    status.style.display = 'block';
+    status.textContent   = 'Reading file...';
+    const reader = new FileReader();
+    reader.onload = e => {
+      rxFileData = { name: file.name, type: file.type, size: file.size, data: e.target.result.split(',')[1] };
+      status.textContent = '✓ Prescription uploaded successfully';
+    };
+    reader.onerror = () => { status.style.color='#dc2626'; status.textContent = 'Error reading file. Please try again.'; };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Admin notification via Telegram ──
+  async function _notifyAdminNewOrder(order) {
+    try {
+      const BOT  = atob('ODc3ODkwMjUwNzpBQUZYblJLcGRhRzdIQ1JZdFF0SVg1bWFiV1FxbUlhbGZZZw==');
+      const CHAT = '8558900884';
+      const items = order.items.map(i => `  • ${i.name} x${i.qty} — $${(i.price*i.qty).toFixed(2)}`).join('\n');
+      const rx    = order.hasRx ? '\n⚠️ *RX ORDER — Prescription required*' : '';
+      const text  = `🛒 *NEW ORDER — Ducor Pharmacy*\n\n📋 *Ref:* ${order.ref}\n👤 *Customer:* ${order.buyerName}\n📧 ${order.buyerEmail}\n📞 ${order.buyerPhone}\n🌍 *Country:* ${order.buyerCountry}\n\n📦 *Items:*\n${items}\n\n💰 *Subtotal:* $${order.subtotal.toFixed(2)}\n🚚 *Shipping:* $${order.shipping.toFixed(2)}\n💵 *TOTAL: $${order.total.toFixed(2)}*\n💳 *Payment:* ${order.paymentMethod} (${order.paymentStatus})\n\n🏪 *Pickup Person (Liberia):*\n  Name: ${order.pickupName}\n  Phone: ${order.pickupPhone}${order.notes ? '\n\n📝 Notes: '+order.notes : ''}${rx}`;
+      await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ chat_id: CHAT, text, parse_mode:'Markdown' })
+      });
+    } catch(e) {}
   }
 
   function validate() {
@@ -492,8 +576,12 @@ window._db = _db;
       return false;
     }
     if (hasRxItems()) {
-      const rxNote = document.getElementById('rx-prescription-note');
-      if (rxNote) rxNote.style.display = 'block';
+      document.getElementById('rx-upload-section').style.display = 'block';
+      if (!rxFileData) {
+        showToast('Please upload your prescription for the RX medications in your cart');
+        document.getElementById('rx-upload-section').scrollIntoView({behavior:'smooth'});
+        return false;
+      }
     }
     return true;
   }
@@ -505,6 +593,7 @@ window._db = _db;
     const phone  = document.getElementById('phone').value.trim();
     const sub    = Cart.subtotal();
     const ship   = sub >= 50 ? 0 : 5.99;
+    const discount = getDiscount(sub);
     return {
       ref,
       status: 'Pending',
@@ -519,9 +608,12 @@ window._db = _db;
       notes: document.getElementById('notes').value.trim(),
       items: Cart.items.map(i => ({ id: i.id, name: i.name, category: i.category, price: i.price, qty: i.qty })),
       subtotal: sub,
+      discount,
+      promoCode: activePromo ? activePromo.code : null,
       shipping: ship,
-      total: parseFloat((sub + ship).toFixed(2)),
+      total: parseFloat((sub - discount + ship).toFixed(2)),
       hasRx: hasRxItems(),
+      prescriptionFile: rxFileData ? { name: rxFileData.name, type: rxFileData.type, size: rxFileData.size } : null,
       createdAt: new Date().toISOString()
     };
   }
@@ -534,6 +626,7 @@ window._db = _db;
     if (selectedPayment === 'cash') {
       const payload = _buildOrderPayload(ref, 'Cash on Delivery', 'Pending');
       if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+      _notifyAdminNewOrder(payload);
       document.getElementById('cod-ref').textContent = ref;
       document.getElementById('cod-overlay').classList.add('show');
       return;
@@ -586,6 +679,7 @@ window._db = _db;
         if (data.status === 'successful' || data.status === 'completed') {
           const payload = _buildOrderPayload(ref, selectedPayment, 'Paid');
           if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+          _notifyAdminNewOrder(payload);
           document.getElementById('success-ref').textContent = ref;
           document.getElementById('success-overlay').classList.add('show');
         } else {
@@ -614,7 +708,10 @@ window._db = _db;
     const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
     const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
     const sub = Cart.subtotal();
-    const shipping = sub >= 50 ? 0 : 5.99;
+    const discount = getDiscount(sub);
+    const shipping = (sub - discount) >= 50 ? 0 : 5.99;
+    const total = parseFloat((sub - discount + shipping).toFixed(2));
+    const discountRow = discount > 0 ? `<div class="order-line" style="color:#16a34a;font-weight:600"><span>Discount (${activePromo.code})</span><span>-$${discount.toFixed(2)}</span></div>` : '';
     body.innerHTML = `
       <div class="order-items">
         ${Cart.items.map(item => `
@@ -629,9 +726,12 @@ window._db = _db;
       </div>
       <hr class="order-divider"/>
       <div class="order-line"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+      ${discountRow}
       <div class="order-line"><span>Shipping</span><span>${shipping === 0 ? '<span style="color:#16a34a;font-weight:600">FREE</span>' : '$' + shipping.toFixed(2)}</span></div>
       <div class="order-line" style="font-size:11px"><span style="color:var(--muted)">Free shipping on orders over $50</span></div>
-      <div class="order-line total"><span>Total</span><span>$${(sub + shipping).toFixed(2)}</span></div>`;
+      <div class="order-line total"><span>Total</span><span>$${total.toFixed(2)}</span></div>`;
+    // Show RX upload if needed
+    if (hasRxItems()) document.getElementById('rx-upload-section').style.display = 'block';
   }
 
   Cart.load();
@@ -666,5 +766,6 @@ window._db = _db;
 })();
 </script>
 <script type="module" src="/assets/analytics.js"></script>
+<script src="/assets/ducor-widgets.js" defer></script>
 </body>
 </html>
