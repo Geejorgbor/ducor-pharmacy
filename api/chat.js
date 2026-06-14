@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'messages array required' });
   }
 
-  const SYSTEM = `You are the AI Pharmacist for Ducor International Pharmacy (DIP) — Liberia's premier online pharmacy located in Monrovia, Liberia. You are knowledgeable, friendly, professional, and speak in a warm, helpful tone.
+  const SYSTEM = `You are the Customer Service representative for Ducor International Pharmacy (DIP) — Liberia's premier online pharmacy located in Monrovia, Liberia. You are knowledgeable, friendly, professional, and speak in a warm, helpful tone.
 
 About Ducor International Pharmacy:
 - Full name: Ducor International Pharmacy (DIP)
