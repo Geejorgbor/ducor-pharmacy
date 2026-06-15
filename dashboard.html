@@ -1117,15 +1117,14 @@ function saveNotifs() { localStorage.setItem('ducor-notifs', JSON.stringify(NOTI
 function saveLog() { localStorage.setItem('ducor-security-log', JSON.stringify(SECURITY_LOG.slice(0,200))); }
 
 // ── AUTH GUARD ──
-const _bypassEmail = sessionStorage.getItem('ducor-admin-email');
-const _bypass = sessionStorage.getItem('ducor-admin') === '1' && _bypassEmail === 'ducor.admin@ducorpharmacy.com';
+const _adminSession = sessionStorage.getItem('ducor-admin') === '1';
+const _adminEmail   = sessionStorage.getItem('ducor-admin-email') || '';
 
-if (_bypass) {
-  const _initials = 'DA';
-  document.getElementById('admin-initials').textContent = _initials;
-  document.getElementById('admin-name').textContent = 'ducor.admin';
-  document.getElementById('admin-email-display').textContent = _bypassEmail;
-  addLog('info', `Admin signed in: ${_bypassEmail}`);
+if (_adminSession) {
+  document.getElementById('admin-initials').textContent = _adminEmail.substring(0,2).toUpperCase() || 'DA';
+  document.getElementById('admin-name').textContent = _adminEmail.split('@')[0] || 'Admin';
+  document.getElementById('admin-email-display').textContent = _adminEmail;
+  addLog('info', `Admin signed in: ${_adminEmail}`);
   init();
 } else {
   onAuthStateChanged(auth, user => {
