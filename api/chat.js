@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages = [] } = req.body || {};
+  const { messages = [], system: customSystem } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array required' });
   }
@@ -45,6 +45,9 @@ Important rules:
 
 You represent a professional, trusted pharmacy. Be warm but precise.`;
 
+  // Admin AI can supply its own system prompt
+  const activeSystem = customSystem || SYSTEM;
+
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'AI service not configured', reply: null });
@@ -79,7 +82,7 @@ You represent a professional, trusted pharmacy. Be warm but precise.`;
         body: JSON.stringify({
           model: 'anthropic/claude-3-haiku',
           messages: [
-            { role: 'system', content: SYSTEM },
+            { role: 'system', content: activeSystem },
             ...safeMessages
           ],
           max_tokens: 500,
@@ -102,7 +105,7 @@ You represent a professional, trusted pharmacy. Be warm but precise.`;
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          system: SYSTEM,
+          system: activeSystem,
           messages: safeMessages,
           max_tokens: 500
         })
