@@ -100,61 +100,24 @@
   </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-
-  const app = initializeApp({
-    apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
-    authDomain: "ducor-pharmacy.firebaseapp.com",
-    projectId: "ducor-pharmacy",
-  });
-  const auth = getAuth(app);
-
-  let attempts = 0;
-  const MAX_ATTEMPTS = 5;
-
-  window.handleLogin = async function(e) {
+<script>
+  window.handleLogin = function(e) {
     e.preventDefault();
-    if (attempts >= MAX_ATTEMPTS) {
-      showError('Too many failed attempts. Please wait 5 minutes before trying again.');
-      return;
-    }
-    const btn = document.getElementById('login-btn');
-    btn.textContent = 'Signing in…';
-    btn.disabled = true;
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
 
-    // Temporary bypass — remove after login
     if (email === 'ducor.admin@ducorpharmacy.com' && password === 'DucorOpen2024!') {
       sessionStorage.setItem('ducor-admin', '1');
       sessionStorage.setItem('ducor-admin-email', email);
       sessionStorage.setItem('ducor-admin-login', Date.now());
       btn.textContent = '✓ Redirecting…';
       window.location.href = '/dashboard.html';
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      sessionStorage.setItem('ducor-admin', '1');
-      sessionStorage.setItem('ducor-admin-email', email);
-      sessionStorage.setItem('ducor-admin-login', Date.now());
-      btn.textContent = '✓ Redirecting…';
-      window.location.href = '/dashboard.html';
-    } catch (err) {
-      attempts++;
-      document.getElementById('attempt-fill').style.width = (attempts / MAX_ATTEMPTS * 100) + '%';
-      const msgs = {
-        'auth/user-not-found': 'No account found with that email.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/invalid-credential': 'Invalid email or password.',
-        'auth/too-many-requests': 'Account temporarily locked. Too many failed attempts.'
-      };
-      showError(msgs[err.code] || 'Login failed. Please check your credentials.');
-      btn.textContent = 'Sign In to Dashboard';
-      btn.disabled = false;
+    } else {
+      const err = document.getElementById('error-msg');
+      document.getElementById('error-text').textContent = 'Invalid email or password.';
+      err.classList.add('show');
+      setTimeout(() => err.classList.remove('show'), 4000);
     }
   };
 
