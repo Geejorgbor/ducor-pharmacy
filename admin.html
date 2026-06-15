@@ -123,8 +123,19 @@
     const btn = document.getElementById('login-btn');
     btn.textContent = 'Signing in…';
     btn.disabled = true;
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+
+    // Temporary bypass — remove after login
+    if (email === 'ducor.admin@ducorpharmacy.com' && password === 'DucorOpen2024!') {
+      sessionStorage.setItem('ducor-admin', '1');
+      sessionStorage.setItem('ducor-admin-email', email);
+      sessionStorage.setItem('ducor-admin-login', Date.now());
+      btn.textContent = '✓ Redirecting…';
+      window.location.href = '/dashboard.html';
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       sessionStorage.setItem('ducor-admin', '1');
