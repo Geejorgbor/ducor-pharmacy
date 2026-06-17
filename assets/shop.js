@@ -1186,7 +1186,7 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
-        ${category === 'rx' ? '' : `<p class="product-price">$${p.price.toFixed(2)} <span>/ Dose</span></p>`}
+        ${(category === 'rx' || category === 'prescription') ? '' : `<p class="product-price">$${p.price.toFixed(2)} <span>/ Dose</span></p>`}
         <button class="btn-add" id="btn-${p.id}" onclick="addToCart('${p.id}','${category}')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add to Cart
