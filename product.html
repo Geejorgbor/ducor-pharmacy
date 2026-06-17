@@ -211,9 +211,9 @@
 
     <h1 class="pd-name" id="pd-name">Loading…</h1>
 
-    <div class="pd-price-row">
+    <div class="pd-price-row" id="pd-price-row">
       <span class="pd-price" id="pd-price"></span>
-      <span class="pd-unit">/ unit</span>
+      <span class="pd-unit">/ Dose</span>
     </div>
 
     <hr class="pd-divider">
@@ -409,8 +409,12 @@
   tagEl.className   = 'pd-tag product-tag ' + (tagClass[dispCat] || 'tag-rx');
 
   // Name & price
-  document.getElementById('pd-name').textContent  = product.name;
-  document.getElementById('pd-price').textContent = '$' + product.price.toFixed(2);
+  document.getElementById('pd-name').textContent = product.name;
+  if (dispCat === 'rx') {
+    document.getElementById('pd-price-row').style.display = 'none';
+  } else {
+    document.getElementById('pd-price').textContent = '$' + product.price.toFixed(2);
+  }
 
   // Image background
   document.getElementById('pd-img-wrap').className = 'pd-img-wrap ' + (bgClass[dispCat] || 'rx-bg');
