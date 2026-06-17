@@ -1053,7 +1053,7 @@ const ProductModal = {
           <h2 class="pm-name" id="pm-name"></h2>
           <div class="pm-price-row">
             <span class="pm-price" id="pm-price"></span>
-            <span class="pm-unit">/ unit</span>
+            <span class="pm-unit" id="pm-unit">/ Dose</span>
           </div>
           <p class="pm-note" id="pm-note"></p>
           <hr class="pm-divider">
@@ -1107,6 +1107,8 @@ const ProductModal = {
     document.getElementById('pm-name').textContent  = product.name;
     document.getElementById('pm-price').textContent = '$' + product.price.toFixed(2);
     document.getElementById('pm-note').textContent  = notes[dispCat] || '';
+    const priceRow = document.querySelector('.pm-price-row');
+    if (priceRow) priceRow.style.display = dispCat === 'rx' ? 'none' : '';
 
     const imgSide = document.getElementById('pm-img-side');
     imgSide.className = 'pm-img-side ' + (bgClasses[dispCat] || 'rx-bg');
@@ -1184,7 +1186,7 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
-        <p class="product-price">$${p.price.toFixed(2)} <span>/ unit</span></p>
+        ${category === 'rx' ? '' : `<p class="product-price">$${p.price.toFixed(2)} <span>/ Dose</span></p>`}
         <button class="btn-add" id="btn-${p.id}" onclick="addToCart('${p.id}','${category}')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add to Cart

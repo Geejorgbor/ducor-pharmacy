@@ -111,7 +111,7 @@ function initSearch() {
       <a class="ducor-sr-item" href="${catPage[p.category] || '/prescription.html'}#${p.id}" data-idx="${i}">
         <span class="ducor-sr-badge ${p.category}">${p.category === 'prescription' ? 'RX' : p.category === 'otc' ? 'OTC' : 'VIT'}</span>
         <span class="ducor-sr-name">${p.name}</span>
-        <span class="ducor-sr-price">$${p.price.toFixed(2)}</span>
+        ${p.category === 'prescription' ? '' : `<span class="ducor-sr-price">$${p.price.toFixed(2)}</span>`}
       </a>`).join('');
     selectedIdx = -1;
   }
