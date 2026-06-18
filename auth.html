@@ -179,6 +179,15 @@
     .footer-secure{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.25);font-size:0.69rem}
     .footer-back{display:inline-flex;align-items:center;gap:4px;color:rgba(255,255,255,0.3);font-size:0.69rem;text-decoration:none;transition:color .2s}
     .footer-back:hover{color:rgba(255,255,255,0.6)}
+
+    /* ── Google button ── */
+    .btn-google{width:100%;padding:13px 16px;border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:0.92rem;font-weight:600;cursor:pointer;font-family:inherit;background:rgba(255,255,255,0.08);color:#fff;display:flex;align-items:center;justify-content:center;gap:11px;transition:all .2s;letter-spacing:0.2px;margin-bottom:16px}
+    .btn-google:hover{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.28);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+    .btn-google:active{transform:translateY(0)}
+    .btn-google:disabled{opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none}
+    .or-divider{display:flex;align-items:center;gap:12px;margin-bottom:18px;color:rgba(255,255,255,0.2);font-size:0.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+    .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.1)}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -228,6 +237,13 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span style="color:#fca5a5;font-weight:500">Too many attempts — wait <strong id="rate-timer">15:00</strong></span>
       </div>
+
+      <!-- Google Sign-In -->
+      <button type="button" class="btn-google" id="google-btn-login" onclick="signInWithGoogle('google-btn-login')">
+        <svg width="19" height="19" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="or-divider">or sign in with email</div>
 
       <div class="hp" aria-hidden="true"><input type="text" id="hp-login" name="website" tabindex="-1" autocomplete="off"/></div>
 
@@ -285,6 +301,13 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><polyline points="20 6 9 17 4 12"/></svg>
         <span>Account created! Taking you in now...</span>
       </div>
+
+      <!-- Google Sign-In -->
+      <button type="button" class="btn-google" id="google-btn-signup" onclick="signInWithGoogle('google-btn-signup')">
+        <svg width="19" height="19" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Sign up with Google
+      </button>
+      <div class="or-divider">or create account with email</div>
 
       <div class="hp" aria-hidden="true"><input type="text" id="hp-signup" name="website2" tabindex="-1" autocomplete="off"/></div>
 
@@ -537,32 +560,32 @@
     <div style="height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),var(--gold),transparent)"></div>
     <div style="padding:36px 36px 28px" id="reset-body">
 
-      <!-- STEP 1: Enter phone -->
+      <!-- STEP 1: Enter email -->
       <div id="rst-step1">
         <div style="text-align:center;margin-bottom:24px">
           <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,160,85,0.12);border:1.5px solid rgba(201,160,85,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
           </div>
           <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Reset Your Password</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your registered phone number and we will send a 6-digit code by SMS.</p>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your registered email address. Our team will send you a reset code via WhatsApp shortly.</p>
         </div>
         <div id="rst-err1" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
-        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Phone Number</label>
+        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Email Address</label>
         <div style="position:relative;margin-bottom:18px">
-          <input id="rst-phone" type="tel" placeholder="+231 880 000 000" style="width:100%;padding:12px 14px 12px 42px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')sendResetCode()"/>
-          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <input id="rst-phone" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px 12px 42px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')sendResetCode()"/>
+          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
         </div>
-        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Send SMS Code</button>
+        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Request Reset Code</button>
       </div>
 
       <!-- STEP 2: Enter code -->
       <div id="rst-step2" style="display:none">
         <div style="text-align:center;margin-bottom:24px">
           <div style="width:56px;height:56px;border-radius:50%;background:rgba(13,148,136,0.12);border:1.5px solid rgba(13,148,136,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           </div>
-          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Check Your SMS</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">A 6-digit code was sent by SMS to <strong id="rst-phone-display" style="color:var(--gold)"></strong>. Enter it below. The code expires in 15 minutes.<br/><br/>Need help? Call us: <strong style="color:var(--gold)">+231 880 187 490</strong></p>
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Check Your WhatsApp</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Your reset request was received. Our pharmacy team will send a 6-digit code to your WhatsApp number shortly.<br/><br/>Need help now? WhatsApp us directly: <a href="https://wa.me/231887221275" target="_blank" style="color:var(--gold);font-weight:600">+231 887 221 275</a></p>
         </div>
         <div id="rst-err2" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
         <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">6-Digit Code</label>
@@ -614,6 +637,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _app = initializeApp({
   apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -624,6 +648,9 @@ const _app = initializeApp({
   appId:"1:952933384266:web:55b906e903d96940d426b3"
 });
 const _db = getFirestore(_app);
+const _auth = getAuth(_app);
+const _gProvider = new GoogleAuthProvider();
+_gProvider.setCustomParameters({ prompt: 'select_account' });
 
 /* ── SECURITY ── */
 async function sha256(str){
@@ -740,72 +767,42 @@ window.closeReset = function() {
 };
 
 window.sendResetCode = async function() {
-  const phone = document.getElementById('rst-phone').value.trim();
-  if (!phone || phone.length < 7) {
-    _rstErr(1, 'Please enter your registered phone number.'); return;
+  const email = document.getElementById('rst-phone').value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    _rstErr(1, 'Please enter a valid email address.'); return;
   }
 
   const btn = document.getElementById('rst-send-btn');
-  btn.disabled = true; btn.textContent = 'Sending SMS...';
+  btn.disabled = true; btn.textContent = 'Sending request...';
 
-  // Find account by phone number
-  let matchedUser = null;
-  try {
-    const { collection, getDocs, query, where } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-    const snap = await getDocs(query(collection(_db,'customers'), where('phone','==',phone)));
-    if (!snap.empty) matchedUser = snap.docs[0].data();
-  } catch(ex) {}
-  // Fallback: search localStorage
+  // Find account by email
+  let matchedUser = await findUser(email);
   if (!matchedUser) {
-    matchedUser = getLocalUsers().find(u => u.phone === phone) || null;
-  }
-  if (!matchedUser) {
-    _rstErr(1, 'No account found with this phone number. Please check and try again.');
-    btn.disabled = false; btn.textContent = 'Send SMS Code'; return;
+    _rstErr(1, 'No account found with this email. Please check and try again.');
+    btn.disabled = false; btn.textContent = 'Request Reset Code'; return;
   }
 
   // Generate 6-digit code
   const code   = String(Math.floor(100000 + Math.random() * 900000));
   const expiry = Date.now() + 15 * 60 * 1000;
-  _rstEmail  = matchedUser.email || phone;
+  _rstEmail  = email;
   _rstCode   = code;
   _rstExpiry = expiry;
 
   // Store in Firestore
   try {
     const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-    await setDoc(doc(_db, 'passwordResets', _rstEmail), { code, expiry, phone });
+    await setDoc(doc(_db, 'passwordResets', email), { code, expiry, email });
   } catch(ex) {}
 
-  // Send SMS via Vercel serverless function (Africa's Talking)
-  let smsSent = false;
-  try {
-    const r = await fetch('/api/send-sms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, code, name: matchedUser.fname || '' })
-    });
-    const d = await r.json();
-    smsSent = d.ok;
-  } catch(ex) {}
+  // Notify admin on Telegram — admin will WhatsApp the code to the customer
+  await _sendTelegramCode(email, code, matchedUser.phone || 'not provided');
 
-  // Always also notify admin on Telegram as backup
-  await _sendTelegramCode(_rstEmail, code, phone);
+  _rstErr(1,'');
+  _rstShow('rst-step2');
+  setTimeout(() => document.getElementById('rst-code').focus(), 100);
 
-  if (smsSent) {
-    document.getElementById('rst-phone-display').textContent = phone;
-    _rstErr(1,'');
-    _rstShow('rst-step2');
-    setTimeout(() => document.getElementById('rst-code').focus(), 100);
-  } else {
-    // SMS not yet configured — still show step 2, admin will contact customer
-    document.getElementById('rst-phone-display').textContent = phone;
-    _rstErr(1,'');
-    _rstShow('rst-step2');
-    setTimeout(() => document.getElementById('rst-code').focus(), 100);
-  }
-
-  btn.disabled = false; btn.textContent = 'Send SMS Code';
+  btn.disabled = false; btn.textContent = 'Request Reset Code';
 };
 
 window.verifyCode = async function() {
@@ -867,6 +864,65 @@ window.saveNewPassword = async function() {
     _rstShow('rst-step4');
   } catch(ex) {
     _rstErr(3, 'Failed to save password. Please try again.');
+  }
+};
+
+/* ── GOOGLE SIGN-IN ── */
+window.signInWithGoogle = async function(btnId) {
+  const btn = document.getElementById(btnId);
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Connecting to Google...';
+
+  try {
+    const result = await signInWithPopup(_auth, _gProvider);
+    const gUser = result.user;
+    const email = gUser.email.toLowerCase();
+
+    // Find or create Ducor account
+    let ducorUser = await findUser(email);
+
+    if (!ducorUser) {
+      // New user — auto-create their account
+      const nameParts = (gUser.displayName || '').split(' ');
+      const userId = gUser.uid;
+      const userData = {
+        id: userId,
+        email,
+        fname: nameParts[0] || '',
+        lname: nameParts.slice(1).join(' ') || '',
+        phone: '',
+        country: 'Not specified',
+        authProvider: 'google',
+        photoURL: gUser.photoURL || '',
+        createdAt: serverTimestamp(),
+        orders: [],
+        prescriptions: []
+      };
+      try {
+        await addDoc(collection(_db, 'customers'), userData);
+      } catch(ex) {
+        saveLocalUser({ ...userData, createdAt: Date.now() });
+      }
+      saveLocalUser({ ...userData, createdAt: Date.now() });
+      createSession(userId, true);
+    } else {
+      createSession(ducorUser.id || ducorUser.userId || gUser.uid, true);
+    }
+
+    window.location.href = _nextUrl;
+
+  } catch(err) {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    if (err.code === 'auth/popup-blocked') {
+      showAlert('login-err', 'Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.');
+    } else if (err.code === 'auth/operation-not-allowed') {
+      showAlert('login-err', 'Google sign-in is not yet enabled. Please sign in with email and password for now.');
+    } else {
+      showAlert('login-err', 'Google sign-in failed. Please try again or use email and password.');
+    }
   }
 };
 
