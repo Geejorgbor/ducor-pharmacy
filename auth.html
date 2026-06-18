@@ -567,7 +567,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
           </div>
           <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Reset Your Password</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your registered email address. Our team will send you a reset code via WhatsApp shortly.</p>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Enter your registered email address and we'll send you a link to reset your password.</p>
         </div>
         <div id="rst-err1" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
         <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Email Address</label>
@@ -575,7 +575,7 @@
           <input id="rst-phone" type="email" placeholder="you@example.com" style="width:100%;padding:12px 14px 12px 42px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')sendResetCode()"/>
           <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
         </div>
-        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Request Reset Code</button>
+        <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Send Reset Link to Email</button>
       </div>
 
       <!-- STEP 2: Email sent confirmation -->
@@ -693,12 +693,14 @@ window.checkStrength = function(pw){
 let _rstEmail = '';
 
 function _rstShow(step) {
-  ['rst-step1','rst-step2','rst-step3','rst-step4'].forEach(s => {
-    document.getElementById(s).style.display = s === step ? 'block' : 'none';
+  ['rst-step1','rst-step2'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = s === step ? 'block' : 'none';
   });
 }
 function _rstErr(step, msg) {
   const el = document.getElementById('rst-err' + step);
+  if (!el) return;
   el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
 }
@@ -732,69 +734,7 @@ window.sendResetCode = async function() {
       _rstErr(1, 'Could not send reset email. Please try again or contact us on WhatsApp.');
     }
   }
-  btn.disabled = false; btn.textContent = 'Send Reset Email';
-};
-
-window.verifyCode = async function() {
-  const entered = document.getElementById('rst-code').value.trim();
-  if (!entered || entered.length < 6) { _rstErr(2, 'Please enter the full 6-digit code.'); return; }
-
-  // Check local memory first
-  let valid = (entered === _rstCode && Date.now() < _rstExpiry);
-
-  // Check Firestore if local check fails
-  if (!valid) {
-    try {
-      const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-      const snap = await getDoc(doc(_db, 'passwordResets', _rstEmail));
-      if (snap.exists()) {
-        const d = snap.data();
-        valid = (entered === d.code && Date.now() < d.expiry);
-      }
-    } catch(ex) {}
-  }
-
-  if (!valid) {
-    _rstErr(2, 'Incorrect or expired code. Please try again or request a new code.'); return;
-  }
-  _rstErr(2,'');
-  _rstShow('rst-step3');
-  setTimeout(() => document.getElementById('rst-pw1').focus(), 100);
-};
-
-window.saveNewPassword = async function() {
-  const pw1 = document.getElementById('rst-pw1').value;
-  const pw2 = document.getElementById('rst-pw2').value;
-  if (!pw1 || pw1.length < 8) { _rstErr(3, 'Password must be at least 8 characters.'); return; }
-  if (pw1 !== pw2) { _rstErr(3, 'Passwords do not match.'); return; }
-
-  try {
-    const newHash = await sha256(pw1 + 'ducor_ph_salt_2025_' + _rstEmail);
-
-    // Update in Firestore
-    try {
-      const { collection, getDocs, query, where, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-      const snap = await getDocs(query(collection(_db,'customers'), where('email','==',_rstEmail)));
-      if (!snap.empty) await updateDoc(snap.docs[0].ref, { pwHash: newHash });
-    } catch(ex) {}
-
-    // Update in localStorage
-    try {
-      const users = getLocalUsers();
-      const u = users.find(u => u.email === _rstEmail);
-      if (u) { u.pwHash = newHash; localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
-    } catch(ex) {}
-
-    // Clear reset token from Firestore
-    try {
-      const { doc: fdoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-      await deleteDoc(fdoc(_db, 'passwordResets', _rstEmail));
-    } catch(ex) {}
-
-    _rstShow('rst-step4');
-  } catch(ex) {
-    _rstErr(3, 'Failed to save password. Please try again.');
-  }
+  btn.disabled = false; btn.textContent = 'Send Reset Link to Email';
 };
 
 /* ── GOOGLE SIGN-IN ── */
