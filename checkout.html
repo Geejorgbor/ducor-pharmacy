@@ -30,6 +30,19 @@
     .form-group textarea { resize: vertical; min-height: 80px; }
     .form-spacer { height: 24px; }
 
+    /* ── Who Is This For ── */
+    .who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .who-option { border: 2px solid var(--border); border-radius: 16px; padding: 20px 18px; cursor: pointer; transition: all 0.2s; position: relative; display: flex; align-items: center; gap: 16px; }
+    .who-option:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(212,175,55,0.15); }
+    .who-option.selected { border-color: var(--navy); background: rgba(13,27,42,0.04); }
+    .who-option.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; width: 20px; height: 20px; background: var(--navy); color: white; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 20px; text-align: center; }
+    .who-icon { width: 48px; height: 48px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .who-icon.self-icon { background: linear-gradient(135deg, #0a2558, #1e40af); }
+    .who-icon.other-icon { background: linear-gradient(135deg, #d4af37, #c9a227); }
+    .who-text h4 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+    .who-text p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .patient-section { background: linear-gradient(135deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02)); border: 1.5px solid rgba(212,175,55,0.3); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+
     /* ── Payment Methods ── */
     .payment-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     @media (max-width: 640px) { .payment-grid { grid-template-columns: 1fr; } }
@@ -39,7 +52,6 @@
     .pay-option.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; width: 20px; height: 20px; background: var(--navy); color: white; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 20px; text-align: center; }
     .pay-option-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
     .pay-option-icon.mtn { background: #FFC107; }
-    .pay-option-icon.orange { background: #FF6600; }
     .pay-option-icon.sendwave { background: #2563eb; }
     .pay-option-icon.bank { background: #0d1b2a; }
     .pay-option-icon.cash { background: #16a34a; }
@@ -49,7 +61,6 @@
     /* ── Payment Details Box ── */
     .pay-details-box { border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
     .pay-details-box.mtn-info { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1.5px solid #fcd34d; }
-    .pay-details-box.orange-info { background: linear-gradient(135deg, #fff7ed, #fed7aa); border: 1.5px solid #fb923c; }
     .pay-details-box.sendwave-info { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; }
     .pay-details-box.bank-info { background: linear-gradient(135deg, #f0f4f8, #d9e2ec); border: 1.5px solid #94a3b8; }
     .pay-details-box.cash-info { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1.5px solid #86efac; }
@@ -163,7 +174,60 @@
     </div>
     <div class="card-body" id="checkout-form-body">
 
-      <p class="form-section-title">Personal Information</p>
+      <!-- Who Is This Order For -->
+      <p class="form-section-title">Who Is This Order For?</p>
+      <div class="who-grid">
+        <div class="who-option selected" onclick="selectWho(this,'self')" id="who-self">
+          <div class="who-icon self-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="who-text">
+            <h4>For Myself</h4>
+            <p>I am the patient / recipient</p>
+          </div>
+        </div>
+        <div class="who-option" onclick="selectWho(this,'other')" id="who-other">
+          <div class="who-icon other-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="18" cy="8" r="2.5"/><path d="M15 20c0-2 1.8-3.5 4-3.5"/></svg>
+          </div>
+          <div class="who-text">
+            <h4>For Someone Else</h4>
+            <p>Paying on behalf of a patient</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient / Recipient Details (shown when ordering for someone else) -->
+      <div class="patient-section" id="patient-section" style="display:none">
+        <p style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Patient / Recipient Details</p>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>Patient's Full Name *</label>
+            <input type="text" id="patient-name" placeholder="Full name of the patient"/>
+          </div>
+          <div class="form-group">
+            <label>Your Relationship *</label>
+            <select id="patient-relationship">
+              <option value="">— Select relationship —</option>
+              <option>Parent</option>
+              <option>Child / Son / Daughter</option>
+              <option>Spouse / Partner</option>
+              <option>Sibling</option>
+              <option>Grandparent</option>
+              <option>Friend</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Patient's Phone Number (Liberia, optional)</label>
+            <input type="tel" id="patient-phone" placeholder="+231 880 000 000"/>
+          </div>
+        </div>
+      </div>
+
+      <p class="form-section-title">Your Information (Payer)</p>
       <div class="form-row cols-2">
         <div class="form-group">
           <label>First Name *</label>
@@ -257,14 +321,6 @@
           </div>
           <h4>MTN Mobile Money</h4>
           <p>Lonestar MTN MoMo</p>
-        </div>
-        <!-- Orange Money -->
-        <div class="pay-option" onclick="selectPayment(this,'orange')" id="pay-orange">
-          <div class="pay-option-icon orange">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>
-          </div>
-          <h4>Orange Money</h4>
-          <p>Orange Liberia</p>
         </div>
         <!-- Sendwave -->
         <div class="pay-option" onclick="selectPayment(this,'sendwave')" id="pay-sendwave">
@@ -460,6 +516,14 @@ window._db = _db;
 </script>
 <script>
   let selectedPayment = 'mtn';
+  let orderingFor = 'self';
+
+  function selectWho(el, who) {
+    document.querySelectorAll('.who-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    orderingFor = who;
+    document.getElementById('patient-section').style.display = who === 'other' ? '' : 'none';
+  }
 
   const PAY_CONFIG = {
     mtn: {
@@ -469,21 +533,6 @@ window._db = _db;
       subColor: '#a16207',
       noteColor: '#a16207',
       title: 'Send Payment via MTN Mobile Money',
-      sub: 'Send payment to the number below after placing your order',
-      labelNumber: 'Number',
-      number: '+231 88 722 1275',
-      labelName: 'Account Name',
-      name: 'Ducor International Pharmacy',
-      note: 'After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
-      showRouting: false,
-    },
-    orange: {
-      boxClass: 'orange-info',
-      iconBg: '#FF6600',
-      titleColor: '#9a3412',
-      subColor: '#c2410c',
-      noteColor: '#c2410c',
-      title: 'Send Payment via Orange Money',
       sub: 'Send payment to the number below after placing your order',
       labelNumber: 'Number',
       number: '+231 88 722 1275',
@@ -633,7 +682,8 @@ window._db = _db;
       const CHAT = '8558900884';
       const items = order.items.map(i => `  • ${i.name} x${i.qty}${i.category === 'rx' ? ' — Price at pickup' : ' — $' + (i.price*i.qty).toFixed(2)}`).join('\n');
       const rx    = order.hasRx ? '\n⚠️ *RX ORDER — Prescription required*' : '';
-      const text  = `🛒 *NEW ORDER — Ducor Pharmacy*\n\n📋 *Ref:* ${order.ref}\n👤 *Customer:* ${order.buyerName}\n📧 ${order.buyerEmail}\n📞 ${order.buyerPhone}\n🌍 *Country:* ${order.buyerCountry}\n\n📦 *Items:*\n${items}\n\n💰 *Subtotal:* $${order.subtotal.toFixed(2)}\n🚚 *Shipping:* $${order.shipping.toFixed(2)}\n💵 *TOTAL: $${order.total.toFixed(2)}*\n💳 *Payment:* ${order.paymentMethod} (${order.paymentStatus})\n\n🏪 *Pickup Person (Liberia):*\n  Name: ${order.pickupName}\n  Phone: ${order.pickupPhone}${order.notes ? '\n\n📝 Notes: '+order.notes : ''}${rx}`;
+      const patientLine = order.orderingFor === 'other' ? `\n\n👥 *ORDERING FOR SOMEONE ELSE*\n  Patient: ${order.patientName}\n  Relationship: ${order.patientRelationship}${order.patientPhone ? '\n  Patient Phone: ' + order.patientPhone : ''}` : '';
+      const text  = `🛒 *NEW ORDER — Ducor Pharmacy*\n\n📋 *Ref:* ${order.ref}\n👤 *Customer:* ${order.buyerName}\n📧 ${order.buyerEmail}\n📞 ${order.buyerPhone}\n🌍 *Country:* ${order.buyerCountry}${patientLine}\n\n📦 *Items:*\n${items}\n\n💰 *Subtotal:* $${order.subtotal.toFixed(2)}\n🚚 *Shipping:* $${order.shipping.toFixed(2)}\n💵 *TOTAL: $${order.total.toFixed(2)}*\n💳 *Payment:* ${order.paymentMethod} (${order.paymentStatus})\n\n🏪 *Pickup Person (Liberia):*\n  Name: ${order.pickupName}\n  Phone: ${order.pickupPhone}${order.notes ? '\n\n📝 Notes: '+order.notes : ''}${rx}`;
       await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ chat_id: CHAT, text, parse_mode:'Markdown' })
@@ -670,6 +720,18 @@ window._db = _db;
       showToast('Please enter the collector\'s Liberia phone number');
       document.getElementById('pickup-phone').focus();
       return false;
+    }
+    if (orderingFor === 'other') {
+      if (!document.getElementById('patient-name').value.trim()) {
+        showToast('Please enter the patient\'s full name');
+        document.getElementById('patient-name').focus();
+        return false;
+      }
+      if (!document.getElementById('patient-relationship').value) {
+        showToast('Please select your relationship to the patient');
+        document.getElementById('patient-relationship').focus();
+        return false;
+      }
     }
     if (Cart.items.length === 0) {
       showToast('Your cart is empty');
@@ -712,6 +774,10 @@ window._db = _db;
       promoCode: activePromo ? activePromo.code : null,
       shipping: ship,
       total: parseFloat((sub - discount + ship).toFixed(2)),
+      orderingFor,
+      patientName: orderingFor === 'other' ? document.getElementById('patient-name').value.trim() : null,
+      patientRelationship: orderingFor === 'other' ? document.getElementById('patient-relationship').value : null,
+      patientPhone: orderingFor === 'other' ? document.getElementById('patient-phone').value.trim() : null,
       hasRx: hasRxItems(),
       prescriptionFile: rxFileData ? { name: rxFileData.name, type: rxFileData.type, size: rxFileData.size } : null,
       createdAt: new Date().toISOString()
@@ -725,7 +791,6 @@ window._db = _db;
 
     const methodLabels = {
       mtn: 'MTN Mobile Money',
-      orange: 'Orange Money',
       sendwave: 'Sendwave',
       bank: 'Chase Bank Transfer',
       cash: 'Cash on Delivery',
@@ -737,7 +802,6 @@ window._db = _db;
 
     const overlayMsg = {
       mtn: 'Your order is confirmed! Please send payment of $' + payload.total.toFixed(2) + ' to +231 88 722 1275 via MTN Mobile Money, then WhatsApp your receipt to +231 887 221 275.',
-      orange: 'Your order is confirmed! Please send payment of $' + payload.total.toFixed(2) + ' to +231 88 722 1275 via Orange Money, then WhatsApp your receipt to +231 887 221 275.',
       sendwave: 'Your order is confirmed! Please send $' + payload.total.toFixed(2) + ' via Sendwave to +231 88 722 1275, then WhatsApp your receipt to +231 887 221 275.',
       bank: 'Your order is confirmed! Please wire $' + payload.total.toFixed(2) + ' to Chase Bank Account #958758598 (Routing: 075000019), then email or WhatsApp your receipt to +231 887 221 275.',
       cash: 'Your order has been received. Our team will contact you to confirm delivery and collect payment on arrival.',
