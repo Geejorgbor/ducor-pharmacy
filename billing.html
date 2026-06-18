@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <title>Billing &amp; Payment – Ducor International Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <link rel="stylesheet" href="/assets/shop.css"/>
+  <style>
+    /* ── Page Header ── */
+    .billing-hero {
+      background: linear-gradient(135deg, #0a2558 0%, #1e3a7a 60%, #0a2558 100%);
+      padding: 72px 32px 52px;
+      text-align: center;
+    }
+    .billing-hero h1 {
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    .billing-hero .breadcrumb {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+    .billing-hero .breadcrumb a { color: #c8a84b; text-decoration: none; }
+    .billing-hero .breadcrumb span { margin: 0 8px; }
+
+    /* ── Wrap ── */
+    .billing-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+    @media (max-width: 640px) { .billing-wrap { padding: 32px 16px 60px; } }
+
+    /* ── Intro card ── */
+    .intro-card {
+      background: linear-gradient(135deg, rgba(10,37,88,0.04), rgba(200,168,75,0.06));
+      border: 1.5px solid rgba(200,168,75,0.25);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .intro-card svg { flex-shrink: 0; margin-top: 2px; }
+    .intro-card p { font-size: 14px; line-height: 1.8; color: #374151; }
+    .intro-card strong { color: #0a2558; }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #c8a84b;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* ── Payment Method Cards ── */
+    .method-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .method-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .method-header:hover { background: #f8fafc; }
+    .method-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .method-icon.mtn { background: #FFC107; }
+    .method-icon.sendwave { background: #2563eb; }
+    .method-icon.bank { background: #0a2558; }
+    .method-icon.cash { background: #16a34a; }
+    .method-title { flex: 1; }
+    .method-title h3 { font-size: 16px; font-weight: 700; color: #0a2558; margin-bottom: 3px; }
+    .method-title p { font-size: 12px; color: #6b7280; }
+    .method-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-local { background: #fef3c7; color: #92400e; }
+    .badge-intl { background: #dbeafe; color: #1e40af; }
+    .badge-usa { background: #f0fdf4; color: #166534; }
+    .badge-free { background: #dcfce7; color: #14532d; }
+    .method-chevron {
+      width: 20px;
+      height: 20px;
+      color: #9ca3af;
+      transition: transform 0.25s;
+      flex-shrink: 0;
+    }
+    .method-card.open .method-chevron { transform: rotate(180deg); }
+
+    .method-body {
+      display: none;
+      padding: 0 24px 24px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .method-card.open .method-body { display: block; }
+
+    /* ── Account info box ── */
+    .account-box {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: #fff;
+      border-radius: 9px;
+      border: 1px solid #e2e8f0;
+    }
+    .account-row span { font-size: 12px; color: #6b7280; }
+    .account-row strong { font-size: 14px; color: #111827; letter-spacing: 0.3px; }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #0a2558;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step p { font-size: 13px; color: #374151; line-height: 1.6; }
+    .step p strong { color: #0a2558; }
+    .step p a { color: #2563eb; text-decoration: none; font-weight: 600; }
+
+    /* ── Bank for-who toggle ── */
+    .for-who-wrap { margin: 18px 0 4px; }
+    .for-who-label { font-size: 12px; font-weight: 700; color: #0a2558; margin-bottom: 10px; display: block; }
+    .for-who-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .for-who-tab {
+      flex: 1;
+      padding: 12px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .for-who-tab:hover { border-color: #c8a84b; color: #0a2558; }
+    .for-who-tab.active { border-color: #0a2558; background: rgba(10,37,88,0.04); color: #0a2558; }
+    .for-who-content { display: none; }
+    .for-who-content.active { display: block; }
+
+    /* ── Note box ── */
+    .note-box {
+      background: linear-gradient(135deg, #fffbeb, #fef9ec);
+      border: 1.5px solid #fcd34d;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: #92400e;
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+    .note-box strong { color: #78350f; }
+
+    /* ── Questions / Contact ── */
+    .contact-card {
+      background: linear-gradient(135deg, #0a2558, #1e3a7a);
+      border-radius: 18px;
+      padding: 32px 32px;
+      margin-top: 40px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .contact-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .contact-card p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.8; }
+    .contact-card a { color: #c8a84b; text-decoration: none; font-weight: 600; }
+    .contact-card .contact-info { flex: 1; min-width: 220px; }
+    .contact-card .hours-info { flex: 1; min-width: 200px; }
+    .contact-card .hours-info h4 { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 8px; }
+    .contact-card .hours-info p { font-size: 12px; }
+
+    /* ── CTA ── */
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .btn-cta-primary {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #c8a84b, #b8942e);
+      color: #0a2558;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-cta-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(200,168,75,0.4); }
+    .btn-cta-secondary {
+      padding: 14px 28px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-cta-secondary:hover { background: rgba(255,255,255,0.18); }
+
+    /* ── Payment logos strip ── */
+    .logos-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 36px;
+      padding: 20px 24px;
+      background: #f8fafc;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+    }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+    }
+    .logo-badge .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-mtn { background: #FFC107; }
+    .dot-sw { background: #2563eb; }
+    .dot-bank { background: #0a2558; }
+    .dot-cash { background: #16a34a; }
+  </style>
+</head>
+<body>
+
+<nav class="shop-nav">
+  <a href="/index.html" class="nav-brand">
+    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <div class="nav-brand-text">
+      <h1>DUCOR</h1>
+      <p>International Pharmacy</p>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/index.html">Home</a>
+    <a href="/prescription.html">Prescription</a>
+    <a href="/otc.html">Over the Counter</a>
+    <a href="/vitamins.html">Vitamins</a>
+    <a href="/billing.html" class="active">Billing &amp; Payment</a>
+    <a href="/checkout.html">Checkout</a>
+    <a href="/account.html" id="nav-account-link" style="display:none">My Account</a>
+    <a href="/auth.html" id="nav-login-link">Sign In</a>
+  </div>
+  <button class="nav-cart-btn" onclick="Cart && Cart.open()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    Cart
+  </button>
+</nav>
+
+<!-- Hero -->
+<div class="billing-hero">
+  <h1>Billing &amp; Payment</h1>
+  <p class="breadcrumb">
+    <a href="/index.html">Home</a>
+    <span>›</span>
+    Billing &amp; Payment
+  </p>
+</div>
+
+<div class="billing-wrap">
+
+  <!-- Intro -->
+  <div class="intro-card">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8a84b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+    <p>
+      <strong>Ducor International Pharmacy</strong> is committed to making your payment process simple and secure.
+      We accept multiple payment methods for customers ordering from <strong>anywhere in the world</strong>.
+      Your medication will be ready for pickup at our pharmacy in <strong>Monrovia, Liberia</strong>.
+      Follow the instructions below for your preferred payment method.
+    </p>
+  </div>
+
+  <!-- Payment Methods -->
+  <p class="section-title">How to Pay Your Bill</p>
+
+  <!-- ── MTN Mobile Money ── -->
+  <div class="method-card open" id="card-mtn">
+    <div class="method-header" onclick="toggleCard('card-mtn')">
+      <div class="method-icon mtn">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M1 1l4 4 7-7 7 7 4-4v13a2 2 0 01-2 2H3a2 2 0 01-2-2V1z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 21V12h8v9" stroke="white" stroke-width="1.8"/></svg>
+      </div>
+      <div class="method-title">
+        <h3>MTN Mobile Money (Lonestar)</h3>
+        <p>Send payment directly from your MTN account</p>
+      </div>
+      <span class="method-badge badge-local">Liberia</span>
+      <svg class="method-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="method-body">
+      <div class="account-box">
+        <div class="account-row"><span>Send To (Number)</span><strong>+231 88 722 1275</strong></div>
+        <div class="account-row"><span>Account Name</span><strong>Ducor International Pharmacy</strong></div>
+        <div class="account-row"><span>Network</span><strong>Lonestar MTN</strong></div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <p>Dial <strong>*156#</strong> on your Lonestar MTN line or open your MTN MoMo app.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <p>Select <strong>"Send Money"</strong> and enter the number <strong>+231 88 722 1275</strong>.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <p>Enter the <strong>exact total amount</strong> shown on your order confirmation.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <p>Confirm the transaction and <strong>save or screenshot</strong> your receipt.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <p>WhatsApp your receipt to <a href="https://wa.me/231887221275" target="_blank">+231 887 221 275</a> with your order reference number to confirm your order.</p>
+        </div>
+      </div>
+      <div class="note-box">
+        <strong>Note:</strong> Only the Lonestar MTN number has a Mobile Money account. Please do not send to any other number.
+        Once we confirm your payment, your order will be processed and ready for pickup.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sendwave ── -->
+  <div class="method-card" id="card-sendwave">
+    <div class="method-header" onclick="toggleCard('card-sendwave')">
+      <div class="method-icon sendwave">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+      </div>
+      <div class="method-title">
+        <h3>Sendwave</h3>
+        <p>International money transfer — fast &amp; fee-free</p>
+      </div>
+      <span class="method-badge badge-intl">International</span>
+      <svg class="method-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="method-body">
+      <div class="account-box">
+        <div class="account-row"><span>Send To (Phone)</span><strong>+231 88 722 1275</strong></div>
+        <div class="account-row"><span>Recipient Name</span><strong>Ducor International Pharmacy</strong></div>
+        <div class="account-row"><span>Country</span><strong>Liberia 🇱🇷</strong></div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <p>Download the <strong>Sendwave app</strong> on your phone (available on iOS &amp; Android) or go to <strong>sendwave.com</strong>.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <p>Create an account or log in, then select <strong>Liberia</strong> as the destination country.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <p>Enter the phone number <strong>+231 88 722 1275</strong> as the recipient.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <p>Enter the <strong>exact total amount</strong> from your order confirmation and complete the transfer.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <p>WhatsApp your receipt or transfer confirmation to <a href="https://wa.me/231887221275" target="_blank">+231 887 221 275</a> with your order reference number.</p>
+        </div>
+      </div>
+      <div class="note-box">
+        <strong>Why Sendwave?</strong> Sendwave offers zero-fee transfers to Liberia from the USA, UK, Canada, and many other countries. It is fast, secure, and widely used.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chase Bank Transfer ── -->
+  <div class="method-card" id="card-bank">
+    <div class="method-header" onclick="toggleCard('card-bank')">
+      <div class="method-icon bank">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+      </div>
+      <div class="method-title">
+        <h3>Bank Transfer (Chase Bank — USA)</h3>
+        <p>Wire or Zelle transfer from your US bank account</p>
+      </div>
+      <span class="method-badge badge-usa">USA</span>
+      <svg class="method-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="method-body">
+
+      <div class="account-box">
+        <div class="account-row"><span>Bank Name</span><strong>Chase Bank</strong></div>
+        <div class="account-row"><span>Account Number</span><strong>958758598</strong></div>
+        <div class="account-row"><span>Routing Number</span><strong>075000019</strong></div>
+        <div class="account-row"><span>Account Name</span><strong>Ducor International Pharmacy</strong></div>
+      </div>
+
+      <!-- For yourself / For someone else tabs -->
+      <div class="for-who-wrap">
+        <span class="for-who-label">Who are you making this payment for?</span>
+        <div class="for-who-tabs">
+          <div class="for-who-tab active" onclick="switchBankTab('self', this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            For Myself
+          </div>
+          <div class="for-who-tab" onclick="switchBankTab('other', this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="18" cy="8" r="2.5"/><path d="M15 20c0-2 1.8-3.5 4-3.5"/></svg>
+            For Someone Else
+          </div>
+        </div>
+
+        <!-- For Myself steps -->
+        <div class="for-who-content active" id="bank-self">
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <p>Log in to your <strong>Chase Bank</strong> account online or open the Chase mobile app.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <p>Select <strong>"Pay &amp; Transfer"</strong> → <strong>"Wire Money"</strong> or <strong>"Zelle"</strong>.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <p>Enter our account details:<br/>
+                <strong>Account #: 958758598</strong><br/>
+                <strong>Routing #: 075000019</strong><br/>
+                <strong>Name: Ducor International Pharmacy</strong>
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <p>In the memo / note field write your <strong>full name and order reference number</strong>.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <p>Transfer the <strong>exact total amount</strong> shown on your order confirmation.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">6</div>
+              <p>Email or WhatsApp your transfer receipt to <a href="https://wa.me/231887221275" target="_blank">+231 887 221 275</a> with your order reference number.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- For Someone Else steps -->
+        <div class="for-who-content" id="bank-other">
+          <div class="note-box" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#93c5fd;color:#1e40af;margin-bottom:16px">
+            <strong>Paying on behalf of someone else?</strong> Please make sure the memo/note on your transfer includes the <strong>patient's full name</strong> and your order reference number so we can match the payment to the correct order.
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <p>Place the order on our website and fill in the <strong>"For Someone Else"</strong> section with the patient's name and your relationship to them.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <p>Log in to your <strong>Chase Bank</strong> account and go to <strong>"Pay &amp; Transfer"</strong> → <strong>"Wire Money"</strong> or <strong>"Zelle"</strong>.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <p>Enter our account details:<br/>
+                <strong>Account #: 958758598</strong><br/>
+                <strong>Routing #: 075000019</strong><br/>
+                <strong>Name: Ducor International Pharmacy</strong>
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <p>In the <strong>memo / note field</strong>, write: <em>"[Your name] paying for [Patient's full name] — Order Ref: [your order number]"</em></p>
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <p>Transfer the <strong>exact total amount</strong> shown on your order confirmation.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">6</div>
+              <p>Email or WhatsApp your receipt to <a href="https://wa.me/231887221275" target="_blank">+231 887 221 275</a>. Include the <strong>patient's name</strong> and order reference so we can confirm quickly.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="note-box">
+        <strong>Important:</strong> After placing your order online, please complete the bank transfer within <strong>48 hours</strong> to ensure your order is held. Orders with no payment confirmation after 48 hours may be cancelled.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Cash on Delivery ── -->
+  <div class="method-card" id="card-cash">
+    <div class="method-header" onclick="toggleCard('card-cash')">
+      <div class="method-icon cash">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>
+      </div>
+      <div class="method-title">
+        <h3>Cash on Delivery / Pickup</h3>
+        <p>Pay when you collect your order in Liberia</p>
+      </div>
+      <span class="method-badge badge-free">Free</span>
+      <svg class="method-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="method-body">
+      <div class="account-box">
+        <div class="account-row"><span>Location</span><strong>10 &amp; 11 Street, Tubman Boulevard</strong></div>
+        <div class="account-row"><span>Landmark</span><strong>Near Ecobank, Monrovia</strong></div>
+        <div class="account-row"><span>Hours</span><strong>Mon – Sat, 8:00 AM – 6:00 PM</strong></div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <p>Place your order online and select <strong>"Cash on Delivery"</strong> as your payment method.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <p>Our team will call or WhatsApp the <strong>pickup person</strong> in Liberia to confirm your order is ready.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <p>The person collecting brings their <strong>ID and your order reference number</strong> to our pharmacy on Tubman Boulevard.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <p>Pay in <strong>Liberian Dollars (LRD) or US Dollars (USD)</strong> at the counter and collect your medications.</p>
+        </div>
+      </div>
+      <div class="note-box">
+        <strong>Note:</strong> For prescription (RX) medications, please bring the original prescription when collecting. Our pharmacist will verify it before dispensing.
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment logos -->
+  <div class="logos-strip">
+    <span style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px">Accepted Payments:</span>
+    <div class="logo-badge"><div class="dot dot-mtn"></div> MTN Mobile Money</div>
+    <div class="logo-badge"><div class="dot dot-sw"></div> Sendwave</div>
+    <div class="logo-badge"><div class="dot dot-bank"></div> Chase Bank Transfer</div>
+    <div class="logo-badge"><div class="dot dot-cash"></div> Cash on Delivery</div>
+  </div>
+
+  <!-- Questions / Contact -->
+  <div class="contact-card">
+    <div class="contact-info">
+      <h3>Questions About Billing?</h3>
+      <p>Our team is available to help you with any payment questions or concerns.</p>
+      <p style="margin-top:12px">
+        <a href="https://wa.me/231887221275" target="_blank">WhatsApp: +231 887 221 275</a><br>
+        <a href="https://wa.me/16309366050" target="_blank">WhatsApp: +1 (630) 936-6050</a><br>
+        <a href="https://wa.me/231760801914" target="_blank">WhatsApp: +231 760 801 914</a>
+      </p>
+    </div>
+    <div class="hours-info">
+      <h4>Business Hours</h4>
+      <p>
+        Monday – Friday: 8:00 AM – 6:00 PM<br>
+        Saturday: 8:00 AM – 2:00 PM<br>
+        Sunday: Closed<br><br>
+        <strong style="color:#c8a84b">Location:</strong> 10 &amp; 11 Street, Near Ecobank,<br>Tubman Boulevard, Monrovia, Liberia
+      </p>
+    </div>
+    <div style="width:100%">
+      <div class="cta-row">
+        <a href="/checkout.html" class="btn-cta-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Place an Order
+        </a>
+        <a href="https://wa.me/231887221275" target="_blank" class="btn-cta-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Chat on WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="shop-footer">
+  <p>© 2025 <a href="/index.html">Ducor International Pharmacy</a> · Trusted Pharmaceutical &amp; Medication Supply In Liberia</p>
+</footer>
+
+<script>
+  function toggleCard(id) {
+    const card = document.getElementById(id);
+    card.classList.toggle('open');
+  }
+
+  function switchBankTab(who, el) {
+    document.querySelectorAll('.for-who-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.for-who-content').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('bank-' + who).classList.add('active');
+  }
+</script>
+<script src="/assets/shop.js"></script>
+<script>
+(function(){var s=JSON.parse(sessionStorage.getItem('ducor_sess_v2')||localStorage.getItem('ducor_sess_v2')||'null');if(s&&s.userId&&Date.now()<s.expiry){document.getElementById('nav-account-link').style.display='';document.getElementById('nav-login-link').style.display='none';}})();
+</script>
+<script src="/assets/ducor-widgets.js" defer></script>
+</body>
+</html>
