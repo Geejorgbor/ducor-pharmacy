@@ -578,51 +578,19 @@
         <button onclick="sendResetCode()" id="rst-send-btn" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Request Reset Code</button>
       </div>
 
-      <!-- STEP 2: Enter code -->
-      <div id="rst-step2" style="display:none">
-        <div style="text-align:center;margin-bottom:24px">
-          <div style="width:56px;height:56px;border-radius:50%;background:rgba(13,148,136,0.12);border:1.5px solid rgba(13,148,136,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          </div>
-          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Check Your WhatsApp</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Your reset request was received. Our pharmacy team will send a 6-digit code to your WhatsApp number shortly.<br/><br/>Need help now? WhatsApp us directly: <a href="https://wa.me/231887221275" target="_blank" style="color:var(--gold);font-weight:600">+231 887 221 275</a></p>
+      <!-- STEP 2: Email sent confirmation -->
+      <div id="rst-step2" style="display:none;text-align:center">
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(22,163,74,0.15);border:2px solid rgba(22,163,74,0.4);display:inline-flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
         </div>
-        <div id="rst-err2" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
-        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">6-Digit Code</label>
-        <input id="rst-code" type="text" maxlength="6" placeholder="_ _ _ _ _ _" style="width:100%;padding:16px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:1.6rem;font-weight:700;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:monospace;text-align:center;letter-spacing:12px;margin-bottom:18px;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyCode()"/>
-        <button onclick="verifyCode()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s;margin-bottom:12px">Verify Code</button>
-        <button onclick="sendResetCode()" style="width:100%;padding:11px;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:0.84rem;font-weight:600;cursor:pointer;background:none;color:rgba(255,255,255,0.5);font-family:inherit;transition:all .2s">Resend Code</button>
-      </div>
-
-      <!-- STEP 3: New password -->
-      <div id="rst-step3" style="display:none">
-        <div style="text-align:center;margin-bottom:24px">
-          <div style="width:56px;height:56px;border-radius:50%;background:rgba(22,163,74,0.12);border:1.5px solid rgba(22,163,74,0.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <h3 style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:6px">Create New Password</h3>
-          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6">Code verified! Choose a new strong password for your account.</p>
-        </div>
-        <div id="rst-err3" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:0.81rem;color:#fca5a5;margin-bottom:14px"></div>
-        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">New Password</label>
-        <div style="position:relative;margin-bottom:14px">
-          <input id="rst-pw1" type="password" placeholder="New password (min 8 characters)" style="width:100%;padding:12px 42px 12px 14px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"/>
-        </div>
-        <label style="display:block;font-size:0.71rem;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Confirm New Password</label>
-        <div style="position:relative;margin-bottom:18px">
-          <input id="rst-pw2" type="password" placeholder="Repeat new password" style="width:100%;padding:12px 42px 12px 14px;border:1.5px solid rgba(255,255,255,0.1);border-radius:11px;font-size:0.92rem;color:#fff;background:rgba(255,255,255,0.07);outline:none;font-family:inherit;transition:all .2s" onfocus="this.style.borderColor='rgba(201,160,85,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" onkeydown="if(event.key==='Enter')saveNewPassword()"/>
-        </div>
-        <button onclick="saveNewPassword()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;box-shadow:0 4px 20px rgba(201,160,85,0.3);font-family:inherit;transition:all .22s">Save New Password</button>
-      </div>
-
-      <!-- STEP 4: Done -->
-      <div id="rst-step4" style="display:none;text-align:center">
-        <div style="width:72px;height:72px;border-radius:50%;background:rgba(22,163,74,0.15);border:2px solid rgba(22,163,74,0.4);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <h3 style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:8px">Password Reset!</h3>
-        <p style="font-size:0.84rem;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:24px">Your password has been updated successfully. You can now sign in with your new password.</p>
-        <button onclick="closeReset()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;font-family:inherit">Go to Sign In</button>
+        <h3 style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:10px">Check Your Email!</h3>
+        <p style="font-size:0.84rem;color:rgba(255,255,255,0.5);line-height:1.8;margin-bottom:24px">
+          A password reset link has been sent to your email.<br/>
+          Click the link in the email to set your new password.<br/><br/>
+          <span style="font-size:0.78rem">Don't see it? Check your spam or junk folder.</span><br/><br/>
+          <a href="https://wa.me/231887221275" target="_blank" style="color:var(--gold);font-weight:600;font-size:0.8rem">Need help? WhatsApp: +231 887 221 275</a>
+        </p>
+        <button onclick="closeReset()" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#a87830);color:#071a3e;font-family:inherit">Done — Go to Sign In</button>
       </div>
 
     </div>
@@ -637,7 +605,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _app = initializeApp({
   apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -722,28 +690,7 @@ window.checkStrength = function(pw){
   document.getElementById('pw-lbl').textContent=lbs[lv];
   return lv;
 };
-// ── TELEGRAM RESET NOTIFICATION ──
-const _TG_TOKEN   = atob('ODc3ODkwMjUwNzpBQUZYblJLcGRhRzdIQ1JZdFF0SVg1bWFiV1FxbUlhbGZZZw==');
-const _TG_CHAT    = '8558900884';
-
-async function _sendTelegramCode(email, code, phone) {
-  const text =
-    `🔐 <b>Password Reset Request</b>\n\n` +
-    `📧 Email: <code>${email}</code>\n` +
-    `📱 Phone: ${phone || 'not provided'}\n\n` +
-    `🔑 Reset Code: <b>${code}</b>\n\n` +
-    `⏰ Expires in 15 minutes.\n\n` +
-    `➡️ Send this code to the customer on WhatsApp.`;
-  try {
-    await fetch(`https://api.telegram.org/bot${_TG_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: _TG_CHAT, text, parse_mode: 'HTML' })
-    });
-  } catch(e) {}
-}
-
-let _rstEmail = '', _rstCode = '', _rstExpiry = 0;
+let _rstEmail = '';
 
 function _rstShow(step) {
   ['rst-step1','rst-step2','rst-step3','rst-step4'].forEach(s => {
@@ -771,38 +718,21 @@ window.sendResetCode = async function() {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     _rstErr(1, 'Please enter a valid email address.'); return;
   }
-
   const btn = document.getElementById('rst-send-btn');
-  btn.disabled = true; btn.textContent = 'Sending request...';
-
-  // Find account by email
-  let matchedUser = await findUser(email);
-  if (!matchedUser) {
-    _rstErr(1, 'No account found with this email. Please check and try again.');
-    btn.disabled = false; btn.textContent = 'Request Reset Code'; return;
-  }
-
-  // Generate 6-digit code
-  const code   = String(Math.floor(100000 + Math.random() * 900000));
-  const expiry = Date.now() + 15 * 60 * 1000;
-  _rstEmail  = email;
-  _rstCode   = code;
-  _rstExpiry = expiry;
-
-  // Store in Firestore
+  btn.disabled = true; btn.textContent = 'Sending...';
   try {
-    const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-    await setDoc(doc(_db, 'passwordResets', email), { code, expiry, email });
-  } catch(ex) {}
-
-  // Notify admin on Telegram — admin will WhatsApp the code to the customer
-  await _sendTelegramCode(email, code, matchedUser.phone || 'not provided');
-
-  _rstErr(1,'');
-  _rstShow('rst-step2');
-  setTimeout(() => document.getElementById('rst-code').focus(), 100);
-
-  btn.disabled = false; btn.textContent = 'Request Reset Code';
+    await sendPasswordResetEmail(_auth, email);
+    _rstEmail = email;
+    _rstErr(1, '');
+    _rstShow('rst-step2');
+  } catch(err) {
+    if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+      _rstErr(1, 'No account found with this email. Try signing in with Google, or contact us on WhatsApp: +231 887 221 275');
+    } else {
+      _rstErr(1, 'Could not send reset email. Please try again or contact us on WhatsApp.');
+    }
+  }
+  btn.disabled = false; btn.textContent = 'Send Reset Email';
 };
 
 window.verifyCode = async function() {
@@ -944,22 +874,29 @@ document.getElementById('login-form').addEventListener('submit', async function(
   if(!pw){setErr('login-pw-err','Enter your password');return;}
   if(isRateLimited(email))return;
   const btn=document.getElementById('login-btn');
-  btn.disabled=true;btn.textContent='Verifying...';
-  try{
-    const hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
-    const user=await findUser(email);
-    if(!user||user.pwHash!==hash){
-      checkRateLimit(email);
-      showAlert('login-err','Incorrect email or password. Please try again.');
-      btn.disabled=false;
-      btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In Securely';
-      return;
+  const btnOriginal='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In Securely';
+  btn.disabled=true; btn.textContent='Signing in...';
+  try {
+    // Firebase Auth sign-in
+    const result = await signInWithEmailAndPassword(_auth, email, pw);
+    createSession(result.user.uid, remember);
+    window.location.href = _nextUrl;
+  } catch(firebaseErr) {
+    // Fallback for legacy accounts (created before Firebase Auth upgrade)
+    if (firebaseErr.code === 'auth/user-not-found' || firebaseErr.code === 'auth/invalid-credential' || firebaseErr.code === 'auth/wrong-password') {
+      try {
+        const hash = await sha256(pw+'ducor_ph_salt_2025_'+email);
+        const user = await findUser(email);
+        if (user && user.pwHash === hash) {
+          createSession(user.id||user.userId, remember);
+          window.location.href = _nextUrl;
+          return;
+        }
+      } catch(ex) {}
     }
-    createSession(user.id||user.userId,remember);
-    window.location.href=_nextUrl;
-  }catch(err){
-    showAlert('login-err','A security error occurred. Please refresh and try again.');
-    btn.disabled=false;btn.textContent='Sign In Securely';
+    checkRateLimit(email);
+    showAlert('login-err','Incorrect email or password. Please try again.');
+    btn.disabled=false; btn.innerHTML=btnOriginal;
   }
 });
 
@@ -994,33 +931,39 @@ document.getElementById('signup-form').addEventListener('submit', async function
   if(existing){setErr('su-email-err','An account with this email already exists');return;}
 
   const btn=document.getElementById('signup-btn');
-  btn.disabled=true;btn.textContent='Creating your account...';
-  try{
-    const hash=await sha256(pw+'ducor_ph_salt_2025_'+email);
-    const userId=randomToken(16);
-    const userData={
-      id:userId,email,fname,lname,phone,dob,country,pwHash:hash,
-      createdAt:serverTimestamp(),
-      orders:[],prescriptions:[]
-    };
+  btn.disabled=true; btn.textContent='Creating your account...';
+  try {
+    // Create Firebase Auth account
+    const userCred = await createUserWithEmailAndPassword(_auth, email, pw);
+    const userId = userCred.user.uid;
 
-    // Save to Firestore (appears in admin dashboard automatically)
+    // Set display name in Firebase Auth
+    try { await updateProfile(userCred.user, { displayName: fname + ' ' + lname }); } catch(ex) {}
+
+    // Save full profile to Firestore
+    const userData = {
+      id: userId, email, fname, lname, phone, dob, country,
+      authProvider: 'email',
+      createdAt: serverTimestamp(),
+      orders: [], prescriptions: []
+    };
     try {
       await addDoc(collection(_db,'customers'), userData);
     } catch(ex) {
-      // Firestore failed — save locally as fallback
-      saveLocalUser({...userData, createdAt:Date.now()});
+      saveLocalUser({...userData, createdAt: Date.now()});
     }
+    saveLocalUser({...userData, createdAt: Date.now()});
 
-    // Also keep local copy for fast login
-    saveLocalUser({...userData, createdAt:Date.now()});
-
-    createSession(userId,false);
+    createSession(userId, false);
     document.getElementById('signup-ok').classList.add('show');
-    setTimeout(()=>window.location.href=_nextUrl, 1600);
-  }catch(err){
-    showAlert('signup-err','Account creation failed. Please try again.');
-    btn.disabled=false;btn.textContent='Create My Account';
+    setTimeout(() => window.location.href = _nextUrl, 1600);
+  } catch(err) {
+    if (err.code === 'auth/email-already-in-use') {
+      setErr('su-email-err','An account with this email already exists. Try signing in.');
+    } else {
+      showAlert('signup-err','Account creation failed. Please try again.');
+    }
+    btn.disabled=false; btn.textContent='Create My Account';
   }
 });
 </script>

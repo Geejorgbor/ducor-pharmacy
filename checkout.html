@@ -677,21 +677,47 @@ window._db = _db;
     reader.readAsDataURL(file);
   }
 
-  // ── Admin notification via Telegram ──
+  // ── Boss WhatsApp notification via CallMeBot ──
   async function _notifyAdminNewOrder(order) {
+    const BOSS_PHONE = '231887221275';
+    const CALLMEBOT_KEY = 'CALLMEBOT_KEY_HERE'; // see setup instructions below
     try {
-      const BOT  = atob('ODc3ODkwMjUwNzpBQUZYblJLcGRhRzdIQ1JZdFF0SVg1bWFiV1FxbUlhbGZZZw==');
-      const CHAT = '8558900884';
-      const items = order.items.map(i => `  • ${i.name} x${i.qty}${i.category === 'rx' ? ' — Price at pickup' : ' — $' + (i.price*i.qty).toFixed(2)}`).join('\n');
-      const rx    = order.hasRx ? '\n⚠️ *RX ORDER — Prescription required*' : '';
-      const patientLine = order.orderingFor === 'other' ? `\n\n👥 *ORDERING FOR SOMEONE ELSE*\n  Patient: ${order.patientName}\n  Relationship: ${order.patientRelationship}${order.patientPhone ? '\n  Patient Phone: ' + order.patientPhone : ''}` : '';
-      const text  = `🛒 *NEW ORDER — Ducor Pharmacy*\n\n📋 *Ref:* ${order.ref}\n👤 *Customer:* ${order.buyerName}\n📧 ${order.buyerEmail}\n📞 ${order.buyerPhone}\n🌍 *Country:* ${order.buyerCountry}${patientLine}\n\n📦 *Items:*\n${items}\n\n💰 *Subtotal:* $${order.subtotal.toFixed(2)}\n🚚 *Shipping:* $${order.shipping.toFixed(2)}\n💵 *TOTAL: $${order.total.toFixed(2)}*\n💳 *Payment:* ${order.paymentMethod} (${order.paymentStatus})\n\n🏪 *Pickup Person (Liberia):*\n  Name: ${order.pickupName}\n  Phone: ${order.pickupPhone}${order.notes ? '\n\n📝 Notes: '+order.notes : ''}${rx}`;
-      await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ chat_id: CHAT, text, parse_mode:'Markdown' })
-      });
+      const items = order.items.map(i => `• ${i.name} x${i.qty}${i.category === 'rx' ? ' (RX - price at pickup)' : ' — $' + (i.price*i.qty).toFixed(2)}`).join('\n');
+      const rx = order.hasRx ? '\n⚠️ RX ORDER — Prescription needed' : '';
+      const patientLine = order.orderingFor === 'other' ? `\nFor patient: ${order.patientName} (${order.patientRelationship})${order.patientPhone ? ' — ' + order.patientPhone : ''}` : '';
+      const msg = [
+        '🛒 NEW ORDER — Ducor Pharmacy',
+        '',
+        `Ref: ${order.ref}`,
+        `Customer: ${order.buyerName}`,
+        `Email: ${order.buyerEmail}`,
+        `Phone: ${order.buyerPhone}`,
+        `Country: ${order.buyerCountry}${patientLine}`,
+        '',
+        `Items:\n${items}`,
+        '',
+        `Subtotal: $${order.subtotal.toFixed(2)}`,
+        `Shipping: $${order.shipping.toFixed(2)}`,
+        `TOTAL: $${order.total.toFixed(2)}`,
+        `Payment: ${order.paymentMethod} (${order.paymentStatus})`,
+        '',
+        `Pickup: ${order.pickupName}`,
+        `Phone: ${order.pickupPhone}`,
+        order.notes ? `Notes: ${order.notes}` : '',
+        rx
+      ].filter(Boolean).join('\n');
+      const url = `https://api.callmebot.com/whatsapp.php?phone=${BOSS_PHONE}&text=${encodeURIComponent(msg)}&apikey=${CALLMEBOT_KEY}`;
+      await fetch(url, { mode: 'no-cors' });
     } catch(e) {}
   }
+  /*
+   * CALLMEBOT SETUP (one-time, takes 1 minute):
+   * 1. On the boss's phone, save +34 644 22 36 58 as a WhatsApp contact
+   * 2. Send this exact message to that number on WhatsApp:
+   *    "I allow callmebot to send me messages"
+   * 3. You will receive a reply with your API key (a number like 1234567)
+   * 4. Replace 'CALLMEBOT_KEY_HERE' above with that key and push to GitHub
+   */
 
   function validate() {
     const fields = ['first-name','last-name','email','phone'];
