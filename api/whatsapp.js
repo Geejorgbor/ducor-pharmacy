@@ -1,28 +1,21 @@
 // Vercel serverless function — sends WhatsApp order notification via Green API
 // Credentials stay server-side, never exposed to browser
 //
-// SETUP (one-time, 5 minutes):
-// 1. Go to https://green-api.com and create a free account
-// 2. Create a new instance (choose "Developer" — it's free)
-// 3. In the instance dashboard, click "Scan QR code"
-// 4. Open WhatsApp on the pharmacy phone → Settings → Linked Devices → Link a Device
-// 5. Scan the QR code — that WhatsApp number is now connected
-// 6. Copy the "idInstance" and "apiTokenInstance" from the dashboard
-// 7. In Vercel dashboard → your project → Settings → Environment Variables, add:
-//      GREEN_API_ID    = your idInstance  (e.g. 1101234567)
-//      GREEN_API_TOKEN = your apiTokenInstance  (e.g. abc123def456...)
-// 8. Redeploy from Vercel dashboard (or push any small change to GitHub)
-// Orders will then be sent directly to the boss's WhatsApp.
+// SETUP — add these 3 env vars in Vercel dashboard → Settings → Environment Variables:
+//   GREEN_API_URL   = https://7107.api.greenapi.com   (the apiUrl shown in your instance dashboard)
+//   GREEN_API_ID    = 7107656793                       (idInstance from dashboard)
+//   GREEN_API_TOKEN = <click the eye icon next to apiTokenInstance and copy it>
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  const ID    = process.env.GREEN_API_ID;
-  const TOKEN = process.env.GREEN_API_TOKEN;
+  const API_URL = process.env.GREEN_API_URL;
+  const ID      = process.env.GREEN_API_ID;
+  const TOKEN   = process.env.GREEN_API_TOKEN;
 
-  if (!ID || !TOKEN) {
+  if (!API_URL || !ID || !TOKEN) {
     // Not yet configured — return ok so checkout doesn't break
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
@@ -69,7 +62,7 @@ export default async function handler(req, res) {
     const BOSS_CHAT_ID = '231887221275@c.us';
 
     const response = await fetch(
-      `https://api.green-api.com/waInstance${ID}/sendMessage/${TOKEN}`,
+      `${API_URL}/waInstance${ID}/sendMessage/${TOKEN}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
