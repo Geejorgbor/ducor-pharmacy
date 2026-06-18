@@ -31,26 +31,31 @@
     .form-spacer { height: 24px; }
 
     /* ── Payment Methods ── */
-    .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .pay-option { border: 2px solid var(--border); border-radius: 14px; padding: 16px 14px; cursor: pointer; transition: all 0.2s; position: relative; }
+    .payment-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .payment-grid { grid-template-columns: 1fr; } }
+    .pay-option { border: 2px solid var(--border); border-radius: 14px; padding: 18px 14px; cursor: pointer; transition: all 0.2s; position: relative; text-align: center; }
     .pay-option:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(212,175,55,0.15); }
     .pay-option.selected { border-color: var(--navy); background: rgba(13,27,42,0.03); }
     .pay-option.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; width: 20px; height: 20px; background: var(--navy); color: white; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 20px; text-align: center; }
-    .pay-option-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .pay-option-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
     .pay-option-icon.mtn { background: #FFC107; }
     .pay-option-icon.orange { background: #FF6600; }
-    .pay-option-icon.card { background: #1a56db; }
+    .pay-option-icon.sendwave { background: #2563eb; }
+    .pay-option-icon.bank { background: #0d1b2a; }
     .pay-option-icon.cash { background: #16a34a; }
     .pay-option h4 { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
     .pay-option p { font-size: 11px; color: var(--muted); line-height: 1.4; }
 
-    /* ── Flutterwave info box ── */
-    .flw-info { background: linear-gradient(135deg, #fff7e6 0%, #fffdf5 100%); border: 1px solid #f3d87e; border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px; }
-    .flw-logo-wrap { flex-shrink: 0; }
-    .flw-info-text h4 { font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 4px; }
-    .flw-info-text p { font-size: 12px; color: #a16207; line-height: 1.5; }
-    .accepted-cards { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .card-chip { background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #374151; }
+    /* ── Payment Details Box ── */
+    .pay-details-box { border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
+    .pay-details-box.mtn-info { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1.5px solid #fcd34d; }
+    .pay-details-box.orange-info { background: linear-gradient(135deg, #fff7ed, #fed7aa); border: 1.5px solid #fb923c; }
+    .pay-details-box.sendwave-info { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; }
+    .pay-details-box.bank-info { background: linear-gradient(135deg, #f0f4f8, #d9e2ec); border: 1.5px solid #94a3b8; }
+    .pay-details-box.cash-info { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1.5px solid #86efac; }
+    .pay-detail-row { background: white; border-radius: 10px; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .pay-detail-row span { font-size: 12px; color: #6b7280; }
+    .pay-detail-row strong { font-size: 14px; color: #1f2937; letter-spacing: 0.3px; }
 
     /* ── Place Order Button ── */
     .btn-place-order {
@@ -248,53 +253,60 @@
         <!-- MTN Mobile Money -->
         <div class="pay-option selected" onclick="selectPayment(this,'mtn')" id="pay-mtn">
           <div class="pay-option-icon mtn">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M1 1l4 4 7-7 7 7 4-4v13a2 2 0 01-2 2H3a2 2 0 01-2-2V1z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 21V12h8v9" stroke="white" stroke-width="1.8"/></svg>
           </div>
           <h4>MTN Mobile Money</h4>
-          <p>Pay directly with MTN MoMo — Liberia</p>
+          <p>Lonestar MTN MoMo</p>
         </div>
         <!-- Orange Money -->
         <div class="pay-option" onclick="selectPayment(this,'orange')" id="pay-orange">
           <div class="pay-option-icon orange">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8" stroke-linecap="round"/></svg>
           </div>
           <h4>Orange Money</h4>
-          <p>Pay with Orange Money — Liberia</p>
+          <p>Orange Liberia</p>
         </div>
-        <!-- Card -->
-        <div class="pay-option" onclick="selectPayment(this,'card')" id="pay-card">
-          <div class="pay-option-icon card">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <!-- Sendwave -->
+        <div class="pay-option" onclick="selectPayment(this,'sendwave')" id="pay-sendwave">
+          <div class="pay-option-icon sendwave">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
           </div>
-          <h4>Debit / Credit Card</h4>
-          <p>Visa, Mastercard, Verve</p>
+          <h4>Sendwave</h4>
+          <p>International transfer</p>
         </div>
-        <!-- Cash -->
+        <!-- Bank Transfer -->
+        <div class="pay-option" onclick="selectPayment(this,'bank')" id="pay-bank">
+          <div class="pay-option-icon bank">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+          </div>
+          <h4>Bank Transfer</h4>
+          <p>Chase Bank (USA)</p>
+        </div>
+        <!-- Cash on Delivery -->
         <div class="pay-option" onclick="selectPayment(this,'cash')" id="pay-cash">
           <div class="pay-option-icon cash">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>
           </div>
           <h4>Cash on Delivery</h4>
-          <p>Pay when your order arrives</p>
+          <p>Pay at pickup</p>
         </div>
       </div>
 
-      <!-- Flutterwave info box (shown for online payments) -->
-      <div class="flw-info" id="flw-info-box">
-        <div class="flw-logo-wrap">
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#F5A623"/><text x="18" y="24" font-size="16" font-weight="800" text-anchor="middle" fill="white">F</text></svg>
-        </div>
-        <div class="flw-info-text">
-          <h4>Powered by Flutterwave</h4>
-          <p>Your payment is processed securely. We accept all major payment methods across Africa and worldwide.</p>
-          <div class="accepted-cards">
-            <span class="card-chip">Visa</span>
-            <span class="card-chip">Mastercard</span>
-            <span class="card-chip">Verve</span>
-            <span class="card-chip">MTN MoMo</span>
-            <span class="card-chip">Orange Money</span>
+      <!-- Dynamic payment details box -->
+      <div class="pay-details-box mtn-info" id="pay-details-box">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+          <div id="pay-details-icon" style="width:40px;height:40px;background:#FFC107;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke="white" stroke-width="3"/></svg>
+          </div>
+          <div>
+            <p id="pay-details-title" style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:2px">Send Payment via MTN Mobile Money</p>
+            <p id="pay-details-sub" style="font-size:11px;color:#a16207">Send payment to the number below after placing your order</p>
           </div>
         </div>
+        <div class="pay-detail-row" id="pay-row-number"><span id="pay-label-number">Number</span><strong id="pay-details-number">+231 88 722 1275</strong></div>
+        <div class="pay-detail-row" id="pay-row-routing" style="display:none"><span>Routing #</span><strong id="pay-details-routing">075000019</strong></div>
+        <div class="pay-detail-row"><span id="pay-label-name">Account Name</span><strong id="pay-details-name">Ducor International Pharmacy</strong></div>
+        <p id="pay-details-note" style="font-size:11px;color:#a16207;margin-top:8px">After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.</p>
       </div>
 
       <!-- Promo Code -->
@@ -333,11 +345,11 @@
         </div>
         <div class="trust-item">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Secured by Flutterwave
+          Mobile Money &amp; Sendwave
         </div>
         <div class="trust-item">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          PCI DSS Compliant
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Licensed Pharmacy
         </div>
       </div>
 
@@ -408,21 +420,19 @@
   </div>
 </div>
 
-<!-- Cash on Delivery Success Modal -->
+<!-- Order Confirmation Modal -->
 <div class="success-overlay" id="cod-overlay">
   <div class="success-box">
     <div class="success-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
-    <h3>Order Placed!</h3>
+    <h3 id="cod-overlay-title">Order Placed!</h3>
     <div class="order-ref" id="cod-ref">DUCOR-000000</div>
-    <p>Your order has been received. Our team will contact you to confirm delivery and collect payment on arrival.</p>
+    <p id="cod-overlay-msg">Your order has been received. Our team will contact you to confirm delivery and collect payment on arrival.</p>
     <button onclick="orderDone()">Continue Shopping</button>
   </div>
 </div>
 
-<!-- Flutterwave SDK -->
-<script src="https://checkout.flutterwave.com/v3.js"></script>
 <script src="/assets/shop.js"></script>
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -449,18 +459,108 @@ window._saveOrderToFirestore = _saveOrderToFirestore;
 window._db = _db;
 </script>
 <script>
-  const FLW_PUBLIC_KEY = 'FLWPUBK-REPLACE-WITH-YOUR-KEY-X';
-
   let selectedPayment = 'mtn';
+
+  const PAY_CONFIG = {
+    mtn: {
+      boxClass: 'mtn-info',
+      iconBg: '#FFC107',
+      titleColor: '#92400e',
+      subColor: '#a16207',
+      noteColor: '#a16207',
+      title: 'Send Payment via MTN Mobile Money',
+      sub: 'Send payment to the number below after placing your order',
+      labelNumber: 'Number',
+      number: '+231 88 722 1275',
+      labelName: 'Account Name',
+      name: 'Ducor International Pharmacy',
+      note: 'After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
+      showRouting: false,
+    },
+    orange: {
+      boxClass: 'orange-info',
+      iconBg: '#FF6600',
+      titleColor: '#9a3412',
+      subColor: '#c2410c',
+      noteColor: '#c2410c',
+      title: 'Send Payment via Orange Money',
+      sub: 'Send payment to the number below after placing your order',
+      labelNumber: 'Number',
+      number: '+231 88 722 1275',
+      labelName: 'Account Name',
+      name: 'Ducor International Pharmacy',
+      note: 'After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
+      showRouting: false,
+    },
+    sendwave: {
+      boxClass: 'sendwave-info',
+      iconBg: '#2563eb',
+      titleColor: '#1e40af',
+      subColor: '#1d4ed8',
+      noteColor: '#1d4ed8',
+      title: 'Send Payment via Sendwave',
+      sub: 'Send to the number below using the Sendwave app',
+      labelNumber: 'Phone Number',
+      number: '+231 88 722 1275',
+      labelName: 'Recipient Name',
+      name: 'Ducor International Pharmacy',
+      note: 'After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
+      showRouting: false,
+    },
+    bank: {
+      boxClass: 'bank-info',
+      iconBg: '#0d1b2a',
+      titleColor: '#1e293b',
+      subColor: '#475569',
+      noteColor: '#475569',
+      title: 'Chase Bank Wire Transfer (USA)',
+      sub: 'Transfer to the account below after placing your order',
+      labelNumber: 'Account #',
+      number: '958758598',
+      labelName: 'Account Name',
+      name: 'Ducor International Pharmacy',
+      note: 'After transferring, email or WhatsApp your receipt to +231 887 221 275 to confirm your order.',
+      showRouting: true,
+      routing: '075000019',
+    },
+    cash: {
+      boxClass: 'cash-info',
+      iconBg: '#16a34a',
+      titleColor: '#14532d',
+      subColor: '#166534',
+      noteColor: '#166534',
+      title: 'Cash on Delivery',
+      sub: 'Pay when your order is collected in Liberia',
+      labelNumber: 'Location',
+      number: '10 & 11 Street, Tubman Blvd',
+      labelName: 'Contact',
+      name: '+231 887 221 275',
+      note: 'Our team will contact you to arrange pickup and collect payment on arrival.',
+      showRouting: false,
+    },
+  };
 
   function selectPayment(el, method) {
     document.querySelectorAll('.pay-option').forEach(m => m.classList.remove('selected'));
     el.classList.add('selected');
     selectedPayment = method;
-    const flwBox = document.getElementById('flw-info-box');
-    flwBox.style.display = method === 'cash' ? 'none' : 'flex';
-    const btnText = document.getElementById('order-btn-text');
-    btnText.textContent = method === 'cash' ? 'Place Order' : 'Pay Securely Now';
+    const cfg = PAY_CONFIG[method];
+    const box = document.getElementById('pay-details-box');
+    box.className = 'pay-details-box ' + cfg.boxClass;
+    document.getElementById('pay-details-icon').style.background = cfg.iconBg;
+    document.getElementById('pay-details-title').style.color = cfg.titleColor;
+    document.getElementById('pay-details-title').textContent = cfg.title;
+    document.getElementById('pay-details-sub').style.color = cfg.subColor;
+    document.getElementById('pay-details-sub').textContent = cfg.sub;
+    document.getElementById('pay-label-number').textContent = cfg.labelNumber;
+    document.getElementById('pay-details-number').textContent = cfg.number;
+    document.getElementById('pay-row-routing').style.display = cfg.showRouting ? '' : 'none';
+    if (cfg.showRouting) document.getElementById('pay-details-routing').textContent = cfg.routing;
+    document.getElementById('pay-label-name').textContent = cfg.labelName;
+    document.getElementById('pay-details-name').textContent = cfg.name;
+    document.getElementById('pay-details-note').style.color = cfg.noteColor;
+    document.getElementById('pay-details-note').textContent = cfg.note;
+    document.getElementById('order-btn-text').textContent = method === 'cash' ? 'Place Order' : 'Place Order & Send Payment';
   }
 
   function generateRef() {
@@ -531,7 +631,7 @@ window._db = _db;
     try {
       const BOT  = atob('ODc3ODkwMjUwNzpBQUZYblJLcGRhRzdIQ1JZdFF0SVg1bWFiV1FxbUlhbGZZZw==');
       const CHAT = '8558900884';
-      const items = order.items.map(i => `  • ${i.name} x${i.qty} — $${(i.price*i.qty).toFixed(2)}`).join('\n');
+      const items = order.items.map(i => `  • ${i.name} x${i.qty}${i.category === 'rx' ? ' — Price at pickup' : ' — $' + (i.price*i.qty).toFixed(2)}`).join('\n');
       const rx    = order.hasRx ? '\n⚠️ *RX ORDER — Prescription required*' : '';
       const text  = `🛒 *NEW ORDER — Ducor Pharmacy*\n\n📋 *Ref:* ${order.ref}\n👤 *Customer:* ${order.buyerName}\n📧 ${order.buyerEmail}\n📞 ${order.buyerPhone}\n🌍 *Country:* ${order.buyerCountry}\n\n📦 *Items:*\n${items}\n\n💰 *Subtotal:* $${order.subtotal.toFixed(2)}\n🚚 *Shipping:* $${order.shipping.toFixed(2)}\n💵 *TOTAL: $${order.total.toFixed(2)}*\n💳 *Payment:* ${order.paymentMethod} (${order.paymentStatus})\n\n🏪 *Pickup Person (Liberia):*\n  Name: ${order.pickupName}\n  Phone: ${order.pickupPhone}${order.notes ? '\n\n📝 Notes: '+order.notes : ''}${rx}`;
       await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
@@ -623,73 +723,29 @@ window._db = _db;
 
     const ref = generateRef();
 
-    if (selectedPayment === 'cash') {
-      const payload = _buildOrderPayload(ref, 'Cash on Delivery', 'Pending');
-      if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
-      _notifyAdminNewOrder(payload);
-      document.getElementById('cod-ref').textContent = ref;
-      document.getElementById('cod-overlay').classList.add('show');
-      return;
-    }
-
-    if (FLW_PUBLIC_KEY.includes('REPLACE')) {
-      showToast('Payment setup coming soon. Use Cash on Delivery or contact us via WhatsApp.');
-      return;
-    }
-
-    const first  = document.getElementById('first-name').value.trim();
-    const last   = document.getElementById('last-name').value.trim();
-    const email  = document.getElementById('email').value.trim();
-    const phone  = document.getElementById('phone').value.trim();
-    const total  = getTotal();
-
-    const paymentOptions = {
-      mtn:    'mobilemoneyliberia',
-      orange: 'mobilemoneyliberia',
-      card:   'card',
+    const methodLabels = {
+      mtn: 'MTN Mobile Money',
+      orange: 'Orange Money',
+      sendwave: 'Sendwave',
+      bank: 'Chase Bank Transfer',
+      cash: 'Cash on Delivery',
     };
+    const methodLabel = methodLabels[selectedPayment] || selectedPayment;
+    const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment');
+    if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+    _notifyAdminNewOrder(payload);
 
-    document.getElementById('processing-overlay').classList.add('show');
-
-    FlutterwaveCheckout({
-      public_key: FLW_PUBLIC_KEY,
-      tx_ref: ref,
-      amount: total,
-      currency: 'USD',
-      payment_options: paymentOptions[selectedPayment] + ',card',
-      customer: {
-        email: email,
-        phone_number: phone,
-        name: first + ' ' + last,
-      },
-      meta: {
-        source: 'ducor-international-pharmacy.com',
-        buyer_country: document.getElementById('buyer-country').value,
-        pickup_name: document.getElementById('pickup-name').value.trim(),
-        pickup_phone: document.getElementById('pickup-phone').value.trim(),
-        notes: document.getElementById('notes').value.trim(),
-      },
-      customizations: {
-        title: 'Ducor International Pharmacy',
-        description: 'Secure medication payment — ' + Cart.items.length + ' item(s)',
-        logo: 'https://ducor-international-pharmacy.com/assets/company-logo.jpg',
-      },
-      callback: function(data) {
-        document.getElementById('processing-overlay').classList.remove('show');
-        if (data.status === 'successful' || data.status === 'completed') {
-          const payload = _buildOrderPayload(ref, selectedPayment, 'Paid');
-          if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
-          _notifyAdminNewOrder(payload);
-          document.getElementById('success-ref').textContent = ref;
-          document.getElementById('success-overlay').classList.add('show');
-        } else {
-          showToast('Payment was not completed. Please try again.');
-        }
-      },
-      onclose: function() {
-        document.getElementById('processing-overlay').classList.remove('show');
-      }
-    });
+    const overlayMsg = {
+      mtn: 'Your order is confirmed! Please send payment of $' + payload.total.toFixed(2) + ' to +231 88 722 1275 via MTN Mobile Money, then WhatsApp your receipt to +231 887 221 275.',
+      orange: 'Your order is confirmed! Please send payment of $' + payload.total.toFixed(2) + ' to +231 88 722 1275 via Orange Money, then WhatsApp your receipt to +231 887 221 275.',
+      sendwave: 'Your order is confirmed! Please send $' + payload.total.toFixed(2) + ' via Sendwave to +231 88 722 1275, then WhatsApp your receipt to +231 887 221 275.',
+      bank: 'Your order is confirmed! Please wire $' + payload.total.toFixed(2) + ' to Chase Bank Account #958758598 (Routing: 075000019), then email or WhatsApp your receipt to +231 887 221 275.',
+      cash: 'Your order has been received. Our team will contact you to confirm delivery and collect payment on arrival.',
+    };
+    document.getElementById('cod-overlay-title').textContent = selectedPayment === 'cash' ? 'Order Placed!' : 'Order Confirmed!';
+    document.getElementById('cod-overlay-msg').textContent = overlayMsg[selectedPayment] || overlayMsg.cash;
+    document.getElementById('cod-ref').textContent = ref;
+    document.getElementById('cod-overlay').classList.add('show');
   }
 
   function orderDone() {
@@ -719,9 +775,9 @@ window._db = _db;
             <div class="order-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
             <div class="order-item-info">
               <h4>${item.name}</h4>
-              <p>Qty: ${item.qty} × $${item.price.toFixed(2)}</p>
+              <p>Qty: ${item.qty}${item.category === 'rx' ? '' : ' × $' + item.price.toFixed(2)}</p>
             </div>
-            <span class="order-item-price">$${(item.price * item.qty).toFixed(2)}</span>
+            <span class="order-item-price">${item.category === 'rx' ? 'Price at pickup' : '$' + (item.price * item.qty).toFixed(2)}</span>
           </div>`).join('')}
       </div>
       <hr class="order-divider"/>
