@@ -880,7 +880,29 @@ document.getElementById('login-form').addEventListener('submit', async function(
   try {
     // Firebase Auth sign-in
     const result = await signInWithEmailAndPassword(_auth, email, pw);
-    createSession(result.user.uid, remember);
+    const uid = result.user.uid;
+
+    // Fetch + cache user profile in localStorage so account page loads instantly
+    try {
+      const snap = await getDocs(query(collection(_db,'customers'), where('email','==',email)));
+      if (!snap.empty) {
+        saveLocalUser({ ...snap.docs[0].data(), id: uid });
+      } else {
+        // Not in Firestore yet — build from Firebase Auth profile
+        const n = (result.user.displayName || '').split(' ');
+        saveLocalUser({
+          id: uid, email,
+          fname: n[0] || email.split('@')[0],
+          lname: n.slice(1).join(' ') || '',
+          phone: '', country: '',
+          authProvider: 'email',
+          orders: [], prescriptions: [],
+          createdAt: Date.now()
+        });
+      }
+    } catch(ex) {}
+
+    createSession(uid, remember);
     window.location.href = _nextUrl;
   } catch(firebaseErr) {
     // Fallback for legacy accounts (created before Firebase Auth upgrade)
@@ -889,6 +911,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
         const hash = await sha256(pw+'ducor_ph_salt_2025_'+email);
         const user = await findUser(email);
         if (user && user.pwHash === hash) {
+          saveLocalUser(user);
           createSession(user.id||user.userId, remember);
           window.location.href = _nextUrl;
           return;
