@@ -746,7 +746,7 @@ window.signInWithGoogle = async function(btnId) {
     await signInWithRedirect(_auth, _gProvider);
   } catch(err) {
     btn.disabled = false;
-    showAlert('login-err', 'Could not start Google sign-in. Please try again.');
+    showAlert('login-err', 'Google sign-in error: ' + (err.code || err.message || 'unknown'));
   }
 };
 
