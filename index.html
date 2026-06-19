@@ -752,26 +752,21 @@
 </section>
 
 <!-- OUR CORE STRENGTHS -->
-<section class="section" style="background:var(--navy)" id="core-strengths">
-  <div class="sh reveal">
+<section id="core-strengths" style="position:relative;padding:88px 5%;overflow:hidden">
+  <!-- Shipment photo as full section background -->
+  <div style="position:absolute;inset:0;z-index:0">
+    <img src="/assets/dip-shipment.jpg" alt=""
+         style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.38) saturate(0.7)"/>
+    <div style="position:absolute;inset:0;background:rgba(10,37,88,0.82)"></div>
+  </div>
+
+  <div class="sh reveal" style="position:relative;z-index:1">
     <span class="badge" style="background:rgba(200,168,75,0.18);color:var(--gold);border:1px solid rgba(200,168,75,0.35)">Our Capabilities</span>
     <h2 style="color:#fff">Our Core Strength</h2>
     <p style="color:rgba(255,255,255,0.65)">Six pillars that drive our mission to deliver world-class pharmaceutical care to the people of Liberia.</p>
   </div>
-  <!-- Real shipment photo — proof of operations -->
-  <div class="reveal" style="max-width:1100px;margin:0 auto 48px;border-radius:16px;overflow:hidden;position:relative">
-    <img src="/assets/dip-shipment.jpg" alt="DIP shipment and distribution operations"
-         style="width:100%;height:340px;object-fit:cover;display:block;filter:brightness(0.75)"/>
-    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,37,88,0.85) 0%,rgba(10,37,88,0.3) 60%,transparent 100%);display:flex;align-items:center;padding:0 44px">
-      <div>
-        <p style="color:var(--gold);font-size:0.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px">Real Operations · Real Deliveries</p>
-        <h3 style="color:#fff;font-size:clamp(1.3rem,2.5vw,2rem);font-weight:700;line-height:1.3;max-width:460px">Pharmaceutical Shipments Delivered Directly to Liberia</h3>
-        <p style="color:rgba(255,255,255,0.72);font-size:0.9rem;margin-top:10px;max-width:400px">This is what we do — sourcing, handling, and delivering high-quality medications straight to our community.</p>
-      </div>
-    </div>
-  </div>
 
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1100px;margin:0 auto" class="reveal">
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1100px;margin:0 auto;position:relative;z-index:1" class="reveal">
 
     <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(200,168,75,0.22);border-radius:14px;padding:28px 22px;text-align:center">
       <div style="width:52px;height:52px;background:rgba(200,168,75,0.15);border-radius:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
@@ -828,15 +823,13 @@
 <style>
   /* ── GALLERY ── */
   .gal-section{padding:88px 5%;background:var(--navy)}
-  .gal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:1140px;margin:0 auto}
+  .gal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;max-width:1100px;margin:0 auto}
   @media(max-width:680px){.gal-grid{grid-template-columns:1fr}}
 
   .gal-card{
-    position:relative;height:420px;border-radius:18px;overflow:hidden;
+    position:relative;height:440px;border-radius:18px;overflow:hidden;
     cursor:pointer;box-shadow:0 12px 48px rgba(0,0,0,0.45);
   }
-  .gal-card:first-child{height:460px}
-  .gal-card:nth-child(2){height:460px}
 
   /* Ken Burns — each card gets its own animation */
   .gal-img{
