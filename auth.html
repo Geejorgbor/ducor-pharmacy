@@ -192,12 +192,21 @@
 </head>
 <body>
 
+<!-- Full-page gate: shown while checking for Google redirect result or existing session.
+     Hides the login card until we know the user needs to log in. -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 20%,#0d3a6e 0%,#071a3e 40%,#020c1b 100%);">
+  <div style="text-align:center">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(201,160,85,0.8)" stroke-width="2" style="animation:spin 0.9s linear infinite;display:block;margin:0 auto 14px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    <p id="auth-gate-msg" style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-family:'Segoe UI',system-ui,sans-serif">Loading…</p>
+  </div>
+</div>
+
 <!-- Background blobs -->
 <div class="blob blob-1"></div>
 <div class="blob blob-2"></div>
 <div class="blob blob-3"></div>
 
-<div class="card">
+<div class="card" id="auth-card" style="display:none">
   <div class="card-topbar"></div>
   <div class="card-body">
 
@@ -643,7 +652,7 @@ function getSession(){try{const raw=sessionStorage.getItem(SESSION_KEY)||localSt
 /* ── LOCAL USERS (fallback + cache) ── */
 const USERS_KEY='ducor_users_v2';
 function getLocalUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]');}catch(e){return[];}}
-function saveLocalUser(u){try{const users=getLocalUsers();users.push(u);localStorage.setItem(USERS_KEY,JSON.stringify(users));}catch(e){}}
+function saveLocalUser(u){try{const users=getLocalUsers();const idx=users.findIndex(x=>x.id===u.id||x.email===u.email);if(idx>=0)users[idx]={...users[idx],...u};else users.push(u);localStorage.setItem(USERS_KEY,JSON.stringify(users));}catch(e){}}
 function findLocalUser(email){return getLocalUsers().find(u=>u.email===email.trim().toLowerCase())||null;}
 
 /* ── FIND USER (check Firestore then local) ── */
@@ -740,13 +749,14 @@ window.sendResetCode = async function() {
 /* ── SHARED: process any Google sign-in result (popup or redirect) ── */
 async function processGoogleUser(gUser) {
   const email = gUser.email.toLowerCase();
+  const uid   = gUser.uid;
   let ducorUser = await findUser(email);
   if (!ducorUser) {
+    // Brand-new user — create their profile
     const nameParts = (gUser.displayName || '').split(' ');
-    const userId = gUser.uid;
-    const userData = {
-      id: userId, email,
-      fname: nameParts[0] || '',
+    const userData  = {
+      id: uid, email,
+      fname: nameParts[0] || email.split('@')[0],
       lname: nameParts.slice(1).join(' ') || '',
       phone: '', country: 'Not specified',
       authProvider: 'google',
@@ -756,20 +766,16 @@ async function processGoogleUser(gUser) {
     };
     try { await addDoc(collection(_db,'customers'), userData); } catch(ex) {}
     saveLocalUser({...userData, createdAt: Date.now()});
-    createSession(userId, true);
   } else {
-    const uid = ducorUser.id || ducorUser.userId || gUser.uid;
-    if (!findLocalUser(email)) {
-      saveLocalUser({
-        ...ducorUser,
-        id: uid,
-        authProvider: 'google',
-        photoURL: gUser.photoURL || ducorUser.photoURL || '',
-        createdAt: Date.now()
-      });
-    }
-    createSession(uid, true);
+    // Returning user — always refresh their local cache with latest data
+    saveLocalUser({
+      ...ducorUser,
+      id: uid,
+      authProvider: 'google',
+      photoURL: gUser.photoURL || ducorUser.photoURL || '',
+    });
   }
+  createSession(uid, true);
 }
 
 /* ── GOOGLE SIGN-IN ── */
@@ -779,51 +785,31 @@ window.signInWithGoogle = async function(btnId) {
   const btn = document.getElementById(btnId);
   const origHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = _SPINNER + ' Connecting...';
+  btn.innerHTML = _SPINNER + ' Connecting…';
 
   try {
-    // Try popup first (works on desktop and most mobile browsers)
+    // Attempt popup (best UX on desktop)
     const result = await signInWithPopup(_auth, _gProvider);
+    btn.innerHTML = _SPINNER + ' Signing you in…';
     await processGoogleUser(result.user);
     window.location.href = _nextUrl;
 
   } catch(err) {
+    // User just closed the popup — no error, just restore
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-      // User dismissed — just restore the button, no error shown
       btn.disabled = false;
       btn.innerHTML = origHtml;
       return;
     }
-
-    if (err.code === 'auth/popup-blocked') {
-      // Mobile / strict browser — silently fall back to redirect
-      btn.innerHTML = _SPINNER + ' Opening Google…';
-      try {
-        await signInWithRedirect(_auth, _gProvider);
-        // Page will navigate away; nothing more to do here
-      } catch(redirErr) {
-        btn.disabled = false;
-        btn.innerHTML = origHtml;
-        showAlert('login-err', 'Could not open Google sign-in. Please try again.');
-      }
-      return;
-    }
-
-    // All other errors
-    btn.disabled = false;
-    btn.innerHTML = origHtml;
-    if (err.code === 'auth/unauthorized-domain') {
-      // Try redirect as last resort — may still work on some Firebase configs
-      btn.innerHTML = _SPINNER + ' Trying another way…';
-      try {
-        await signInWithRedirect(_auth, _gProvider);
-        return;
-      } catch(e2) {}
+    // Any other failure (popup blocked, mobile browser, etc.) → use redirect flow
+    btn.innerHTML = _SPINNER + ' Opening Google…';
+    try {
+      await signInWithRedirect(_auth, _gProvider);
+      // Browser navigates away — nothing else needed
+    } catch(e2) {
       btn.disabled = false;
       btn.innerHTML = origHtml;
-      showAlert('login-err', 'Google sign-in is being set up. Please sign in with your email and password below for now — we\'ll have Google login working very soon.');
-    } else {
-      showAlert('login-err', 'Google sign-in failed (' + (err.code||'unknown') + '). Please try again or use email and password.');
+      showAlert('login-err', 'Could not open Google sign-in. Please check your internet connection and try again, or sign in with email below.');
     }
   }
 };
@@ -832,41 +818,42 @@ window.signInWithGoogle = async function(btnId) {
 const _nextUrl=(()=>{const p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
 (()=>{if(_nextUrl==='/checkout.html')document.getElementById('checkout-note').classList.add('show');})();
 
-// On load: check for a pending Google redirect result FIRST, then fall back to session check.
-// This handles the case where signInWithRedirect was used (popup was blocked on mobile).
-(async function() {
-  // Briefly disable Google buttons while we check for a redirect result
-  const gBtns = ['google-btn-login','google-btn-signup'];
-  const saved = {};
-  gBtns.forEach(id => {
-    const b = document.getElementById(id);
-    if (!b) return;
-    saved[id] = b.innerHTML;
-    b.disabled = true;
-    b.innerHTML = _SPINNER + ' Checking…';
-  });
+function _showLoginCard() {
+  const gate = document.getElementById('auth-gate');
+  const card = document.getElementById('auth-card');
+  if (gate) gate.style.display = 'none';
+  if (card) card.style.display = 'block';
+}
+function _gateMsg(msg) {
+  const el = document.getElementById('auth-gate-msg');
+  if (el) el.textContent = msg;
+}
 
+// On page load: silently check for a Google redirect result first,
+// then check for an existing session. Only show the login form if neither.
+(async function() {
   try {
+    _gateMsg('Checking sign-in…');
     const result = await getRedirectResult(_auth);
     if (result) {
-      // User just came back from a Google redirect — process and send to account
-      gBtns.forEach(id => { const b=document.getElementById(id); if(b){b.innerHTML=_SPINNER+' Signing you in…';} });
+      _gateMsg('Signing you in…');
       await processGoogleUser(result.user);
       window.location.href = _nextUrl;
       return;
     }
   } catch(err) {
-    // No redirect result or error — continue normally
+    // No redirect result pending — fall through
   }
 
-  // Restore Google buttons
-  gBtns.forEach(id => {
-    const b = document.getElementById(id);
-    if (b) { b.disabled = false; b.innerHTML = saved[id] || b.innerHTML; }
-  });
+  // Already have a valid session → go straight to account
+  if (getSession()) {
+    _gateMsg('Loading your account…');
+    window.location.href = _nextUrl;
+    return;
+  }
 
-  // Check existing ducor session
-  if (getSession()) { window.location.href = _nextUrl; }
+  // No session and no redirect → show the login form
+  _showLoginCard();
 })();
 
 /* ── LOGIN ── */
