@@ -74,7 +74,7 @@ const PRODUCTS = {
     {id:'rx070',name:'Hydralazine 25mg',price:8.00},
     {id:'rx071',name:'Hydrochlorothiazide 12.5mg',price:10.00},
     {id:'rx072',name:'Hydrochlorothiazide 25mg',price:8.00},
-    {id:'rx073',name:'Hydrocortisone 1% Ointment',price:6.00},
+    {id:'rx073',name:'Hydrocortisone 1% Cream (Rx)',price:6.00},
     {id:'rx074',name:'Hydrocortisone 10mg Tablets',price:18.00},
     {id:'rx075',name:'Hydroxychloroquine 200mg',price:24.00},
     {id:'rx076',name:'Hydroxyurea 500mg',price:32.00},
@@ -238,7 +238,7 @@ const PRODUCTS = {
     {id:'vit018',name:'Hair, Skin & Nails Formula',price:10.00},
     {id:'vit019',name:'Magnesium Glycinate',price:16.00},
     {id:'vit020',name:'Magnesium Oxide 400mg',price:20.00},
-    {id:'vit021',name:"Men's Olly Multivitamin",price:18.00},
+    {id:'vit021',name:"Men's Multivitamin Gummy",price:18.00},
     {id:'vit022',name:"Men's One A Day Multivitamin",price:18.00},
     {id:'vit023',name:"Poly-Vi-Sol Children's Vitamins",price:7.00},
     {id:'vit024',name:'Poly-Vi-Sol with Iron',price:7.00},
@@ -545,7 +545,7 @@ const _PRODUCT_NDC = {
   'rx068': '60505-0142-4',    // Glipizide 10mg – Apotex
   'rx069': '73786-064-01',    // Haloperidol 5mg – Lifestar/Rising
   'rx070': '31722-023-01',    // Hydralazine HCl 25mg – Camber
-  'rx073': '62559-430-01',    // Hydrocortisone 1% Cream Rx
+  // rx073 (Hydrocortisone 1% Cream Rx) shares NDC with otc031 – use NIH name search fallback
   'rx093': '43547-353-10',    // Lisinopril 10mg – Falco
   'rx094': '43547-354-10',    // Lisinopril 20mg – Falco
   'rx098': '31722-702-90',    // Losartan Potassium 100mg – Camber
