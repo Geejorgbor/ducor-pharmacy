@@ -829,12 +829,24 @@ function _gateMsg(msg) {
   if (el) el.textContent = msg;
 }
 
-// On page load: silently check for a Google redirect result first,
-// then check for an existing session. Only show the login form if neither.
+// Safety net: always show the login form within 5 seconds even if Firebase is slow
+const _gateTimeout = setTimeout(() => _showLoginCard(), 5000);
+
+// On page load: check for existing session first (instant, no network needed),
+// then check for a Google redirect result.
 (async function() {
+  // Instant check — no network needed
+  if (getSession()) {
+    clearTimeout(_gateTimeout);
+    _gateMsg('Loading your account…');
+    window.location.href = _nextUrl;
+    return;
+  }
+
   try {
     _gateMsg('Checking sign-in…');
     const result = await getRedirectResult(_auth);
+    clearTimeout(_gateTimeout);
     if (result) {
       _gateMsg('Signing you in…');
       await processGoogleUser(result.user);
@@ -842,17 +854,11 @@ function _gateMsg(msg) {
       return;
     }
   } catch(err) {
-    // No redirect result pending — fall through
-  }
-
-  // Already have a valid session → go straight to account
-  if (getSession()) {
-    _gateMsg('Loading your account…');
-    window.location.href = _nextUrl;
-    return;
+    // No redirect result or Firebase error — fall through to show login form
   }
 
   // No session and no redirect → show the login form
+  clearTimeout(_gateTimeout);
   _showLoginCard();
 })();
 
