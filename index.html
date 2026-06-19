@@ -824,53 +824,276 @@
   </div>
 </section>
 
-<!-- OUR WORK IN ACTION — PHOTO GALLERY -->
-<section class="section" style="background:#fff" id="gallery">
+<!-- OUR WORK IN ACTION — PROFESSIONAL PHOTO GALLERY -->
+<style>
+  /* ── GALLERY ── */
+  .gal-section{padding:88px 5%;background:var(--navy)}
+  .gal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:1140px;margin:0 auto}
+  @media(max-width:680px){.gal-grid{grid-template-columns:1fr}}
+
+  .gal-card{
+    position:relative;height:420px;border-radius:18px;overflow:hidden;
+    cursor:pointer;box-shadow:0 12px 48px rgba(0,0,0,0.45);
+  }
+  .gal-card:first-child{height:460px}
+  .gal-card:nth-child(2){height:460px}
+
+  /* Ken Burns — each card gets its own animation */
+  .gal-img{
+    position:absolute;inset:-6%;width:112%;height:112%;
+    object-fit:cover;will-change:transform;
+  }
+  .gal-card:nth-child(1) .gal-img{animation:kb1 14s ease-in-out infinite alternate}
+  .gal-card:nth-child(2) .gal-img{animation:kb2 16s ease-in-out infinite alternate}
+  .gal-card:nth-child(3) .gal-img{animation:kb3 13s ease-in-out infinite alternate}
+  .gal-card:nth-child(4) .gal-img{animation:kb4 15s ease-in-out infinite alternate}
+  @keyframes kb1{0%{transform:scale(1)   translateX(0)   translateY(0)}  100%{transform:scale(1.1) translateX(-3%) translateY(-2%)}}
+  @keyframes kb2{0%{transform:scale(1.08) translateX(-2%) translateY(0)} 100%{transform:scale(1)   translateX(2%)  translateY(-3%)}}
+  @keyframes kb3{0%{transform:scale(1)   translateX(2%)  translateY(-1%)}100%{transform:scale(1.1) translateX(-2%) translateY(2%)}}
+  @keyframes kb4{0%{transform:scale(1.06) translateX(0)  translateY(2%)} 100%{transform:scale(1)   translateX(-3%) translateY(-2%)}}
+
+  /* Dark overlay — lighter by default so photo shows, darkens on hover */
+  .gal-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(to bottom,rgba(5,17,50,0.18) 0%,rgba(5,17,50,0.55) 50%,rgba(5,17,50,0.82) 100%);
+    transition:background .45s ease;
+  }
+  .gal-card:hover .gal-overlay{
+    background:linear-gradient(to bottom,rgba(5,17,50,0.45) 0%,rgba(5,17,50,0.72) 50%,rgba(5,17,50,0.92) 100%);
+  }
+
+  /* Centred text content */
+  .gal-body{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:28px;
+    transition:transform .4s ease;
+  }
+  .gal-card:hover .gal-body{transform:translateY(-6px)}
+
+  .gal-tag{
+    display:inline-block;background:rgba(200,168,75,0.22);
+    border:1px solid rgba(200,168,75,0.6);color:var(--gold);
+    font-size:0.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+    padding:5px 16px;border-radius:50px;margin-bottom:16px;
+    transition:background .35s,transform .35s;
+  }
+  .gal-card:hover .gal-tag{background:rgba(200,168,75,0.38);transform:scale(1.06)}
+
+  .gal-title{
+    color:#fff;font-size:clamp(1.25rem,2.4vw,1.75rem);font-weight:800;
+    line-height:1.25;margin-bottom:12px;
+    text-shadow:0 2px 14px rgba(0,0,0,0.55);
+    transition:transform .35s;
+  }
+  .gal-card:hover .gal-title{transform:scale(1.04)}
+
+  .gal-desc{
+    color:rgba(255,255,255,0.78);font-size:0.88rem;line-height:1.6;
+    max-width:320px;margin-bottom:22px;
+    opacity:0;transform:translateY(12px);
+    transition:opacity .4s ease .08s, transform .4s ease .08s;
+  }
+  .gal-card:hover .gal-desc{opacity:1;transform:translateY(0)}
+
+  /* Click to expand hint */
+  .gal-hint{
+    display:flex;align-items:center;gap:8px;
+    color:rgba(255,255,255,0.65);font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;
+    opacity:0;transform:translateY(8px);
+    transition:opacity .4s ease .15s, transform .4s ease .15s;
+  }
+  .gal-card:hover .gal-hint{opacity:1;transform:translateY(0)}
+  .gal-hint-ring{
+    width:32px;height:32px;border-radius:50%;
+    border:1.5px solid rgba(255,255,255,0.5);
+    display:flex;align-items:center;justify-content:center;
+    animation:ring-pulse 2s ease-in-out infinite;
+  }
+  @keyframes ring-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.3)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
+
+  /* ── LIGHTBOX ── */
+  .lb{
+    display:none;position:fixed;inset:0;z-index:9000;
+    background:rgba(3,10,30,0.96);backdrop-filter:blur(16px);
+    align-items:center;justify-content:center;
+  }
+  .lb.open{display:flex;animation:lb-in .3s ease}
+  @keyframes lb-in{from{opacity:0}to{opacity:1}}
+
+  .lb-inner{
+    position:relative;max-width:92vw;max-height:90vh;
+    display:flex;flex-direction:column;align-items:center;gap:18px;
+  }
+  .lb-img-wrap{
+    position:relative;border-radius:16px;overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,0.7);
+    animation:lb-img-in .35s ease;
+  }
+  @keyframes lb-img-in{from{transform:scale(0.93);opacity:0}to{transform:scale(1);opacity:1}}
+  .lb-img{max-width:88vw;max-height:75vh;object-fit:contain;display:block;border-radius:16px}
+
+  .lb-caption{text-align:center}
+  .lb-caption-tag{color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+  .lb-caption-title{color:#fff;font-size:1.2rem;font-weight:700}
+
+  .lb-close{
+    position:fixed;top:22px;right:22px;
+    width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.25);color:#fff;
+    font-size:1.4rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .2s;z-index:9001;
+  }
+  .lb-close:hover{background:rgba(200,168,75,0.35);border-color:var(--gold)}
+
+  .lb-arrow{
+    position:fixed;top:50%;transform:translateY(-50%);
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+    color:#fff;cursor:pointer;font-size:1.3rem;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .2s;z-index:9001;
+  }
+  .lb-arrow:hover{background:rgba(200,168,75,0.3);border-color:var(--gold)}
+  .lb-prev{left:16px}
+  .lb-next{right:16px}
+  @media(max-width:600px){.lb-prev{left:6px}.lb-next{right:6px}}
+</style>
+
+<section class="gal-section" id="gallery">
   <div class="sh reveal">
-    <span class="badge">Our Record</span>
-    <h2>Our Work in Action</h2>
-    <p>Real photos from our operations — from international shipments to patient care at Ducor International Pharmacy.</p>
+    <span class="badge" style="background:rgba(200,168,75,0.18);color:var(--gold);border:1px solid rgba(200,168,75,0.35)">Our Record</span>
+    <h2 style="color:#fff">Our Work in Action</h2>
+    <p style="color:rgba(255,255,255,0.62)">Real photos from our operations — click any photo to view it in full size.</p>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:1100px;margin:0 auto" class="reveal">
 
-    <div style="border-radius:14px;overflow:hidden;position:relative;height:320px;box-shadow:0 6px 28px rgba(10,37,88,0.13)">
-      <img src="/assets/dip-shipment.jpg" alt="DIP pharmaceutical shipment delivery"
-           style="width:100%;height:100%;object-fit:cover;transition:transform .4s" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:20px 22px;background:linear-gradient(to top,rgba(10,37,88,0.88),transparent)">
-        <p style="color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Distribution</p>
-        <p style="color:#fff;font-size:0.95rem;font-weight:600">International Shipment Handling</p>
+  <div class="gal-grid reveal">
+
+    <!-- Card 1: Shipment -->
+    <div class="gal-card" onclick="openLB(0)">
+      <img class="gal-img" src="/assets/dip-shipment.jpg" alt="DIP pharmaceutical shipment"/>
+      <div class="gal-overlay"></div>
+      <div class="gal-body">
+        <span class="gal-tag">Distribution</span>
+        <h3 class="gal-title">International Shipment &amp; Delivery</h3>
+        <p class="gal-desc">Our team handles pharmaceutical deliveries from across the globe — bringing FDA-approved medications directly to Liberia.</p>
+        <div class="gal-hint">
+          <div class="gal-hint-ring">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+          </div>
+          Click to View
+        </div>
       </div>
     </div>
 
-    <div style="border-radius:14px;overflow:hidden;position:relative;height:320px;box-shadow:0 6px 28px rgba(10,37,88,0.13)">
-      <img src="/assets/dip-consultation.jpg" alt="DIP doctor consulting with patient"
-           style="width:100%;height:100%;object-fit:cover;transition:transform .4s" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:20px 22px;background:linear-gradient(to top,rgba(10,37,88,0.88),transparent)">
-        <p style="color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Patient Care</p>
-        <p style="color:#fff;font-size:0.95rem;font-weight:600">Expert Medical Consultation</p>
+    <!-- Card 2: Consultation -->
+    <div class="gal-card" onclick="openLB(1)">
+      <img class="gal-img" src="/assets/dip-consultation.jpg" alt="DIP patient consultation"/>
+      <div class="gal-overlay"></div>
+      <div class="gal-body">
+        <span class="gal-tag">Patient Care</span>
+        <h3 class="gal-title">Expert Medical Consultation</h3>
+        <p class="gal-desc">Our licensed healthcare providers deliver one-on-one consultations — ensuring every patient receives the right care and guidance.</p>
+        <div class="gal-hint">
+          <div class="gal-hint-ring">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+          </div>
+          Click to View
+        </div>
       </div>
     </div>
 
-    <div style="border-radius:14px;overflow:hidden;position:relative;height:280px;box-shadow:0 6px 28px rgba(10,37,88,0.13)">
-      <img src="/assets/dip-doctor.jpg" alt="DIP licensed pharmacist and medical professional"
-           style="width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .4s" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:20px 22px;background:linear-gradient(to top,rgba(10,37,88,0.88),transparent)">
-        <p style="color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Our Team</p>
-        <p style="color:#fff;font-size:0.95rem;font-weight:600">Licensed Healthcare Professionals</p>
+    <!-- Card 3: Doctor -->
+    <div class="gal-card" onclick="openLB(2)">
+      <img class="gal-img" src="/assets/dip-doctor.jpg" alt="DIP medical professional" style="object-position:top"/>
+      <div class="gal-overlay"></div>
+      <div class="gal-body">
+        <span class="gal-tag">Our Team</span>
+        <h3 class="gal-title">Licensed Healthcare Professionals</h3>
+        <p class="gal-desc">Doctors, pharmacists and medical professionals committed to supporting the health and well-being of Liberians and their families.</p>
+        <div class="gal-hint">
+          <div class="gal-hint-ring">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+          </div>
+          Click to View
+        </div>
       </div>
     </div>
 
-    <div style="border-radius:14px;overflow:hidden;position:relative;height:280px;box-shadow:0 6px 28px rgba(10,37,88,0.13)">
-      <img src="/assets/dip-vitamins.jpg" alt="DIP vitamins and supplements selection"
-           style="width:100%;height:100%;object-fit:cover;transition:transform .4s" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:20px 22px;background:linear-gradient(to top,rgba(10,37,88,0.88),transparent)">
-        <p style="color:var(--gold);font-size:0.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Products</p>
-        <p style="color:#fff;font-size:0.95rem;font-weight:600">Vitamins &amp; Wellness Supplements</p>
+    <!-- Card 4: Vitamins -->
+    <div class="gal-card" onclick="openLB(3)">
+      <img class="gal-img" src="/assets/dip-vitamins.jpg" alt="DIP vitamins and supplements"/>
+      <div class="gal-overlay"></div>
+      <div class="gal-body">
+        <span class="gal-tag">Products</span>
+        <h3 class="gal-title">Vitamins &amp; Wellness Supplements</h3>
+        <p class="gal-desc">Over 200+ vitamins, supplements and wellness products — carefully sourced to support your everyday health needs.</p>
+        <div class="gal-hint">
+          <div class="gal-hint-ring">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+          </div>
+          Click to View
+        </div>
       </div>
     </div>
 
   </div>
 </section>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="if(event.target===this)closeLB()">
+  <button class="lb-close" onclick="closeLB()" aria-label="Close">&#x2715;</button>
+  <button class="lb-arrow lb-prev" onclick="shiftLB(-1)" aria-label="Previous">&#8592;</button>
+  <button class="lb-arrow lb-next" onclick="shiftLB(1)" aria-label="Next">&#8594;</button>
+  <div class="lb-inner">
+    <div class="lb-img-wrap"><img class="lb-img" id="lb-img" src="" alt=""/></div>
+    <div class="lb-caption">
+      <p class="lb-caption-tag" id="lb-tag"></p>
+      <p class="lb-caption-title" id="lb-title"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+var galPhotos=[
+  {src:'/assets/dip-shipment.jpg',   tag:'Distribution', title:'International Shipment & Delivery'},
+  {src:'/assets/dip-consultation.jpg',tag:'Patient Care',  title:'Expert Medical Consultation'},
+  {src:'/assets/dip-doctor.jpg',     tag:'Our Team',      title:'Licensed Healthcare Professionals'},
+  {src:'/assets/dip-vitamins.jpg',   tag:'Products',      title:'Vitamins & Wellness Supplements'}
+];
+var lbIdx=0;
+function openLB(i){
+  lbIdx=i; setLB();
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLB(){
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow='';
+}
+function shiftLB(d){
+  lbIdx=(lbIdx+d+galPhotos.length)%galPhotos.length;
+  var wrap=document.querySelector('.lb-img-wrap');
+  wrap.style.animation='none'; wrap.offsetHeight;
+  wrap.style.animation='lb-img-in .3s ease';
+  setLB();
+}
+function setLB(){
+  var p=galPhotos[lbIdx];
+  document.getElementById('lb-img').src=p.src;
+  document.getElementById('lb-img').alt=p.title;
+  document.getElementById('lb-tag').textContent=p.tag;
+  document.getElementById('lb-title').textContent=p.title;
+}
+document.addEventListener('keydown',function(e){
+  var lb=document.getElementById('lb');
+  if(!lb.classList.contains('open'))return;
+  if(e.key==='Escape')closeLB();
+  if(e.key==='ArrowLeft')shiftLB(-1);
+  if(e.key==='ArrowRight')shiftLB(1);
+});
+</script>
 
 <!-- CONDITIONS OUR SERVICES COVER -->
 <section class="section" style="background:var(--light)" id="conditions">
