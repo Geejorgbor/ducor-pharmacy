@@ -30,6 +30,7 @@
       font-family:inherit;
     }
     .btn-logout:hover{background:rgba(220,38,38,0.2);border-color:#dc2626;color:#fff}
+    @media(max-width:520px){.logout-txt{display:none}}
 
     /* ── LAYOUT ── */
     .layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 64px)}
@@ -168,6 +169,13 @@
 </head>
 <body>
 
+<!-- Auth loading overlay — hidden once Firebase confirms the user -->
+<div id="auth-loading" style="position:fixed;inset:0;background:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px">
+  <div style="width:46px;height:46px;border:3px solid #e2e8f0;border-top-color:#0a2558;border-radius:50%;animation:_spin 0.75s linear infinite"></div>
+  <p style="color:#64748b;font-size:0.88rem;font-weight:500">Loading your account…</p>
+  <style>@keyframes _spin{to{transform:rotate(360deg)}}</style>
+</div>
+
 <!-- TOP NAV -->
 <nav class="top-nav">
   <a href="/index.html" class="tn-brand">
@@ -181,7 +189,7 @@
     </div>
     <button class="btn-logout" onclick="logout()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign Out
+      <span class="logout-txt">Sign Out</span>
     </button>
   </div>
 </nav>
@@ -452,38 +460,34 @@
 </nav>
 
 <script type="module">
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, updateDoc, collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-const _fbCfg = {apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",authDomain:"ducor-pharmacy.firebaseapp.com",projectId:"ducor-pharmacy",storageBucket:"ducor-pharmacy.firebasestorage.app",messagingSenderId:"952933384266",appId:"1:952933384266:web:55b906e903d96940d426b3"};
-const _fapp = getApps().length ? getApps()[0] : initializeApp(_fbCfg);
-const _fdb  = getFirestore(_fapp);
-window._updateFirestoreProfile = async function(userId, fields) {
-  try { await updateDoc(doc(_fdb,'customers',userId), fields); } catch(e) {}
-};
-window._updateFirestorePassword = async function(userId, pwHash) {
-  try { await updateDoc(doc(_fdb,'customers',userId), {pwHash}); } catch(e) {}
-};
-window._loadFirestoreOrders = async function(email) {
-  try {
-    const q = query(collection(_fdb,'orders'), where('buyerEmail','==',email));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => d.data()).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-  } catch(e) { return []; }
-};
-</script>
-<script>
 'use strict';
 
-/* ── Session / User helpers (shared with auth.html) ── */
-var SESSION_KEY = 'ducor_sess_v2';
-var USERS_KEY   = 'ducor_users_v2';
-var TIMEOUT_MS  = 30 * 60 * 1000;
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+const _fbCfg = {
+  apiKey:'AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE',
+  authDomain:'ducor-pharmacy.firebaseapp.com',
+  projectId:'ducor-pharmacy',
+  storageBucket:'ducor-pharmacy.firebasestorage.app',
+  messagingSenderId:'952933384266',
+  appId:'1:952933384266:web:55b906e903d96940d426b3'
+};
+const _fapp = getApps().length ? getApps()[0] : initializeApp(_fbCfg);
+const _fdb  = getFirestore(_fapp);
+const _auth = getAuth(_fapp);
+
+/* ── Session / User helpers ── */
+const SESSION_KEY = 'ducor_sess_v2';
+const USERS_KEY   = 'ducor_users_v2';
+const TIMEOUT_MS  = 30 * 60 * 1000;
 
 function getSession() {
   try {
-    var raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    var s = JSON.parse(raw);
+    const s = JSON.parse(raw);
     if (!s || !s.userId || !s.token) return null;
     if (Date.now() > s.expiry) { clearSession(); return null; }
     if (!s.remember) { s.expiry = Date.now() + TIMEOUT_MS; sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
@@ -491,95 +495,179 @@ function getSession() {
   } catch(e) { return null; }
 }
 function clearSession() { sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); }
-function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch(e) { return []; } }
-function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch(e) {} }
+function getUsers()  { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch(e) { return []; } }
+function saveUsers(u){ try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch(e) {} }
+function saveLocalUser(u) {
+  try {
+    const users = getUsers();
+    const idx = users.findIndex(x => x.id === u.id || x.email === u.email);
+    if (idx >= 0) users[idx] = { ...users[idx], ...u };
+    else users.push(u);
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  } catch(e) {}
+}
 function getCurrentUser() {
-  var s = getSession();
+  const s = getSession();
   if (!s) return null;
-  return getUsers().find(function(u) { return u.id === s.userId; }) || null;
+  return getUsers().find(u => u.id === s.userId) || null;
+}
+function createDucorSession(uid) {
+  const a = new Uint8Array(32); crypto.getRandomValues(a);
+  const token  = Array.from(a).map(b => b.toString(16).padStart(2,'0')).join('');
+  const expiry = Date.now() + 7 * 24 * 3600 * 1000;
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: uid, token, expiry, remember: true }));
 }
 async function sha256(str) {
-  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-/* ── Guard: redirect to login if not authenticated ── */
-(function() {
-  var s = getSession();
-  if (!s) { window.location.href = '/auth.html'; return; }
+/* ── Firestore helpers ── */
+async function fetchUserFromFirestore(uid, email) {
+  try {
+    const field = email ? 'email' : 'id';
+    const val   = email ? email.toLowerCase() : uid;
+    const snap  = await getDocs(query(collection(_fdb,'customers'), where(field,'==',val)));
+    if (!snap.empty) return { ...snap.docs[0].data(), _docRef: snap.docs[0].ref };
+  } catch(e) {}
+  return null;
+}
+async function updateFirestoreUser(uid, email, fields) {
+  try {
+    const snap = await getDocs(query(collection(_fdb,'customers'), where('id','==',uid)));
+    if (!snap.empty) { await updateDoc(snap.docs[0].ref, fields); return; }
+    const snap2 = await getDocs(query(collection(_fdb,'customers'), where('email','==',email)));
+    if (!snap2.empty) await updateDoc(snap2.docs[0].ref, fields);
+  } catch(e) {}
+}
+async function loadFirestoreOrders(email) {
+  try {
+    const snap = await getDocs(query(collection(_fdb,'orders'), where('buyerEmail','==',email)));
+    return snap.docs.map(d => d.data()).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch(e) { return []; }
+}
 
-  // Inactivity logout after 30 min
-  var _idle;
-  function resetIdle() {
-    clearTimeout(_idle);
-    _idle = setTimeout(function() { logout(); }, TIMEOUT_MS);
+/* ── Firebase Auth: main gate ── */
+let _fbUser = null;
+let _idleTimer = null;
+
+function resetIdle() {
+  clearTimeout(_idleTimer);
+  _idleTimer = setTimeout(() => logout(), TIMEOUT_MS);
+}
+
+onAuthStateChanged(_auth, async (firebaseUser) => {
+  _fbUser = firebaseUser;
+  const sess = getSession();
+
+  // Not authenticated anywhere → go to login
+  if (!firebaseUser && !sess) {
+    window.location.href = '/auth.html';
+    return;
   }
-  ['mousemove','keydown','click','touchstart','scroll'].forEach(function(ev) {
-    document.addEventListener(ev, resetIdle, {passive:true});
-  });
+
+  // Try localStorage first (fast path)
+  let user = getCurrentUser();
+
+  // If not in localStorage, fetch from Firestore and cache locally
+  if (!user) {
+    const uid   = firebaseUser ? firebaseUser.uid : sess.userId;
+    const email = firebaseUser ? firebaseUser.email : null;
+    const fsUser = await fetchUserFromFirestore(uid, email);
+    if (fsUser) {
+      const { _docRef, ...data } = fsUser;
+      saveLocalUser({ ...data, id: uid, createdAt: Date.now() });
+    } else if (firebaseUser) {
+      // Build from Firebase Auth profile (Google users with no Firestore doc yet)
+      const parts = (firebaseUser.displayName || '').split(' ');
+      saveLocalUser({
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        fname: parts[0] || firebaseUser.email.split('@')[0],
+        lname: parts.slice(1).join(' ') || '',
+        phone: '', country: '', dob: '',
+        authProvider: 'google',
+        photoURL: firebaseUser.photoURL || '',
+        orders: [], prescriptions: [],
+        createdAt: Date.now()
+      });
+    }
+    // Create a ducor session if Firebase says they're logged in but session expired
+    if (!sess && firebaseUser) createDucorSession(firebaseUser.uid);
+    user = getCurrentUser();
+  }
+
+  if (!user) {
+    window.location.href = '/auth.html';
+    return;
+  }
+
+  // Hide loading overlay
+  const overlay = document.getElementById('auth-loading');
+  if (overlay) overlay.style.display = 'none';
+
+  // Idle logout
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
+    document.addEventListener(ev, resetIdle, { passive: true })
+  );
   resetIdle();
-})();
+
+  loadUI(user);
+});
 
 /* ── Page navigation ── */
-function showPage(name) {
-  document.querySelectorAll('.page-section').forEach(function(el){ el.classList.remove('active'); });
-  document.querySelectorAll('.sb-link').forEach(function(el){ el.classList.remove('active'); });
-  document.querySelectorAll('.mn-btn').forEach(function(el){ el.classList.remove('active'); });
-  var pg = document.getElementById('page-' + name);
+window.showPage = function(name) {
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.mn-btn').forEach(el => el.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
   if (pg) pg.classList.add('active');
-  var mn = document.getElementById('mn-' + name);
+  const mn = document.getElementById('mn-' + name);
   if (mn) mn.classList.add('active');
-  // Sidebar button
-  document.querySelectorAll('.sb-link').forEach(function(btn){
-    if (btn.getAttribute('onclick') === "showPage('" + name + "')") btn.classList.add('active');
+  document.querySelectorAll('.sb-link').forEach(btn => {
+    if (btn.getAttribute('onclick') === `showPage('${name}')`) btn.classList.add('active');
   });
-}
+};
 
 /* ── Logout ── */
-function logout() {
+window.logout = async function() {
   clearSession();
+  try { await signOut(_auth); } catch(e) {}
   window.location.href = '/auth.html';
-}
+};
 
-/* ── Load user data into UI ── */
-function loadUI() {
-  var user = getCurrentUser();
-  if (!user) { window.location.href = '/auth.html'; return; }
+/* ── Load UI ── */
+function loadUI(user) {
+  const initials = ((user.fname || '?')[0] + ((user.lname || ' ')[0])).toUpperCase();
+  const fullName = (user.fname + ' ' + (user.lname || '')).trim();
 
-  var initials = ((user.fname || '?')[0] + (user.lname || '')[0]).toUpperCase();
-  var fullName = (user.fname + ' ' + (user.lname || '')).trim();
-
-  // Nav
-  document.getElementById('nav-avatar').textContent = initials;
-  document.getElementById('nav-name').textContent = user.fname || user.email;
-
-  // Welcome
-  document.getElementById('wb-name').textContent = user.fname || 'Client';
-
-  // Stats
-  document.getElementById('stat-orders').textContent = (user.orders || []).length;
-  document.getElementById('stat-rx').textContent = (user.prescriptions || []).length;
-
-  // Profile form
+  document.getElementById('nav-avatar').textContent    = initials;
+  document.getElementById('nav-name').textContent      = user.fname || user.email;
+  document.getElementById('wb-name').textContent       = user.fname || 'Client';
+  document.getElementById('stat-orders').textContent   = (user.orders || []).length;
+  document.getElementById('stat-rx').textContent       = (user.prescriptions || []).length;
   document.getElementById('pf-avatar-big').textContent = initials;
   document.getElementById('pf-name-display').textContent = fullName || user.email;
   document.getElementById('pf-email-display').textContent = user.email;
-  document.getElementById('pf-fname').value  = user.fname  || '';
-  document.getElementById('pf-lname').value  = user.lname  || '';
-  document.getElementById('pf-email').value  = user.email  || '';
-  document.getElementById('pf-phone').value  = user.phone  || '';
-  document.getElementById('pf-dob').value    = user.dob    || '';
+  document.getElementById('pf-fname').value = user.fname || '';
+  document.getElementById('pf-lname').value = user.lname || '';
+  document.getElementById('pf-email').value = user.email || '';
+  document.getElementById('pf-phone').value = user.phone || '';
+  document.getElementById('pf-dob').value   = user.dob   || '';
 
-  // Orders — load from Firestore first, fall back to localStorage
+  // Show local orders immediately (fast), then replace with Firestore data
   renderOrders(user.orders || [], 'overview-orders-body', 3);
   renderOrders(user.orders || [], 'orders-body', 999);
-  document.getElementById('stat-orders').textContent = (user.orders || []).length;
-  if (window._loadFirestoreOrders) {
-    window._loadFirestoreOrders(user.email).then(function(fsOrders) {
+
+  if (user.email) {
+    loadFirestoreOrders(user.email).then(fsOrders => {
       if (fsOrders.length > 0) {
-        var mapped = fsOrders.map(function(o) {
-          return { name: (o.items||[]).map(function(i){return i.name||i.id||'Item';}).join(', ') || 'Medication Order', date: o.createdAt, amount: '$' + parseFloat(o.total||0).toFixed(2), status: o.status || 'new' };
-        });
+        const mapped = fsOrders.map(o => ({
+          name:   (o.items||[]).map(i => i.name||i.id||'Item').join(', ') || 'Medication Order',
+          date:   o.createdAt,
+          amount: '$' + parseFloat(o.total||0).toFixed(2),
+          status: o.status || 'new'
+        }));
         renderOrders(mapped, 'overview-orders-body', 3);
         renderOrders(mapped, 'orders-body', 999);
         document.getElementById('stat-orders').textContent = fsOrders.length;
@@ -587,124 +675,140 @@ function loadUI() {
     });
   }
 
-  // Sessions
   renderSessions();
 }
 
 function renderOrders(orders, containerId, limit) {
-  var el = document.getElementById(containerId);
-  if (!orders.length) {
+  const el = document.getElementById(containerId);
+  if (!orders || !orders.length) {
     el.innerHTML = '<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg><p>No orders yet.<br>Browse our medications to place your first order.</p></div>';
     return;
   }
-  var shown = orders.slice(-limit).reverse();
-  el.innerHTML = shown.map(function(o) {
-    var st = (o.status || 'new').toLowerCase();
-    var cls = st === 'delivered' || st === 'completed' ? 'status-completed' :
-              st === 'processing' ? 'status-processing' :
-              st === 'ready' ? 'status-ready' :
-              st === 'cancelled' ? 'status-cancelled' : 'status-pending';
-    var label = st === 'new' ? 'Pending' : st === 'ready' ? 'Ready' : st.charAt(0).toUpperCase() + st.slice(1);
-    var dateStr = o.date ? new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    return '<div class="order-row"><div><strong style="font-size:0.88rem">' + (o.name || 'Medication Order') + '</strong><br><span style="color:var(--gray);font-size:0.78rem">' + dateStr + '</span></div><span style="font-size:0.88rem;font-weight:700;color:var(--navy)">' + (o.amount || '') + '</span><span class="order-status ' + cls + '">' + label + '</span></div>';
+  el.innerHTML = orders.slice(0, limit).map(o => {
+    const st  = (o.status || 'new').toLowerCase();
+    const cls = st === 'delivered' || st === 'completed' ? 'status-completed' :
+                st === 'processing' ? 'status-processing' :
+                st === 'ready'      ? 'status-ready'      :
+                st === 'cancelled'  ? 'status-cancelled'  : 'status-pending';
+    const label   = st === 'new' ? 'Pending' : st === 'ready' ? 'Ready' : st.charAt(0).toUpperCase() + st.slice(1);
+    const dateStr = o.date ? new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    return `<div class="order-row"><div><strong style="font-size:0.88rem">${o.name||'Medication Order'}</strong><br><span style="color:var(--gray);font-size:0.78rem">${dateStr}</span></div><span style="font-size:0.88rem;font-weight:700;color:var(--navy)">${o.amount||''}</span><span class="order-status ${cls}">${label}</span></div>`;
   }).join('');
 }
 
 function renderSessions() {
-  var el = document.getElementById('sess-list');
-  var s  = getSession();
-  var expStr = s ? new Date(s.expiry).toLocaleString() : 'Unknown';
-  el.innerHTML = '<div class="sess-item"><div style="display:flex;align-items:center"><div class="sess-dot"></div><div><strong style="font-size:0.85rem">Current Session</strong><br><span style="color:var(--gray);font-size:0.75rem">This device · Expires ' + expStr + '</span></div></div><span class="badge-on">Active</span></div>';
+  const el  = document.getElementById('sess-list');
+  const s   = getSession();
+  const exp = s ? new Date(s.expiry).toLocaleString() : 'Unknown';
+  el.innerHTML = `<div class="sess-item"><div style="display:flex;align-items:center"><div class="sess-dot"></div><div><strong style="font-size:0.85rem">Current Session</strong><br><span style="color:var(--gray);font-size:0.75rem">This device · Expires ${exp}</span></div></div><span class="badge-on">Active</span></div>`;
 }
 
 /* ── Profile save ── */
-document.getElementById('profile-form').addEventListener('submit', function(e) {
+document.getElementById('profile-form').addEventListener('submit', async function(e) {
   e.preventDefault();
-  var user = getCurrentUser();
+  const user = getCurrentUser();
   if (!user) return;
-  var users = getUsers();
-  var idx   = users.findIndex(function(u){ return u.id === user.id; });
-  if (idx < 0) return;
-  users[idx].fname = document.getElementById('pf-fname').value.trim();
-  users[idx].lname = document.getElementById('pf-lname').value.trim();
-  users[idx].phone = document.getElementById('pf-phone').value.trim();
-  users[idx].dob   = document.getElementById('pf-dob').value;
-  saveUsers(users);
-  if (window._updateFirestoreProfile) {
-    window._updateFirestoreProfile(user.id, {fname:users[idx].fname,lname:users[idx].lname,phone:users[idx].phone,dob:users[idx].dob});
-  }
-  var ok = document.getElementById('profile-ok-inline');
+  const updates = {
+    fname: document.getElementById('pf-fname').value.trim(),
+    lname: document.getElementById('pf-lname').value.trim(),
+    phone: document.getElementById('pf-phone').value.trim(),
+    dob:   document.getElementById('pf-dob').value,
+  };
+  const users = getUsers();
+  const idx   = users.findIndex(u => u.id === user.id);
+  if (idx >= 0) { Object.assign(users[idx], updates); saveUsers(users); }
+  await updateFirestoreUser(user.id, user.email, updates);
+  const ok = document.getElementById('profile-ok-inline');
   ok.classList.add('show');
-  setTimeout(function(){ ok.classList.remove('show'); }, 2500);
-  loadUI();
+  setTimeout(() => ok.classList.remove('show'), 2500);
+  loadUI(getCurrentUser() || user);
 });
 
 /* ── Change password ── */
-function showChangePw() {
-  var row = document.getElementById('pw-change-row');
-  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
-  row.style.flexDirection = 'column';
-}
+window.showChangePw = function() {
+  const row = document.getElementById('pw-change-row');
+  const hidden = !row.style.display || row.style.display === 'none';
+  row.style.display = hidden ? 'flex' : 'none';
+  if (hidden) row.style.flexDirection = 'column';
+};
 
-function checkStrengthInline(pw) {
-  var wrap = document.getElementById('pw-strength-inline');
+window.checkStrengthInline = function(pw) {
+  const wrap = document.getElementById('pw-strength-inline');
   if (!pw) { wrap.style.display = 'none'; return 0; }
   wrap.style.display = 'block';
-  var score = 0;
-  if (pw.length >= 8)  score++;
-  if (pw.length >= 12) score++;
-  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  var level = score <= 1 ? 0 : score <= 2 ? 1 : score <= 3 ? 2 : 3;
-  var cls   = ['#dc2626','#f59e0b','#3b82f6','#16a34a'];
-  for (var i = 1; i <= 4; i++) {
-    document.getElementById('sb' + i).style.background = i <= level + 1 ? cls[level] : '#e2e8f0';
+  let sc = 0;
+  if (pw.length >= 8)  sc++;
+  if (pw.length >= 12) sc++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) sc++;
+  if (/[0-9]/.test(pw)) sc++;
+  if (/[^A-Za-z0-9]/.test(pw)) sc++;
+  const lv  = sc <= 1 ? 0 : sc <= 2 ? 1 : sc <= 3 ? 2 : 3;
+  const cls = ['#dc2626','#f59e0b','#3b82f6','#16a34a'];
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('sb' + i).style.background = i <= lv + 1 ? cls[lv] : '#e2e8f0';
   }
-  document.getElementById('sbl').textContent = ['Weak','Fair','Good','Strong'][level] + ' password';
-  return level;
-}
+  document.getElementById('sbl').textContent = ['Weak','Fair','Good','Strong'][lv] + ' password';
+  return lv;
+};
 
-async function changePassword() {
-  var errEl = document.getElementById('pw-change-err');
+window.changePassword = async function() {
+  const errEl = document.getElementById('pw-change-err');
   errEl.style.display = 'none';
-  var user = getCurrentUser();
+  const user = getCurrentUser();
   if (!user) return;
-  var cur  = document.getElementById('pw-cur').value;
-  var nw   = document.getElementById('pw-new').value;
-  var nw2  = document.getElementById('pw-new2').value;
+  const cur = document.getElementById('pw-cur').value;
+  const nw  = document.getElementById('pw-new').value;
+  const nw2 = document.getElementById('pw-new2').value;
   if (!cur || !nw || !nw2) { errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return; }
-  var curHash = await sha256(cur + 'ducor_ph_salt_2025_' + user.email);
-  if (curHash !== user.pwHash) { errEl.textContent = 'Current password is incorrect.'; errEl.style.display = 'block'; return; }
-  if (nw.length < 8) { errEl.textContent = 'New password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
-  if (nw !== nw2) { errEl.textContent = 'New passwords do not match.'; errEl.style.display = 'block'; return; }
-  var newHash = await sha256(nw + 'ducor_ph_salt_2025_' + user.email);
-  var users = getUsers();
-  var idx = users.findIndex(function(u){ return u.id === user.id; });
-  users[idx].pwHash = newHash;
-  saveUsers(users);
-  if (window._updateFirestorePassword) window._updateFirestorePassword(user.id, newHash);
+  if (nw.length < 8)        { errEl.textContent = 'New password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+  if (nw !== nw2)           { errEl.textContent = 'New passwords do not match.'; errEl.style.display = 'block'; return; }
+
+  if (_fbUser) {
+    // Check if this is a Google-only account (no password provider)
+    const hasPassword = _fbUser.providerData.some(p => p.providerId === 'password');
+    if (!hasPassword) {
+      errEl.textContent = 'Password changes are not available for Google Sign-In accounts. Please use Google to manage your account security.';
+      errEl.style.display = 'block'; return;
+    }
+    try {
+      await reauthenticateWithCredential(_fbUser, EmailAuthProvider.credential(_fbUser.email, cur));
+      await updatePassword(_fbUser, nw);
+    } catch(err) {
+      errEl.textContent = (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential')
+        ? 'Current password is incorrect.'
+        : err.code === 'auth/requires-recent-login'
+          ? 'Please sign out and sign back in before changing your password.'
+          : 'Failed to update password. Please try again.';
+      errEl.style.display = 'block'; return;
+    }
+  } else {
+    // Legacy local-only account
+    const curHash = await sha256(cur + 'ducor_ph_salt_2025_' + user.email);
+    if (curHash !== user.pwHash) { errEl.textContent = 'Current password is incorrect.'; errEl.style.display = 'block'; return; }
+    const newHash = await sha256(nw + 'ducor_ph_salt_2025_' + user.email);
+    const users = getUsers();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx >= 0) { users[idx].pwHash = newHash; saveUsers(users); }
+    await updateFirestoreUser(user.id, user.email, { pwHash: newHash });
+  }
+
   document.getElementById('pw-change-row').style.display = 'none';
-  document.getElementById('pw-cur').value = document.getElementById('pw-new').value = document.getElementById('pw-new2').value = '';
-  errEl.style.display = 'none';
-  var okEl = document.getElementById('pw-ok-inline');
-  if (okEl) { okEl.style.display = 'block'; setTimeout(function(){ okEl.style.display = 'none'; }, 3000); }
-}
+  ['pw-cur','pw-new','pw-new2'].forEach(id => { document.getElementById(id).value = ''; });
+  const okEl = document.getElementById('pw-ok-inline');
+  if (okEl) { okEl.style.display = 'block'; setTimeout(() => okEl.style.display = 'none', 3000); }
+};
 
 /* ── Delete account ── */
-function confirmDelete() {
-  if (confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
-    var s = getSession();
-    if (!s) return;
-    var users = getUsers().filter(function(u){ return u.id !== s.userId; });
-    saveUsers(users);
-    clearSession();
-    window.location.href = '/index.html';
-  }
-}
-
-// Init
-loadUI();
+window.confirmDelete = function() {
+  if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
+  const s = getSession();
+  if (!s) return;
+  const users = getUsers().filter(u => u.id !== s.userId);
+  saveUsers(users);
+  clearSession();
+  if (_fbUser) _fbUser.delete().catch(() => {});
+  window.location.href = '/index.html';
+};
 </script>
 <script src="/assets/ducor-widgets.js" defer></script>
 </body>

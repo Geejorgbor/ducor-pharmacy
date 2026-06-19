@@ -605,7 +605,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _app = initializeApp({
   apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -737,55 +737,129 @@ window.sendResetCode = async function() {
   btn.disabled = false; btn.textContent = 'Send Reset Link to Email';
 };
 
+/* ── SHARED: process any Google sign-in result (popup or redirect) ── */
+async function processGoogleUser(gUser) {
+  const email = gUser.email.toLowerCase();
+  let ducorUser = await findUser(email);
+  if (!ducorUser) {
+    const nameParts = (gUser.displayName || '').split(' ');
+    const userId = gUser.uid;
+    const userData = {
+      id: userId, email,
+      fname: nameParts[0] || '',
+      lname: nameParts.slice(1).join(' ') || '',
+      phone: '', country: 'Not specified',
+      authProvider: 'google',
+      photoURL: gUser.photoURL || '',
+      createdAt: serverTimestamp(),
+      orders: [], prescriptions: []
+    };
+    try { await addDoc(collection(_db,'customers'), userData); } catch(ex) {}
+    saveLocalUser({...userData, createdAt: Date.now()});
+    createSession(userId, true);
+  } else {
+    const uid = ducorUser.id || ducorUser.userId || gUser.uid;
+    if (!findLocalUser(email)) {
+      saveLocalUser({
+        ...ducorUser,
+        id: uid,
+        authProvider: 'google',
+        photoURL: gUser.photoURL || ducorUser.photoURL || '',
+        createdAt: Date.now()
+      });
+    }
+    createSession(uid, true);
+  }
+}
+
 /* ── GOOGLE SIGN-IN ── */
+const _SPINNER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
+
 window.signInWithGoogle = async function(btnId) {
   const btn = document.getElementById(btnId);
   const origHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Connecting...';
+  btn.innerHTML = _SPINNER + ' Connecting...';
+
   try {
+    // Try popup first (works on desktop and most mobile browsers)
     const result = await signInWithPopup(_auth, _gProvider);
-    const gUser = result.user;
-    const email = gUser.email.toLowerCase();
-    let ducorUser = await findUser(email);
-    if (!ducorUser) {
-      const nameParts = (gUser.displayName || '').split(' ');
-      const userId = gUser.uid;
-      const userData = {
-        id: userId, email,
-        fname: nameParts[0] || '',
-        lname: nameParts.slice(1).join(' ') || '',
-        phone: '', country: 'Not specified',
-        authProvider: 'google',
-        photoURL: gUser.photoURL || '',
-        createdAt: serverTimestamp(),
-        orders: [], prescriptions: []
-      };
-      try { await addDoc(collection(_db,'customers'), userData); } catch(ex) {}
-      saveLocalUser({...userData, createdAt: Date.now()});
-      createSession(userId, true);
-    } else {
-      createSession(ducorUser.id || ducorUser.userId || gUser.uid, true);
-    }
+    await processGoogleUser(result.user);
     window.location.href = _nextUrl;
+
   } catch(err) {
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      // User dismissed — just restore the button, no error shown
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      return;
+    }
+
+    if (err.code === 'auth/popup-blocked') {
+      // Mobile / strict browser — silently fall back to redirect
+      btn.innerHTML = _SPINNER + ' Opening Google…';
+      try {
+        await signInWithRedirect(_auth, _gProvider);
+        // Page will navigate away; nothing more to do here
+      } catch(redirErr) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        showAlert('login-err', 'Could not open Google sign-in. Please try again.');
+      }
+      return;
+    }
+
+    // All other errors
     btn.disabled = false;
     btn.innerHTML = origHtml;
-    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
     if (err.code === 'auth/unauthorized-domain') {
-      showAlert('login-err', 'Domain not authorized yet — please use email and password for now. Google login will be enabled shortly.');
-    } else if (err.code === 'auth/popup-blocked') {
-      showAlert('login-err', 'Pop-up was blocked. Please allow pop-ups for this site in your browser settings and try again.');
+      showAlert('login-err', 'Google login is not yet enabled for this domain. Please use email and password for now.');
     } else {
-      showAlert('login-err', 'Google sign-in failed (' + (err.code||'unknown') + '). Please use email and password.');
+      showAlert('login-err', 'Google sign-in failed. Please try again or use email and password.');
     }
   }
 };
 
-/* ── REDIRECT ── */
+/* ── REDIRECT / SESSION ── */
 const _nextUrl=(()=>{const p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
 (()=>{if(_nextUrl==='/checkout.html')document.getElementById('checkout-note').classList.add('show');})();
-(()=>{if(getSession())window.location.href=_nextUrl;})();
+
+// On load: check for a pending Google redirect result FIRST, then fall back to session check.
+// This handles the case where signInWithRedirect was used (popup was blocked on mobile).
+(async function() {
+  // Briefly disable Google buttons while we check for a redirect result
+  const gBtns = ['google-btn-login','google-btn-signup'];
+  const saved = {};
+  gBtns.forEach(id => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    saved[id] = b.innerHTML;
+    b.disabled = true;
+    b.innerHTML = _SPINNER + ' Checking…';
+  });
+
+  try {
+    const result = await getRedirectResult(_auth);
+    if (result) {
+      // User just came back from a Google redirect — process and send to account
+      gBtns.forEach(id => { const b=document.getElementById(id); if(b){b.innerHTML=_SPINNER+' Signing you in…';} });
+      await processGoogleUser(result.user);
+      window.location.href = _nextUrl;
+      return;
+    }
+  } catch(err) {
+    // No redirect result or error — continue normally
+  }
+
+  // Restore Google buttons
+  gBtns.forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.disabled = false; b.innerHTML = saved[id] || b.innerHTML; }
+  });
+
+  // Check existing ducor session
+  if (getSession()) { window.location.href = _nextUrl; }
+})();
 
 /* ── LOGIN ── */
 document.getElementById('login-form').addEventListener('submit', async function(e) {
