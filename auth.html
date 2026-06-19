@@ -609,8 +609,21 @@
   </div>
 </div>
 
+<script>
+/* Fallback: if Firebase CDN fails to load, show login form after 8s */
+(function(){
+  var t=setTimeout(function(){
+    var g=document.getElementById('auth-gate'),c=document.getElementById('auth-card');
+    if(g)g.style.display='none';if(c){c.style.display='block';}
+  },8000);
+  window._cancelAuthFallback=function(){clearTimeout(t);};
+})();
+</script>
+
 <script type="module">
 'use strict';
+/* Module loaded — cancel the non-module fallback timer */
+if(window._cancelAuthFallback)window._cancelAuthFallback();
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -829,8 +842,8 @@ function _gateMsg(msg) {
   if (el) el.textContent = msg;
 }
 
-// Safety net: always show the login form within 5 seconds even if Firebase is slow
-const _gateTimeout = setTimeout(() => _showLoginCard(), 5000);
+// Safety net: always show the login form within 3 seconds even if Firebase is slow
+const _gateTimeout = setTimeout(() => _showLoginCard(), 3000);
 
 // On page load: check for existing session first (instant, no network needed),
 // then check for a Google redirect result.
@@ -845,7 +858,10 @@ const _gateTimeout = setTimeout(() => _showLoginCard(), 5000);
 
   try {
     _gateMsg('Checking sign-in…');
-    const result = await getRedirectResult(_auth);
+    const result = await Promise.race([
+      getRedirectResult(_auth),
+      new Promise(resolve => setTimeout(() => resolve(null), 4000))
+    ]);
     clearTimeout(_gateTimeout);
     if (result) {
       _gateMsg('Signing you in…');
