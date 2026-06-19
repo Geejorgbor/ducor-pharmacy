@@ -813,9 +813,17 @@ window.signInWithGoogle = async function(btnId) {
     btn.disabled = false;
     btn.innerHTML = origHtml;
     if (err.code === 'auth/unauthorized-domain') {
-      showAlert('login-err', 'Google login is not yet enabled for this domain. Please use email and password for now.');
+      // Try redirect as last resort — may still work on some Firebase configs
+      btn.innerHTML = _SPINNER + ' Trying another way…';
+      try {
+        await signInWithRedirect(_auth, _gProvider);
+        return;
+      } catch(e2) {}
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      showAlert('login-err', 'Google sign-in is being set up. Please sign in with your email and password below for now — we\'ll have Google login working very soon.');
     } else {
-      showAlert('login-err', 'Google sign-in failed. Please try again or use email and password.');
+      showAlert('login-err', 'Google sign-in failed (' + (err.code||'unknown') + '). Please try again or use email and password.');
     }
   }
 };
