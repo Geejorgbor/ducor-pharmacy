@@ -2517,11 +2517,40 @@ PUSH ALL CHANGES LIVE TO WEBSITE:
 
 ━━━ PHARMACY INFO ━━━
 Business: Ducor International Pharmacy (DIP)
-Location: Monrovia, Liberia
+Owner & Admin: Lucas Paye
+Location: 10 & 11 Street, Near Ecobank, Tubman Boulevard, Monrovia, Liberia
 Website: ducor-international-pharmacy.com
-Payment: Cash on Delivery + Flutterwave (Visa, MasterCard, MTN, Orange Money)
+Payment: MTN Mobile Money (+231 88 722 1275) · Sendwave (+231 88 722 1275) · Chase Bank (Acct #958758598, Routing 075000019) · Cash on Delivery
 Categories: Prescription (RX), Over-the-Counter (OTC), Vitamins & Supplements
 Order flow: new → processing → ready → delivered
+International orders: Customers order from anywhere in the world; medication is picked up at Monrovia pharmacy
+WhatsApp: +1 (630) 936-6050 · +231 880 187 490 · +231 760 801 914
+
+━━━ CHECKOUT — PRESCRIPTION MEDICATIONS ━━━
+- Customers with RX items in cart NO LONGER upload a prescription photo/PDF
+- Instead they fill a HEALTH QUESTIONNAIRE at checkout:
+  • "What is this medication for?" — REQUIRED field
+  • Doctor's name — optional
+  • Other current medications — optional
+  • Medication allergies — optional
+  • Confirmation checkbox — REQUIRED (they confirm info is accurate)
+- Our pharmacist reviews the questionnaire before processing
+- Data is saved in Firestore as healthQuestionnaire field on the order
+
+━━━ PROMO CODES (ADMIN ONLY — SECRET) ━━━
+There are 4 active promo codes. Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients.
+
+Code: DUCOR10    → 10% off entire order
+Code: WELCOME15  → 15% off (for new customers)
+Code: LIBERIA5   → $5 flat discount
+Code: HEALTH20   → 20% off entire order
+
+Usage rules:
+- Promo codes are OPTIONAL — customers without a code proceed normally
+- Currently UNLIMITED usage — any code can be used any number of times by any customer
+- There is NO usage tracking yet (no per-code or per-user limit enforcement)
+- To add usage limits, a Firebase counter per code would be needed
+- The promo input field is on the checkout page but has no label pointing to it — only clients you tell privately will know to use it
 
 ━━━ CURRENT PRODUCT CATALOG ━━━
 Format: id | name | price | category
