@@ -182,7 +182,7 @@ function initChat() {
       <div id="ducor-chat-head-avatar">👨‍⚕️</div>
       <div id="ducor-chat-head-info">
         <h4>Lucas Paye</h4>
-        <p>Pharmacy Owner · Available 24/7</p>
+        <p>Pharmacy Assistant · Online 24/7</p>
       </div>
       <div id="ducor-chat-status"></div>
       <button id="ducor-chat-close" aria-label="Close chat">
@@ -190,7 +190,7 @@ function initChat() {
       </button>
     </div>
     <div id="ducor-chat-messages">
-      <div class="ducor-msg bot">Hi! I'm Lucas Paye, owner of Ducor International Pharmacy. 👋<br><br>I'm here 24/7 to help you find medications, answer questions about ordering, delivery, and anything about our pharmacy. How can I help you today?</div>
+      <div class="ducor-msg bot">Hi! I'm Lucas Paye, your online assistant at Ducor International Pharmacy. 👋<br><br>I'm here 24/7 to guide you through everything — finding medications, placing an order, payment options, and more. How can I help you today?</div>
     </div>
     <div id="ducor-chat-typing"><span></span><span></span><span></span></div>
     <div id="ducor-chat-quick">
