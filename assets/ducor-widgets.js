@@ -179,10 +179,10 @@ function initChat() {
   win.id = 'ducor-chat-window';
   win.innerHTML = `
     <div id="ducor-chat-head">
-      <div id="ducor-chat-head-avatar">👨‍⚕️</div>
+      <div id="ducor-chat-head-avatar">💊</div>
       <div id="ducor-chat-head-info">
-        <h4>Lucas Paye</h4>
-        <p>Pharmacy Assistant · Online 24/7</p>
+        <h4>Ducor International Pharmacy</h4>
+        <p>Online Assistant · Available 24/7</p>
       </div>
       <div id="ducor-chat-status"></div>
       <button id="ducor-chat-close" aria-label="Close chat">
@@ -190,7 +190,7 @@ function initChat() {
       </button>
     </div>
     <div id="ducor-chat-messages">
-      <div class="ducor-msg bot">Hi! I'm Lucas Paye, your online assistant at Ducor International Pharmacy. 👋<br><br>I'm here 24/7 to guide you through everything — finding medications, placing an order, payment options, and more. How can I help you today?</div>
+      <div class="ducor-msg bot">Welcome to Ducor International Pharmacy! 👋<br><br>I'm your online assistant, here 24/7 to guide you through everything — finding medications, placing an order, payment options, and more. How can I help you today?</div>
     </div>
     <div id="ducor-chat-typing"><span></span><span></span><span></span></div>
     <div id="ducor-chat-quick">
