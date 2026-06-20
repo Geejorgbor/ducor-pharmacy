@@ -376,19 +376,35 @@
         <div id="promo-msg" style="font-size:12px;margin-top:6px;display:none"></div>
       </div>
 
-      <!-- RX Prescription Upload -->
-      <div id="rx-upload-section" style="display:none;margin-bottom:16px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.3);border-radius:12px;padding:16px">
-        <p style="font-size:0.83rem;color:#b91c1c;font-weight:700;margin-bottom:10px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Your cart contains Prescription (RX) medications
+      <!-- RX Health Questionnaire -->
+      <div id="rx-health-section" style="display:none;margin-bottom:16px;background:rgba(10,37,88,0.04);border:1.5px solid rgba(10,37,88,0.2);border-radius:12px;padding:16px">
+        <p style="font-size:0.83rem;color:#0a2558;font-weight:700;margin-bottom:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:4px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Health Questionnaire — Prescription Medications
         </p>
-        <p style="font-size:0.78rem;color:#7f1d1d;margin-bottom:12px;line-height:1.5">A valid doctor's prescription is required. Please upload a clear photo or PDF of your prescription. Our pharmacist will verify it before your order is processed.</p>
-        <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px dashed rgba(220,38,38,0.4);border-radius:9px;cursor:pointer;background:#fff">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span id="rx-file-label" style="font-size:13px;color:#b91c1c;font-weight:600">Click to upload prescription (JPG, PNG, PDF)</span>
-          <input id="rx-file-input" type="file" accept="image/*,.pdf" style="display:none" onchange="handleRxUpload(this)"/>
-        </label>
-        <div id="rx-upload-status" style="font-size:12px;margin-top:6px;color:#16a34a;display:none;font-weight:600"></div>
+        <p style="font-size:0.78rem;color:#475569;margin-bottom:14px;line-height:1.5">Your cart contains prescription (RX) medications. Please answer a few quick health questions so our pharmacist can review your order safely.</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#0a2558;display:block;margin-bottom:4px">What is this medication for? *</label>
+            <input id="rx-condition" type="text" placeholder="e.g. High blood pressure, diabetes, infection…" style="width:100%;padding:10px 12px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:13px;font-family:inherit;color:#1e293b;background:#f8fafc;box-sizing:border-box"/>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#0a2558;display:block;margin-bottom:4px">Doctor's name (optional)</label>
+            <input id="rx-doctor" type="text" placeholder="Dr. …" style="width:100%;padding:10px 12px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:13px;font-family:inherit;color:#1e293b;background:#f8fafc;box-sizing:border-box"/>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#0a2558;display:block;margin-bottom:4px">Other medications you are currently taking (optional)</label>
+            <input id="rx-current-meds" type="text" placeholder="e.g. Metformin, Lisinopril, none…" style="width:100%;padding:10px 12px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:13px;font-family:inherit;color:#1e293b;background:#f8fafc;box-sizing:border-box"/>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#0a2558;display:block;margin-bottom:4px">Any allergies to medications? (optional)</label>
+            <input id="rx-allergies" type="text" placeholder="e.g. Penicillin, sulfa drugs, none…" style="width:100%;padding:10px 12px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:13px;font-family:inherit;color:#1e293b;background:#f8fafc;box-sizing:border-box"/>
+          </div>
+          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
+            <input id="rx-confirm" type="checkbox" style="margin-top:2px;flex-shrink:0;cursor:pointer"/>
+            <label for="rx-confirm" style="font-size:12px;color:#0369a1;line-height:1.5;cursor:pointer">I confirm that the above information is accurate and that this medication has been recommended or prescribed for me (or the patient named above). *</label>
+          </div>
+        </div>
       </div>
 
       <button class="btn-place-order" onclick="placeOrder()" id="place-order-btn">
@@ -642,8 +658,8 @@ window._db = _db;
   function applyPromo() {
     const code = document.getElementById('promo-input').value.trim().toUpperCase();
     const msg  = document.getElementById('promo-msg');
+    if (!code) { msg.style.display = 'none'; activePromo = null; renderSummary(); return; }
     msg.style.display = 'block';
-    if (!code) { msg.style.color='#dc2626'; msg.textContent='Please enter a promo code.'; return; }
     const promo = PROMO_CODES[code];
     if (!promo) { msg.style.color='#dc2626'; msg.textContent='Invalid promo code. Please check and try again.'; activePromo=null; renderSummary(); return; }
     activePromo = { code, ...promo };
@@ -656,25 +672,6 @@ window._db = _db;
     if (!activePromo) return 0;
     if (activePromo.type === 'percent') return parseFloat((sub * activePromo.value / 100).toFixed(2));
     return Math.min(activePromo.value, sub);
-  }
-
-  // ── Prescription upload ──
-  let rxFileData = null;
-  function handleRxUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const label  = document.getElementById('rx-file-label');
-    const status = document.getElementById('rx-upload-status');
-    label.textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
-    status.style.display = 'block';
-    status.textContent   = 'Reading file...';
-    const reader = new FileReader();
-    reader.onload = e => {
-      rxFileData = { name: file.name, type: file.type, size: file.size, data: e.target.result.split(',')[1] };
-      status.textContent = '✓ Prescription uploaded successfully';
-    };
-    reader.onerror = () => { status.style.color='#dc2626'; status.textContent = 'Error reading file. Please try again.'; };
-    reader.readAsDataURL(file);
   }
 
   // ── Boss WhatsApp notification via Green API (server-side) ──
@@ -735,10 +732,15 @@ window._db = _db;
       return false;
     }
     if (hasRxItems()) {
-      document.getElementById('rx-upload-section').style.display = 'block';
-      if (!rxFileData) {
-        showToast('Please upload your prescription for the RX medications in your cart');
-        document.getElementById('rx-upload-section').scrollIntoView({behavior:'smooth'});
+      document.getElementById('rx-health-section').style.display = 'block';
+      if (!document.getElementById('rx-condition').value.trim()) {
+        showToast('Please describe what the prescription medication is for');
+        document.getElementById('rx-health-section').scrollIntoView({behavior:'smooth'});
+        return false;
+      }
+      if (!document.getElementById('rx-confirm').checked) {
+        showToast('Please tick the confirmation box in the health questionnaire');
+        document.getElementById('rx-health-section').scrollIntoView({behavior:'smooth'});
         return false;
       }
     }
@@ -776,7 +778,12 @@ window._db = _db;
       patientRelationship: orderingFor === 'other' ? document.getElementById('patient-relationship').value : null,
       patientPhone: orderingFor === 'other' ? document.getElementById('patient-phone').value.trim() : null,
       hasRx: hasRxItems(),
-      prescriptionFile: rxFileData ? { name: rxFileData.name, type: rxFileData.type, size: rxFileData.size } : null,
+      healthQuestionnaire: hasRxItems() ? {
+        condition: document.getElementById('rx-condition').value.trim(),
+        doctor: document.getElementById('rx-doctor').value.trim(),
+        currentMeds: document.getElementById('rx-current-meds').value.trim(),
+        allergies: document.getElementById('rx-allergies').value.trim(),
+      } : null,
       createdAt: new Date().toISOString()
     };
   }
@@ -847,8 +854,7 @@ window._db = _db;
       <div class="order-line"><span>Shipping</span><span>${shipping === 0 ? '<span style="color:#16a34a;font-weight:600">FREE</span>' : '$' + shipping.toFixed(2)}</span></div>
       <div class="order-line" style="font-size:11px"><span style="color:var(--muted)">Free shipping on orders over $50</span></div>
       <div class="order-line total"><span>Total</span><span>$${total.toFixed(2)}</span></div>`;
-    // Show RX upload if needed
-    if (hasRxItems()) document.getElementById('rx-upload-section').style.display = 'block';
+    if (hasRxItems()) document.getElementById('rx-health-section').style.display = 'block';
   }
 
   Cart.load();

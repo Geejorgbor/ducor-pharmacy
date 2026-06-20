@@ -2412,6 +2412,11 @@ window.saveTeam = function() {
 .ai-send{width:40px;height:40px;border:none;border-radius:10px;background:linear-gradient(135deg,#c9a055,#e8c97a);color:#0d1b2a;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s}
 .ai-send:hover{opacity:.85}
 .ai-send:disabled{opacity:.4;cursor:not-allowed}
+.ai-act-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.ai-act-row{font-size:12px;font-weight:600;color:#166534;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.ai-act-row:last-child{border-bottom:none}
+.ai-act-loading{color:#92400e;background:none}
+.ai-act-done{color:#166534}
 </style>
 
 <div class="ai-panel-overlay" id="ai-overlay" onclick="toggleAdminAI()"></div>
@@ -2453,70 +2458,96 @@ window.saveTeam = function() {
 </div>
 
 <script>
-// ── ADMIN AI ────────────────────────────────────────────────────────────────
-const AI_SYSTEM = `You are the Ducor AI Admin Assistant — the intelligent pharmacy management assistant built exclusively for Ducor International Pharmacy in Monrovia, Liberia. You are talking directly to the pharmacy admin (Lucas Paye, the owner).
+// ══════════════════════════════════════════════════════════════════════════════
+//  DUCOR ADMIN AI  — Full Website Control Engine
+// ══════════════════════════════════════════════════════════════════════════════
 
-PHARMACY INFO:
-- Name: Ducor International Pharmacy (DIP)
-- Location: Monrovia, Liberia
-- Website: ducor-international-pharmacy.com / ducor-pharmacy.vercel.app
-- Categories: Prescription (RX) medications, Over-the-Counter (OTC), Vitamins & Supplements
-- Payment: Cash on Delivery (COD) + Flutterwave (Visa, MasterCard, MTN, Orange Money)
+// ── SYSTEM PROMPT (product catalog injected at runtime) ───────────────────────
+const AI_SYSTEM_BASE = `You are DUCOR-AI — the all-powerful, fully integrated admin intelligence for Ducor International Pharmacy in Monrovia, Liberia. You speak directly with Lucas Paye, the owner and admin.
 
-ADMIN DASHBOARD SECTIONS (you can navigate to any of these):
-- dashboard: Main overview with stats and quick actions
-- orders: All customer orders with status management
-- notifications: New order alerts
-- products-rx: Prescription medications list
-- products-otc: Over-the-counter medications list
-- products-vit: Vitamins & supplements list
-- analytics: Revenue charts, order counts, visitor stats
-- settings: Change password, store info, data backup
-- security: Activity logs, security events
+YOU ARE NOT JUST A CHATBOT. You have FULL CONTROL over the entire pharmacy website. You can change prices, rename products, add new products, delete products, update orders, navigate the dashboard, post announcements, and push all changes live to the website.
 
-ORDER STATUSES: new → processing → ready → delivered → cancelled
+CRITICAL RULE: When the admin asks you to make ANY change — DO IT immediately using the action commands below. Never say "you should go to..." or "you can manually...". Just execute the action and confirm it's done.
 
-PRODUCT KNOWLEDGE — Key RX medications and prices:
-Acetazolamide 250mg $16, Acyclovir 400mg $18, Albuterol HFA Inhaler $18, Amlodipine 5mg $4, Amlodipine 10mg $6, Amoxicillin 500mg $10, Azithromycin 250mg $10, Azithromycin 500mg $12, Atorvastatin 10mg $10, Ciprofloxacin 500mg $18, Clindamycin 150mg $18, Doxycycline 100mg $9, Fluconazole 150mg $9, Furosemide 40mg $12, Gabapentin 300mg $14, Hydroxychloroquine 200mg $24, Levothyroxine 50mcg $10, Lisinopril 10mg $8, Losartan 50mg $10, Metformin 500mg $8, Metoprolol 50mg $12, Metronidazole 500mg $12, Omeprazole (OTC) $8, Pantoprazole 40mg $12, Prednisone 10mg $10, Rosuvastatin 10mg $10, Tadalafil 20mg $12, Vancomycin 250mg $35
+━━━ ACTION COMMANDS ━━━
+Use these exact tags in your reply to perform real actions:
 
-KEY OTC: Acetaminophen 500mg $8, Aspirin 81mg $4, Cetirizine 10mg $8, Diphenhydramine 25mg $6, Ibuprofen 200mg $10, Loratadine 10mg $4, Omeprazole 20mg $8, Blood Pressure Monitor $24, Blood Glucose Meter $15
+CHANGE A PRICE:
+[DO:update_price|PRODUCT_ID|CATEGORY|NEW_PRICE]
+Example: [DO:update_price|rx013|prescription|12.00]
 
-KEY VITAMINS: B-Complex $12, Calcium+D $14, CoQ10 30mg $10, Fish Oil $8, Magnesium $20, Vitamin B12 $8, Vitamin C 500mg $6, Vitamin D3 1000IU $6, Zinc 50mg $8
+RENAME A PRODUCT:
+[DO:update_name|PRODUCT_ID|CATEGORY|NEW_NAME]
+Example: [DO:update_name|rx013|prescription|Amoxicillin 500mg Capsules]
 
-WHAT YOU CAN DO:
-1. Answer any question about the pharmacy business
-2. Navigate the dashboard to any section using [NAV:section-name]
-3. Give business insights and recommendations
-4. Help the admin understand orders, products, pricing
-5. Guide through any admin task step by step
+ADD NEW PRODUCT:
+[DO:add_product|CATEGORY|NAME|PRICE]
+Category = prescription, otc, or vitamins
+Example: [DO:add_product|prescription|Metformin 850mg|10.00]
 
-NAVIGATION ACTIONS — include these in your response when appropriate:
-[NAV:orders] — go to orders page
-[NAV:analytics] — go to analytics
-[NAV:settings] — go to settings
-[NAV:dashboard] — go to main overview
-[NAV:products-rx] — go to RX products
-[NAV:products-otc] — go to OTC products
-[NAV:products-vit] — go to vitamins
-[NAV:notifications] — go to notifications
-[NAV:security] — go to security logs
+DELETE A PRODUCT:
+[DO:delete|PRODUCT_ID|CATEGORY]
+Example: [DO:delete|rx013|prescription]
 
-RESPONSE STYLE:
-- Be concise, direct, and professional
-- Use bullet points for lists
-- Include navigation actions when relevant
-- You are a trusted assistant — speak confidently
-- When asked about orders, you can suggest the admin check the orders section
-- Always be helpful and solution-focused`;
+UPDATE ORDER STATUS:
+[DO:order|ORDER_ID|NEW_STATUS]
+Status options: processing, ready, delivered, cancelled
+Example: [DO:order|abc123xyz|delivered]
 
+NAVIGATE DASHBOARD:
+[DO:nav|SECTION]
+Sections: dashboard, orders, notifications, products-rx, products-otc, products-vit, analytics, settings, security, team, hero-photos, content
+Example: [DO:nav|orders]
+
+POST ANNOUNCEMENT:
+[DO:announce|YOUR MESSAGE HERE]
+Example: [DO:announce|Flash sale: 20% off all vitamins this weekend!]
+
+PUSH ALL CHANGES LIVE TO WEBSITE:
+[DO:publish]
+(Sends updated products to GitHub → Vercel redeploys in ~60 seconds)
+
+━━━ HOW TO RESPOND ━━━
+1. When asked to change something → run the action command AND confirm it's done
+2. You can use MULTIPLE action commands in one reply
+3. Be direct and decisive: "Done! I've changed..." not "I will change..."
+4. After product changes, offer to publish them live with [DO:publish]
+5. Keep replies short — confirm what was done, not what you plan to do
+6. For questions → answer clearly with bullet points if needed
+
+━━━ PHARMACY INFO ━━━
+Business: Ducor International Pharmacy (DIP)
+Location: Monrovia, Liberia
+Website: ducor-international-pharmacy.com
+Payment: Cash on Delivery + Flutterwave (Visa, MasterCard, MTN, Orange Money)
+Categories: Prescription (RX), Over-the-Counter (OTC), Vitamins & Supplements
+Order flow: new → processing → ready → delivered
+
+━━━ CURRENT PRODUCT CATALOG ━━━
+Format: id | name | price | category
+{{PRODUCT_CATALOG}}`;
+
+function buildAISystem() {
+  const lines = [];
+  const catMap = { prescription: 'prescription', otc: 'otc', vitamins: 'vitamins' };
+  Object.keys(catMap).forEach(cat => {
+    (window.PRODUCTS?.[cat] || []).forEach(p => {
+      lines.push(`${p.id} | ${p.name} | $${p.price.toFixed(2)} | ${cat}`);
+    });
+  });
+  return AI_SYSTEM_BASE.replace('{{PRODUCT_CATALOG}}', lines.join('\n') || '(no products loaded yet)');
+}
+
+// ── AI STATE ──────────────────────────────────────────────────────────────────
 let aiMessages = [];
 let aiOpen = false;
 
+// ── PANEL TOGGLE ──────────────────────────────────────────────────────────────
 window.toggleAdminAI = function() {
   aiOpen = !aiOpen;
   document.getElementById('ai-panel').classList.toggle('open', aiOpen);
   document.getElementById('ai-overlay').classList.toggle('open', aiOpen);
-  if (aiOpen) document.getElementById('ai-input').focus();
+  if (aiOpen) setTimeout(() => document.getElementById('ai-input').focus(), 300);
 };
 
 window.aiSuggest = function(text) {
@@ -2524,6 +2555,7 @@ window.aiSuggest = function(text) {
   sendAdminAI();
 };
 
+// ── SEND MESSAGE ──────────────────────────────────────────────────────────────
 window.sendAdminAI = async function() {
   const input = document.getElementById('ai-input');
   const text = input.value.trim();
@@ -2542,76 +2574,248 @@ window.sendAdminAI = async function() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: aiMessages,
-        system: AI_SYSTEM
-      })
+      body: JSON.stringify({ messages: aiMessages, system: buildAISystem() })
     });
     const data = await res.json();
     removeAITyping();
-    const reply = data.reply || "I'm having trouble responding right now. Please try again.";
-    const clean = processAIActions(reply);
-    addAIMessage('bot', clean);
-    aiMessages.push({ role: 'assistant', content: reply });
-    if (aiMessages.length > 20) aiMessages = aiMessages.slice(-20);
+    const raw = data.reply || "I'm having trouble responding. Please try again.";
+    const { display, hasAsync } = processAIActions(raw);
+    addAIMessage('bot', display);
+    aiMessages.push({ role: 'assistant', content: raw });
+    if (aiMessages.length > 24) aiMessages = aiMessages.slice(-24);
   } catch(e) {
     removeAITyping();
-    addAIMessage('bot', "Connection issue. Please check your internet and try again.");
+    addAIMessage('bot', 'Connection issue. Check your internet and try again.');
   }
   sendBtn.disabled = false;
 };
 
+// ── ACTION ENGINE ─────────────────────────────────────────────────────────────
 function processAIActions(text) {
-  // Parse [NAV:section] commands and execute them
-  const navReg = /\[NAV:([a-z-]+)\]/g;
-  let match;
-  const navs = [];
-  while ((match = navReg.exec(text)) !== null) navs.push(match[1]);
+  const syncResults = [];
+  const asyncOps = [];
+  let pendingId = null;
 
-  // Execute navigations
-  navs.forEach(section => {
-    setTimeout(() => {
-      if (typeof showSection === 'function') {
-        showSection(section, null);
-        // Highlight the correct nav item
-        document.querySelectorAll('.nav-item').forEach(b => {
-          b.classList.toggle('active', b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + section + "'"));
-        });
+  const doReg = /\[DO:([^\]]+)\]/g;
+  let m;
+  while ((m = doReg.exec(text)) !== null) {
+    const parts = m[1].split('|');
+    const cmd = parts[0];
+
+    if (cmd === 'update_price') {
+      const [,id,cat,price] = parts;
+      if (id && cat && price) syncResults.push(aiExec_updatePrice(id, cat, parseFloat(price)));
+    } else if (cmd === 'update_name') {
+      const [,id,cat,...np] = parts;
+      const name = np.join('|');
+      if (id && cat && name) syncResults.push(aiExec_updateName(id, cat, name));
+    } else if (cmd === 'add_product') {
+      const [,cat,...rest] = parts;
+      const price = parseFloat(rest[rest.length-1]);
+      const name = rest.slice(0, rest.length-1).join('|');
+      if (cat && name && !isNaN(price)) syncResults.push(aiExec_addProduct(cat, name, price));
+    } else if (cmd === 'delete') {
+      const [,id,cat] = parts;
+      if (id && cat) syncResults.push(aiExec_deleteProduct(id, cat));
+    } else if (cmd === 'order') {
+      const [,oid,status] = parts;
+      if (oid && status) {
+        pendingId = 'aiop-' + Date.now();
+        asyncOps.push({ id: pendingId, op: aiExec_updateOrder(oid, status) });
+        syncResults.push(`__PENDING__${pendingId}`);
       }
-    }, 600);
-  });
-
-  // Remove action tags from displayed text and add clickable chips
-  let clean = text.replace(/\[NAV:[a-z-]+\]/g, '').trim();
-
-  // Add navigation chips below the message
-  if (navs.length > 0) {
-    const labels = {
-      'orders':'📦 Orders','analytics':'📊 Analytics','settings':'⚙️ Settings',
-      'dashboard':'🏠 Dashboard','products-rx':'💊 RX Products','products-otc':'🛒 OTC Products',
-      'products-vit':'🌿 Vitamins','notifications':'🔔 Notifications','security':'🔒 Security'
-    };
-    const chips = navs.map(s =>
-      `<div class="ai-action-chip" onclick="showSection('${s}',null);toggleAdminAI()">
-        ${labels[s] || s} →
-      </div>`).join('');
-    clean += '\n\n__CHIPS__' + chips;
+    } else if (cmd === 'nav') {
+      const section = parts[1];
+      if (section) {
+        setTimeout(() => { if (typeof showSection === 'function') showSection(section, null); }, 500);
+        syncResults.push(`✓ Opened: <strong>${section}</strong>`);
+      }
+    } else if (cmd === 'announce') {
+      const msg = parts.slice(1).join('|');
+      if (msg) syncResults.push(aiExec_announce(msg));
+    } else if (cmd === 'publish') {
+      pendingId = 'aiop-' + Date.now();
+      asyncOps.push({ id: pendingId, op: aiExec_publish() });
+      syncResults.push(`__PENDING__${pendingId}`);
+    }
   }
-  return clean;
+
+  // Strip action tags from visible text
+  let clean = text.replace(/\[DO:[^\]]+\]/g, '').trim();
+
+  // Build action result card
+  if (syncResults.length > 0) {
+    const cardRows = syncResults.map(r =>
+      r.startsWith('__PENDING__')
+        ? `<div class="ai-act-row ai-act-loading" id="${r.replace('__PENDING__','')}">⏳ Working...</div>`
+        : `<div class="ai-act-row ai-act-done">${r}</div>`
+    ).join('');
+    clean += `\n\n__CARD__<div class="ai-act-card">${cardRows}</div>`;
+
+    // Resolve async ops and update rows
+    asyncOps.forEach(({ id, op }) => {
+      op.then(result => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.className = 'ai-act-row ai-act-done';
+          el.innerHTML = result;
+        }
+      });
+    });
+  }
+
+  return { display: clean, hasAsync: asyncOps.length > 0 };
 }
 
+// ── PRODUCT ACTIONS ───────────────────────────────────────────────────────────
+function aiExec_updatePrice(id, cat, newPrice) {
+  const p = window.PRODUCTS?.[cat]?.find(x => x.id === id);
+  if (!p) return `⚠ Product not found: ${id}`;
+  const old = p.price;
+  p.price = newPrice;
+  if (typeof saveProducts === 'function') saveProducts();
+  if (typeof renderAllTables === 'function') renderAllTables();
+  if (typeof addNotif === 'function') addNotif('success','AI: Price Updated',`${p.name}: $${old.toFixed(2)} → $${newPrice.toFixed(2)}`);
+  if (typeof addLog === 'function') addLog('info',`AI price: ${p.name} $${old.toFixed(2)} → $${newPrice.toFixed(2)}`);
+  return `✓ <strong>${p.name}</strong> price: $${old.toFixed(2)} → <strong>$${newPrice.toFixed(2)}</strong>`;
+}
+
+function aiExec_updateName(id, cat, newName) {
+  const p = window.PRODUCTS?.[cat]?.find(x => x.id === id);
+  if (!p) return `⚠ Product not found: ${id}`;
+  const old = p.name;
+  p.name = newName;
+  if (typeof saveProducts === 'function') saveProducts();
+  if (typeof renderAllTables === 'function') renderAllTables();
+  if (typeof addNotif === 'function') addNotif('success','AI: Product Renamed',`"${old}" → "${newName}"`);
+  if (typeof addLog === 'function') addLog('info',`AI renamed: "${old}" → "${newName}"`);
+  return `✓ Renamed: <strong>"${old}"</strong> → <strong>"${newName}"</strong>`;
+}
+
+function aiExec_addProduct(cat, name, price) {
+  if (!window.PRODUCTS?.[cat]) return `⚠ Invalid category: ${cat}`;
+  const prefix = {prescription:'rx',otc:'otc',vitamins:'vit'}[cat] || 'p';
+  const newId = prefix + 'ai' + Date.now();
+  window.PRODUCTS[cat].push({ id: newId, name, price });
+  if (typeof saveProducts === 'function') saveProducts();
+  if (typeof renderAllTables === 'function') renderAllTables();
+  if (typeof addNotif === 'function') addNotif('success','AI: Product Added',`"${name}" added to ${cat} at $${price.toFixed(2)}`);
+  if (typeof addLog === 'function') addLog('info',`AI added: "${name}" ($${price.toFixed(2)}) to ${cat} [${newId}]`);
+  return `✓ Added <strong>"${name}"</strong> to ${cat} at <strong>$${price.toFixed(2)}</strong> (ID: ${newId})`;
+}
+
+function aiExec_deleteProduct(id, cat) {
+  const list = window.PRODUCTS?.[cat];
+  if (!list) return `⚠ Invalid category: ${cat}`;
+  const p = list.find(x => x.id === id);
+  if (!p) return `⚠ Product not found: ${id}`;
+  const name = p.name;
+  window.PRODUCTS[cat] = list.filter(x => x.id !== id);
+  if (typeof saveProducts === 'function') saveProducts();
+  if (typeof renderAllTables === 'function') renderAllTables();
+  if (typeof addNotif === 'function') addNotif('warning','AI: Product Deleted',`"${name}" removed from ${cat}`);
+  if (typeof addLog === 'function') addLog('warning',`AI deleted: "${name}" [${id}] from ${cat}`);
+  return `✓ Deleted <strong>"${name}"</strong> from ${cat}`;
+}
+
+// ── ORDER ACTION ──────────────────────────────────────────────────────────────
+async function aiExec_updateOrder(orderId, newStatus) {
+  const order = (window.ORDERS || []).find(o =>
+    o.id === orderId || o.id?.endsWith(orderId) || orderId.endsWith(o.id?.slice(-8) || '')
+  );
+  if (!order) return `⚠ Order not found: ${orderId}`;
+  const prev = order.status;
+  order.status = newStatus;
+  try { localStorage.setItem('ducor-orders', JSON.stringify(window.ORDERS)); } catch(e) {}
+  try {
+    if (typeof db !== 'undefined' && typeof updateDoc === 'function') {
+      await updateDoc(doc(db, 'orders', order.id), { status: newStatus, statusUpdatedAt: new Date().toISOString() });
+    }
+  } catch(e) {}
+  if (typeof renderAllTables === 'function') renderAllTables();
+  if (typeof addNotif === 'function') addNotif('info','AI: Order Updated',`#${order.id.slice(-8)}: ${prev} → ${newStatus}`);
+  if (typeof addLog === 'function') addLog('info',`AI updated order #${order.id.slice(-8)}: ${prev} → ${newStatus}`);
+  return `✓ Order <strong>#${order.id.slice(-8)}</strong>: ${prev} → <strong>${newStatus}</strong>`;
+}
+
+// ── ANNOUNCE ──────────────────────────────────────────────────────────────────
+function aiExec_announce(msg) {
+  if (typeof addNotif === 'function') addNotif('info','AI Announcement', msg, 'Just now');
+  if (typeof addLog === 'function') addLog('info',`AI announcement: ${msg}`);
+  return `✓ Announcement posted: <em>"${msg}"</em>`;
+}
+
+// ── PUBLISH TO GITHUB ─────────────────────────────────────────────────────────
+async function aiExec_publish() {
+  const token = localStorage.getItem('ducor-gh-token') || '';
+  if (!token) {
+    return '⚠ GitHub token not set. Go to <strong>Product Photos</strong> section, paste your GitHub token, and try again. Changes are saved in dashboard.';
+  }
+  try {
+    const headers = {
+      Authorization: `token ${token}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/vnd.github.v3+json'
+    };
+    const getR = await fetch('https://api.github.com/repos/Geejorgbor/ducor-pharmacy/contents/assets/shop.js', { headers });
+    if (!getR.ok) throw new Error(`GitHub fetch error: ${getR.status}`);
+    const getJ = await getR.json();
+    const sha = getJ.sha;
+    const current = decodeURIComponent(escape(atob(getJ.content.replace(/\n/g,''))));
+
+    const newProds = buildProductsJSBlock();
+    const updated = current.replace(
+      /\/\/ ── PRODUCT DATA ──[^\n]*\n\nconst PRODUCTS = \{[\s\S]*?\n\};\n/,
+      `// ── PRODUCT DATA ──────────────────────────────────────────────────────────────\n\n${newProds}\n`
+    );
+    if (updated === current) throw new Error('Could not find PRODUCTS section in shop.js to replace');
+
+    const putR = await fetch('https://api.github.com/repos/Geejorgbor/ducor-pharmacy/contents/assets/shop.js', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        message: 'AI: Update product catalog via Admin AI',
+        content: btoa(unescape(encodeURIComponent(updated))),
+        sha
+      })
+    });
+    if (!putR.ok) throw new Error(`GitHub push error: ${putR.status}`);
+    if (typeof addLog === 'function') addLog('success','AI published products to GitHub');
+    if (typeof addNotif === 'function') addNotif('success','AI: Website Updated','Product changes are live! Site rebuilding (~60 sec).');
+    return '✓ <strong>Published to website!</strong> Vercel is rebuilding — live in ~60 seconds.';
+  } catch(e) {
+    return `⚠ Publish failed: ${e.message}`;
+  }
+}
+
+function buildProductsJSBlock() {
+  const cats = ['prescription','otc','vitamins'];
+  let str = 'const PRODUCTS = {\n';
+  cats.forEach((cat, ci) => {
+    str += `  ${cat}: [\n`;
+    (window.PRODUCTS[cat]||[]).forEach((p, i, arr) => {
+      const comma = i < arr.length - 1 ? ',' : '';
+      const safeName = p.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      str += `    {id:'${p.id}',name:'${safeName}',price:${p.price.toFixed(2)}}${comma}\n`;
+    });
+    str += `  ]${ci < cats.length - 1 ? ',' : ''}\n`;
+  });
+  str += '};';
+  return str;
+}
+
+// ── MESSAGE RENDERING ─────────────────────────────────────────────────────────
 function addAIMessage(role, text) {
   const msgs = document.getElementById('ai-messages');
   const div = document.createElement('div');
   div.className = 'ai-msg ' + role;
 
   let content = text;
-  let chips = '';
-  if (content.includes('__CHIPS__')) {
-    [content, chips] = content.split('__CHIPS__');
+  let card = '';
+  if (content.includes('__CARD__')) {
+    [content, card] = content.split('__CARD__');
   }
 
-  // Convert markdown-ish formatting
   content = content
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/^- (.+)/gm, '• $1')
@@ -2619,7 +2823,7 @@ function addAIMessage(role, text) {
 
   div.innerHTML = `
     <div class="ai-msg-avatar">${role === 'bot' ? 'AI' : 'You'}</div>
-    <div class="ai-msg-bubble">${content}${chips ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + chips + '</div>' : ''}</div>`;
+    <div class="ai-msg-bubble">${content}${card ? card : ''}</div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
