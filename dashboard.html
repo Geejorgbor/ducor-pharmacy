@@ -754,6 +754,70 @@
     <!-- ════ ANALYTICS ════ -->
     <div class="section" id="sec-analytics">
 
+      <!-- ── ORDER ANALYTICS ────────────────────────────────── -->
+      <div style="margin-bottom:8px;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">Order Performance</div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px">
+        <div class="stat-card gold">
+          <div class="stat-icon gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="stat-value" id="an-rev-today" style="font-size:20px">$0</div>
+          <div class="stat-label">Revenue Today</div>
+          <div class="stat-change up" id="an-rev-today-count" style="margin-top:4px;font-size:11px;color:var(--muted)">0 orders</div>
+        </div>
+        <div class="stat-card rx">
+          <div class="stat-icon rx"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="stat-value" id="an-rev-week" style="font-size:20px">$0</div>
+          <div class="stat-label">Revenue This Week</div>
+          <div class="stat-change" id="an-rev-week-count" style="margin-top:4px;font-size:11px;color:var(--muted)">0 orders</div>
+        </div>
+        <div class="stat-card otc">
+          <div class="stat-icon otc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="stat-value" id="an-orders-pending">0</div>
+          <div class="stat-label">Pending Orders</div>
+          <div class="stat-change" style="margin-top:4px;font-size:11px;color:var(--muted)">new + processing</div>
+        </div>
+        <div class="stat-card vit">
+          <div class="stat-icon vit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div class="stat-value" id="an-orders-delivered">0</div>
+          <div class="stat-label">Delivered (All Time)</div>
+          <div class="stat-change up" style="margin-top:4px;font-size:11px;color:var(--success)">completed</div>
+        </div>
+      </div>
+
+      <!-- Revenue 7-day chart + Order Status breakdown -->
+      <div class="two-col" style="margin-bottom:22px">
+        <div class="panel">
+          <div class="panel-header"><div><h4>Revenue — Last 7 Days</h4><p>Daily order totals (OTC only — RX excluded)</p></div></div>
+          <div class="panel-body">
+            <div id="rev-chart" class="chart-bar-wrap" style="height:180px"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div><h4>Orders by Status</h4><p>Current pipeline</p></div></div>
+          <div class="panel-body">
+            <div id="status-chart" style="display:flex;flex-direction:column;gap:12px;padding-top:4px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Products + Recent Orders summary -->
+      <div class="two-col" style="margin-bottom:22px">
+        <div class="panel">
+          <div class="panel-header"><div><h4>Top Products Ordered</h4><p>Most popular items from all orders</p></div></div>
+          <div class="panel-body">
+            <div id="top-products-chart" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div><h4>Payment Methods</h4><p>How customers are paying</p></div></div>
+          <div class="panel-body">
+            <div id="payment-chart" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div style="margin-bottom:8px;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">Visitor Traffic</div>
+
       <!-- Top metric cards -->
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px">
         <div class="stat-card gold">
@@ -1390,7 +1454,7 @@ window.showSection = function(name, btn) {
   if (name === 'orders') renderOrders();
   if (name === 'notifications') renderNotifications();
   if (name === 'security') renderSecurityLog();
-  if (name === 'analytics') loadAnalytics();
+  if (name === 'analytics') { renderOrderAnalytics(); loadAnalytics(); }
   if (name === 'settings') { document.getElementById('acc-email').textContent = _adminEmail || currentUser?.email || '—'; }
   if (name === 'team') renderTeamSlots();
   if (name === 'hero-photos') renderHeroSlots();
@@ -1819,6 +1883,10 @@ function updateOrderCount() {
   const revenue = ORDERS.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
   document.getElementById('stat-revenue').textContent = '$' + revenue.toFixed(2);
   renderRecentOrders();
+  // Keep analytics in sync whenever orders update
+  if (document.getElementById('sec-analytics')?.style.display !== 'none') {
+    renderOrderAnalytics();
+  }
 }
 
 function renderRecentOrders() {
@@ -2342,6 +2410,137 @@ window.loadAnalytics = async function() {
     document.getElementById('recent-visits-list').innerHTML = '<div class="empty-state"><p>Analytics data not yet available. Visitors to your store will appear here automatically.</p></div>';
   }
 };
+
+// ── ORDER ANALYTICS ──────────────────────────────────────────────────────────
+function renderOrderAnalytics() {
+  const orders = window.ORDERS || [];
+  const today = new Date().toISOString().slice(0,10);
+
+  // Today & this week boundaries
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const weekStart  = new Date(todayStart); weekStart.setDate(weekStart.getDate() - 6);
+
+  let revToday = 0, countToday = 0, revWeek = 0, countWeek = 0;
+  let pending = 0, delivered = 0;
+  const statusCount = { new:0, processing:0, ready:0, delivered:0, cancelled:0 };
+  const productCount = {};
+  const paymentCount = {};
+
+  // Build last-7-day buckets keyed by YYYY-MM-DD
+  const dayRevenue = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(todayStart); d.setDate(d.getDate() - i);
+    dayRevenue[d.toISOString().slice(0,10)] = 0;
+  }
+
+  orders.forEach(o => {
+    const total = parseFloat(o.total) || 0;
+    const created = o.createdAt ? new Date(o.createdAt) : (o.time ? new Date(o.time) : null);
+    const status = (o.status || 'new').toLowerCase();
+
+    // Status counts
+    if (statusCount[status] !== undefined) statusCount[status]++;
+
+    // Pending / delivered totals
+    if (status === 'new' || status === 'processing') pending++;
+    if (status === 'delivered') delivered++;
+
+    // Revenue calculations
+    if (created) {
+      const dayKey = created.toISOString().slice(0,10);
+      if (dayKey === today) { revToday += total; countToday++; }
+      if (created >= weekStart) { revWeek += total; countWeek++; }
+      if (dayRevenue[dayKey] !== undefined) dayRevenue[dayKey] += total;
+    }
+
+    // Product counts
+    (o.items || []).forEach(item => {
+      if (item.name) productCount[item.name] = (productCount[item.name] || 0) + (item.qty || 1);
+    });
+
+    // Payment methods
+    const pm = o.paymentMethod || o.payment || 'Unknown';
+    paymentCount[pm] = (paymentCount[pm] || 0) + 1;
+  });
+
+  // ── Stat cards
+  document.getElementById('an-rev-today').textContent = '$' + revToday.toFixed(2);
+  document.getElementById('an-rev-today-count').textContent = countToday + ' order' + (countToday !== 1 ? 's' : '');
+  document.getElementById('an-rev-week').textContent = '$' + revWeek.toFixed(2);
+  document.getElementById('an-rev-week-count').textContent = countWeek + ' order' + (countWeek !== 1 ? 's' : '');
+  document.getElementById('an-orders-pending').textContent = pending;
+  document.getElementById('an-orders-delivered').textContent = delivered;
+
+  // ── 7-day revenue chart
+  const days = Object.keys(dayRevenue);
+  const dayVals = days.map(d => dayRevenue[d]);
+  const maxRev = Math.max(1, ...dayVals);
+  const dayLabels = days.map(d => {
+    const dt = new Date(d + 'T12:00:00');
+    return dt.toLocaleDateString('en-US', {weekday:'short'}).slice(0,3);
+  });
+  document.getElementById('rev-chart').innerHTML = days.map((d,i) => {
+    const val = dayVals[i];
+    const pct = Math.max(4, Math.round(val / maxRev * 100));
+    const isToday = d === today;
+    return `<div class="chart-bar-col">
+      <div class="chart-val">${val > 0 ? '$' + val.toFixed(0) : ''}</div>
+      <div class="chart-bar" style="height:${pct}%;background:${isToday ? '#c9a055' : '#1d4ed8'};width:100%;opacity:${isToday ? 1 : 0.65}"></div>
+      <div class="chart-label" style="${isToday ? 'color:#c9a055;font-weight:700' : ''}">${dayLabels[i]}</div>
+    </div>`;
+  }).join('');
+
+  // ── Order status breakdown
+  const statusLabels = { new:'New Orders', processing:'Processing', ready:'Ready to Ship', delivered:'Delivered', cancelled:'Cancelled' };
+  const statusColors = { new:'#1d4ed8', processing:'#d97706', ready:'#7c3aed', delivered:'#16a34a', cancelled:'#dc2626' };
+  const totalOrders = Math.max(1, orders.length);
+  document.getElementById('status-chart').innerHTML = Object.keys(statusLabels).map(s => {
+    const val = statusCount[s] || 0;
+    const pct = Math.round(val / totalOrders * 100);
+    return `<div style="display:flex;align-items:center;gap:10px">
+      <div style="width:110px;font-size:12px;font-weight:600;color:var(--text);text-align:right;flex-shrink:0">${statusLabels[s]}</div>
+      <div style="flex:1;background:#f1f5f9;border-radius:6px;height:10px">
+        <div style="width:${pct}%;background:${statusColors[s]};height:10px;border-radius:6px;transition:width .4s"></div>
+      </div>
+      <div style="width:36px;font-size:12px;font-weight:700;color:var(--text)">${val}</div>
+    </div>`;
+  }).join('');
+
+  // ── Top products
+  const topProducts = Object.entries(productCount).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const maxProd = Math.max(1, ...topProducts.map(p => p[1]));
+  document.getElementById('top-products-chart').innerHTML = topProducts.length
+    ? topProducts.map(([name,qty]) => {
+        const pct = Math.round(qty / maxProd * 100);
+        const short = name.length > 28 ? name.slice(0,26) + '…' : name;
+        return `<div style="display:flex;align-items:center;gap:10px">
+          <div style="width:120px;font-size:12px;font-weight:600;color:var(--text);text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${name}">${short}</div>
+          <div style="flex:1;background:#f1f5f9;border-radius:6px;height:10px">
+            <div style="width:${pct}%;background:#0d1b2a;height:10px;border-radius:6px;transition:width .4s"></div>
+          </div>
+          <div style="width:28px;font-size:12px;font-weight:700;color:var(--text)">${qty}</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-state"><p>Products will appear here as orders come in.</p></div>';
+
+  // ── Payment methods
+  const payEntries = Object.entries(paymentCount).sort((a,b) => b[1]-a[1]);
+  const maxPay = Math.max(1, ...payEntries.map(p => p[1]));
+  const payColors = ['#8b5cf6','#f97316','#14b8a6','#ec4899','#64748b'];
+  document.getElementById('payment-chart').innerHTML = payEntries.length
+    ? payEntries.map(([method,count],i) => {
+        const pct = Math.round(count / maxPay * 100);
+        const short = method.length > 22 ? method.slice(0,20) + '…' : method;
+        return `<div style="display:flex;align-items:center;gap:10px">
+          <div style="width:120px;font-size:12px;font-weight:600;color:var(--text);text-align:right;flex-shrink:0">${short}</div>
+          <div style="flex:1;background:#f1f5f9;border-radius:6px;height:10px">
+            <div style="width:${pct}%;background:${payColors[i]||'#64748b'};height:10px;border-radius:6px;transition:width .4s"></div>
+          </div>
+          <div style="width:28px;font-size:12px;font-weight:700;color:var(--text)">${count}</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-state"><p>Payment data will appear here as orders come in.</p></div>';
+}
 
 // ── CHANGE PASSWORD ──
 async function doChangePassword(newPass, confirmPass, msgElId) {
