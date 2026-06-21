@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 ━━━ PAYMENT OPTIONS ━━━
 - MTN Mobile Money: Pay via mobile money (number provided after order)
 - Sendwave: International transfer (details provided after order)
-- Bank Transfer: Any bank accepted — local or international. WhatsApp us at +231 887 221 275 after ordering and we will send you the full bank account details
+- Bank Transfer (Chase Bank USA): Account #958758598, Routing #075000019, Account Name: Ducor International Pharmacy. Any bank can send to us — local or international
 - Cash on Delivery: Pay cash when your order is delivered or when you pick it up at the pharmacy
 - Delivery fee: FREE for walk-in pickup. Home delivery fee depends on location — our team will confirm before dispatch
 - For prescription medications, prices are not fixed. Our pharmacist will contact you with the exact price before your order is dispatched

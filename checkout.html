@@ -339,7 +339,7 @@
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
           </div>
           <h4>Bank Transfer</h4>
-          <p>Any bank accepted</p>
+          <p>Chase Bank (USA)</p>
         </div>
         <!-- Cash on Delivery / Pickup -->
         <div class="pay-option" onclick="selectPayment(this,'cash')" id="pay-cash">
@@ -582,14 +582,15 @@ window._db = _db;
       titleColor: '#1e293b',
       subColor: '#475569',
       noteColor: '#475569',
-      title: 'Bank Transfer — Any Bank Accepted',
-      sub: 'You can send from any bank — local or international',
-      labelNumber: 'Account Name',
-      number: 'Ducor International Pharmacy',
-      labelName: 'Details',
-      name: 'Full bank details will be provided by our team',
-      note: 'After placing your order, WhatsApp us at +231 887 221 275 and we will send you the full bank account details. Any bank can transfer to us.',
-      showRouting: false,
+      title: 'Chase Bank Wire Transfer (USA)',
+      sub: 'Any bank can send to us — local or international',
+      labelNumber: 'Account #',
+      number: '958758598',
+      labelName: 'Account Name',
+      name: 'Ducor International Pharmacy',
+      note: 'Routing #: 075000019. After transferring, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
+      showRouting: true,
+      routing: '075000019',
     },
     cash: {
       boxClass: 'cash-info',
@@ -797,7 +798,7 @@ window._db = _db;
     const methodLabels = {
       mtn: 'MTN Mobile Money',
       sendwave: 'Sendwave',
-      bank: 'Bank Transfer',
+      bank: 'Chase Bank Transfer (USA)',
       cash: 'Cash on Delivery',
     };
     const methodLabel = methodLabels[selectedPayment] || selectedPayment;
@@ -808,7 +809,7 @@ window._db = _db;
     const overlayMsg = {
       mtn: 'Your order is confirmed! Please send payment of $' + payload.total.toFixed(2) + ' via MTN Mobile Money, then WhatsApp your receipt to +231 887 221 275 to confirm.',
       sendwave: 'Your order is confirmed! Please send $' + payload.total.toFixed(2) + ' via Sendwave, then WhatsApp your receipt to +231 887 221 275 to confirm.',
-      bank: 'Your order is confirmed! WhatsApp us at +231 887 221 275 and we will send you our full bank account details to complete your transfer.',
+      bank: 'Your order is confirmed! Please wire $' + payload.total.toFixed(2) + ' to Chase Bank — Account #958758598, Routing: 075000019, Account Name: Ducor International Pharmacy. Then WhatsApp your receipt to +231 887 221 275.',
       cash: 'Your order has been received! Our team will contact you to arrange delivery or pickup. Delivery fee (if applicable) will be confirmed based on your location.',
     };
     document.getElementById('cod-overlay-title').textContent = selectedPayment === 'cash' ? 'Order Placed!' : 'Order Confirmed!';
