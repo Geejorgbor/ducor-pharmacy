@@ -1982,20 +1982,40 @@ window.updateOrderStatus = async function(id) {
     }})
   }).catch(()=>{});
 
-  // When marked Ready → automatically send delivery confirmation link to customer on WhatsApp
+  // When marked Ready → send to buyer WhatsApp + collector WhatsApp + buyer email
   if (newStatus === 'ready' && o.confirmToken) {
     const confirmUrl = `${window.location.origin}/confirm-delivery.html?order=${encodeURIComponent(id)}&token=${encodeURIComponent(o.confirmToken)}`;
+    const trackUrl = `https://ducor-international-pharmacy.com/track-order.html?ref=${encodeURIComponent(o.ref||'')}`;
+    const orderPayload = {
+      customerPhone:  o.phone||o.buyerPhone||'',
+      collectorPhone: o.pickupPhone||'',
+      customerName:   custName,
+      collectorName:  o.pickupName||'',
+      ref:   o.ref||id.slice(-8).toUpperCase(),
+      confirmUrl, trackUrl,
+      items: (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', '),
+      total: o.total||0,
+      rxPricesPending: o.rxPricesPending||false,
+    };
+    // WhatsApp → buyer + collector
     fetch('/api/whatsapp', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ type:'customer_ready', customerOrder:{
-        customerPhone: o.phone||o.buyerPhone||'',
-        customerName: custName,
-        ref: o.ref||id.slice(-8).toUpperCase(),
-        confirmUrl,
-        items: (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', ')
-      }})
+      body: JSON.stringify({ type:'customer_ready', customerOrder: orderPayload })
     }).catch(()=>{});
-    addNotif('success','WhatsApp Sent to Customer',`Delivery confirmation link sent to ${custName}`, 'just now');
+    // Email → buyer
+    const buyerEmail = o.email||o.buyerEmail||'';
+    if (buyerEmail) {
+      fetch('/api/send-email', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ type:'order_ready', data:{
+          buyerEmail, buyerName: custName,
+          ref: orderPayload.ref, confirmUrl, trackUrl,
+          collectorName: o.pickupName||'', collectorPhone: o.pickupPhone||'',
+          items: o.items||[], total: o.total||0, rxPricesPending: o.rxPricesPending||false,
+        }})
+      }).catch(()=>{});
+    }
+    addNotif('success','Notifications Sent',`WhatsApp (buyer + collector) & email sent to ${custName}`, 'just now');
   }
 
   closeModal('order-modal');
@@ -3254,20 +3274,35 @@ async function aiExec_updateOrder(orderId, newStatus) {
     }})
   }).catch(()=>{});
 
-  // When marked Ready → auto-send delivery link to customer on WhatsApp
+  // When marked Ready → buyer WhatsApp + collector WhatsApp + buyer email
   if (newStatus === 'ready' && order.confirmToken) {
     const confirmUrl = `${window.location.origin}/confirm-delivery.html?order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(order.confirmToken)}`;
+    const ref = order.ref||order.id.slice(-8).toUpperCase();
+    const aiOrderPayload = {
+      customerPhone:  order.phone||order.buyerPhone||'',
+      collectorPhone: order.pickupPhone||'',
+      customerName,
+      collectorName:  order.pickupName||'',
+      ref, confirmUrl,
+      items: (order.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', '),
+      total: order.total||0, rxPricesPending: order.rxPricesPending||false,
+    };
     fetch('/api/whatsapp', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ type:'customer_ready', customerOrder:{
-        customerPhone: order.phone||order.buyerPhone||'',
-        customerName,
-        ref: order.ref||order.id.slice(-8).toUpperCase(),
-        confirmUrl,
-        items: (order.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', ')
-      }})
+      body: JSON.stringify({ type:'customer_ready', customerOrder: aiOrderPayload })
     }).catch(()=>{});
-    if (typeof addNotif === 'function') addNotif('success','WhatsApp Sent to Customer',`Delivery confirmation link sent to ${customerName}`, 'just now');
+    const buyerEmail = order.email||order.buyerEmail||'';
+    if (buyerEmail) {
+      fetch('/api/send-email', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ type:'order_ready', data:{
+          buyerEmail, buyerName: customerName, ref, confirmUrl,
+          collectorName: order.pickupName||'', collectorPhone: order.pickupPhone||'',
+          items: order.items||[], total: order.total||0, rxPricesPending: order.rxPricesPending||false,
+        }})
+      }).catch(()=>{});
+    }
+    if (typeof addNotif === 'function') addNotif('success','Notifications Sent',`WhatsApp (buyer + collector) & email sent to ${customerName}`, 'just now');
   }
 
   return `✓ Order <strong>#${order.id.slice(-8)}</strong>: ${prev} → <strong>${newStatus}</strong>`;

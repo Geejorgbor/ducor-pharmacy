@@ -832,6 +832,23 @@ window._db = _db;
     const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment');
     if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
     _notifyAdminNewOrder(payload);
+    // Send order confirmation email to buyer
+    try {
+      fetch('/api/send-email', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ type:'order_confirmed', data:{
+          buyerEmail: payload.buyerEmail,
+          buyerName: payload.buyerName,
+          ref: payload.ref,
+          paymentMethod: payload.paymentMethod,
+          collectorName: payload.pickupName,
+          collectorPhone: payload.pickupPhone,
+          items: payload.items,
+          total: payload.total,
+          rxPricesPending: payload.rxPricesPending,
+        }})
+      }).catch(()=>{});
+    } catch(e) {}
 
     const overlayMsg = {
       mtn: 'Your order is confirmed! Please send payment of $' + payload.total.toFixed(2) + ' via MTN Mobile Money, then WhatsApp your receipt to +231 887 221 275 to confirm.',

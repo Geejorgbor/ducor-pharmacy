@@ -184,7 +184,23 @@ async function processOrder(orderDoc, token) {
         }
       })
     });
-  } catch(e) { /* notification failure should not affect customer experience */ }
+  } catch(e) {}
+
+  // Send delivered email to buyer
+  const buyerEmail = data.buyerEmail || data.email || '';
+  if (buyerEmail) {
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'delivery_confirmed', data: {
+          buyerEmail,
+          buyerName: customerName || '—',
+          ref: data.ref || orderDoc.id.slice(-8).toUpperCase(),
+        }})
+      });
+    } catch(e) {}
+  }
 
   // Show success to customer
   const ordNum = (data.id || orderDoc.id).slice(-8).toUpperCase();

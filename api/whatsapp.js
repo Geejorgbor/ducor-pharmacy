@@ -55,32 +55,66 @@ export default async function handler(req, res) {
       return res.status(200).json(result);
     }
 
-    // ── Ready for delivery — send confirmation link to customer ──
+    // ── Ready for delivery — send to BUYER WhatsApp + COLLECTOR WhatsApp + email ──
     if (type === 'customer_ready' && req.body.customerOrder) {
       const co = req.body.customerOrder;
-      // Normalize phone → international format for Green API
-      const rawPhone = (co.customerPhone || '').replace(/[\s\-\(\)\+]/g, '');
-      if (!rawPhone) return res.status(200).json({ ok: false, error: 'No customer phone' });
-      const customerChatId = rawPhone + '@c.us';
 
-      const message = [
-        `Hello ${co.customerName || 'Valued Customer'}! 👋`,
+      function toWaChatId(phone) {
+        const raw = (phone || '').replace(/[\s\-\(\)\+]/g, '');
+        return raw ? raw + '@c.us' : null;
+      }
+
+      // Message to COLLECTOR in Liberia — they physically receive it and tap to confirm
+      const collectorMsg = [
+        `Hello ${co.collectorName || 'Collector'}! 👋`,
         ``,
-        `Great news — your order from *Ducor International Pharmacy* is *ready for delivery*! 🎉`,
+        `The order for *${co.customerName || 'the customer'}* from *Ducor International Pharmacy* is *ready for delivery*! 📦`,
         ``,
-        `📋 Order: ${co.ref}`,
+        `📋 Order Ref: ${co.ref}`,
         `📦 Items: ${co.items || '—'}`,
         ``,
-        `When you receive your order, please tap the link below to confirm delivery:`,
+        `When you *physically receive* the package, please tap the link below to confirm:`,
         ``,
         co.confirmUrl,
         ``,
-        `Thank you for choosing Ducor International Pharmacy. We appreciate your trust! 🙏`,
-        `— Ducor International Pharmacy, Monrovia, Liberia`,
+        `Thank you! — Ducor International Pharmacy, Monrovia, Liberia 🇱🇷`,
       ].join('\n');
 
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, customerChatId);
-      return res.status(200).json(result);
+      // Message to BUYER — they placed the order and want to know status
+      const buyerMsg = [
+        `Hello ${co.customerName || 'Valued Customer'}! 👋`,
+        ``,
+        `Great news! Your order from *Ducor International Pharmacy* is *ready and on its way*! 🎉`,
+        ``,
+        `📋 Order Ref: ${co.ref}`,
+        `📦 Items: ${co.items || '—'}`,
+        ``,
+        `Your collector in Liberia (*${co.collectorName || 'the collector'}*) has been notified to confirm receipt.`,
+        ``,
+        `You can also tap the link below to confirm delivery yourself:`,
+        ``,
+        co.confirmUrl,
+        ``,
+        `Track your order anytime: https://ducor-international-pharmacy.com/track-order.html?ref=${encodeURIComponent(co.ref)}`,
+        ``,
+        `Thank you for choosing Ducor International Pharmacy. We appreciate your trust! 🙏`,
+      ].join('\n');
+
+      const results = [];
+
+      // Send to collector phone (Liberia)
+      const collectorChatId = toWaChatId(co.collectorPhone);
+      if (collectorChatId) {
+        try { results.push(await sendWhatsApp(API_URL, ID, TOKEN, collectorMsg, collectorChatId)); } catch(e) {}
+      }
+
+      // Send to buyer phone
+      const buyerChatId = toWaChatId(co.customerPhone);
+      if (buyerChatId && buyerChatId !== collectorChatId) {
+        try { results.push(await sendWhatsApp(API_URL, ID, TOKEN, buyerMsg, buyerChatId)); } catch(e) {}
+      }
+
+      return res.status(200).json({ ok: true, results });
     }
 
     // ── Payment confirmed by boss ──
