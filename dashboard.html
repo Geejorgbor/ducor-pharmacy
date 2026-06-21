@@ -2664,13 +2664,18 @@ PUSH ALL CHANGES LIVE TO WEBSITE:
 [DO:publish]
 (Sends updated products to GitHub → Vercel redeploys in ~60 seconds)
 
+━━━ ABOUT INSTANT CHANGES ━━━
+- Product prices, names, order status, notes, payment confirmations, stock toggles — ALL take effect INSTANTLY in the dashboard the moment you issue the command
+- [DO:publish] pushes product changes to the live public website via GitHub — Vercel rebuilds in ~60 seconds. The dashboard always reflects the latest data immediately; only the public-facing website needs a publish to sync
+- Always tell Lucas what happened instantly, and whether a [DO:publish] is needed to update the public site
+
 ━━━ HOW TO RESPOND ━━━
 1. When asked to change something → run the action command AND confirm warmly ("Done, Lucas — I've updated that right away.")
-2. You can use MULTIPLE action commands in one reply
-3. Be direct and confident: "Done! I've changed..." not "I will change..."
-4. After product changes, offer to publish live: "Would you like me to push this live to the website now?"
+2. You can run MULTIPLE action commands in one reply
+3. Be direct and confident: "Done! I've updated..." not "I will update..."
+4. After product changes, always offer to publish live: "Would you like me to push this to the public website now?"
 5. Keep replies focused — confirm what was done, then offer the natural next step
-6. For questions → answer clearly, use bullet points or steps where it helps
+6. When Lucas asks about orders, revenue, customers, or stats — answer from the LIVE ORDER DATA you can see at the bottom of this prompt
 7. Always end with something helpful — a next suggestion, a quick tip, or a warm closing remark
 
 ━━━ PHARMACY INFO ━━━
@@ -2743,19 +2748,80 @@ Usage rules:
 - To add usage limits, a Firebase counter per code would be needed
 - The promo input field is on the checkout page but has no label pointing to it — only clients you tell privately will know to use it
 
+━━━ ADDITIONAL ACTIONS ━━━
+
+ADD A NOTE TO AN ORDER:
+[DO:order_note|ORDER_ID|NOTE TEXT HERE]
+Example: [DO:order_note|abc123xyz|Customer called — will pick up Thursday]
+
+CONFIRM PAYMENT RECEIVED ON AN ORDER:
+[DO:confirm_payment|ORDER_ID]
+Example: [DO:confirm_payment|abc123xyz]
+
+TOGGLE PRODUCT STOCK STATUS:
+[DO:stock|PRODUCT_ID|CATEGORY|true]   ← mark as in stock
+[DO:stock|PRODUCT_ID|CATEGORY|false]  ← mark as out of stock
+Example: [DO:stock|rx013|prescription|false]
+
+ADD OR UPDATE A PROMO CODE:
+[DO:promo_set|CODE|TYPE|VALUE]
+TYPE = percent (%) or flat ($)
+Example: [DO:promo_set|VIP25|percent|25]
+Example: [DO:promo_set|SAVE10|flat|10]
+
+REMOVE A PROMO CODE:
+[DO:promo_remove|CODE]
+Example: [DO:promo_remove|WELCOME15]
+
 ━━━ CURRENT PRODUCT CATALOG ━━━
-Format: id | name | price | category
-{{PRODUCT_CATALOG}}`;
+Format: id | name | price | category | in_stock
+{{PRODUCT_CATALOG}}
+
+━━━ LIVE ORDER DATA ━━━
+{{ORDER_DATA}}`;
 
 function buildAISystem() {
-  const lines = [];
-  const catMap = { prescription: 'prescription', otc: 'otc', vitamins: 'vitamins' };
-  Object.keys(catMap).forEach(cat => {
+  // --- Product catalog ---
+  const prodLines = [];
+  ['prescription','otc','vitamins'].forEach(cat => {
     (window.PRODUCTS?.[cat] || []).forEach(p => {
-      lines.push(`${p.id} | ${p.name} | $${p.price.toFixed(2)} | ${cat}`);
+      const stock = p.outOfStock ? 'OUT OF STOCK' : 'in stock';
+      prodLines.push(`${p.id} | ${p.name} | $${p.price.toFixed(2)} | ${cat} | ${stock}`);
     });
   });
-  return AI_SYSTEM_BASE.replace('{{PRODUCT_CATALOG}}', lines.join('\n') || '(no products loaded yet)');
+
+  // --- Order stats + live data ---
+  const orders = window.ORDERS || [];
+  const today = new Date().toDateString();
+  let totalRev = 0, todayCount = 0, todayRev = 0;
+  const statusCounts = { new: 0, processing: 0, ready: 0, delivered: 0, cancelled: 0 };
+
+  orders.forEach(o => {
+    const t = parseFloat(o.total) || 0;
+    totalRev += t;
+    if (new Date(o.createdAt || o.date || 0).toDateString() === today) { todayCount++; todayRev += t; }
+    if (statusCounts[o.status] !== undefined) statusCounts[o.status]++;
+    else statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+  });
+
+  const statsLine = `Total orders: ${orders.length} | Today: ${todayCount} orders ($${todayRev.toFixed(2)}) | All-time revenue: $${totalRev.toFixed(2)}
+Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processing||0}, Ready=${statusCounts.ready||0}, Delivered=${statusCounts.delivered||0}, Cancelled=${statusCounts.cancelled||0}`;
+
+  // Last 40 orders, newest first
+  const orderLines = [...orders].reverse().slice(0, 40).map(o => {
+    const itemSummary = (o.items||[]).map(i => `${i.name}×${i.qty}`).join(', ') || '—';
+    const total = o.rxPricesPending ? `$${o.total} + RX TBC` : `$${o.total}`;
+    const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString() : (o.date || '?');
+    const paid = o.paymentConfirmed ? ' [PAID✓]' : '';
+    const note = o.adminNote ? ` | Note: ${o.adminNote}` : '';
+    return `#${(o.id||'').slice(-8)} | ${o.customerName||'?'} | ${o.customerPhone||'?'} | ${o.country||'?'} | ${itemSummary} | ${o.paymentMethod||'?'}${paid} | ${o.status} | ${total} | ${date}${note}`;
+  });
+
+  const orderData = statsLine + '\n\nFormat: order_id | customer | phone | country | items | payment | status | total | date\n' + (orderLines.join('\n') || '(no orders yet)');
+
+  return AI_SYSTEM_BASE
+    .replace('{{PRODUCT_CATALOG}}', prodLines.join('\n') || '(no products loaded yet)')
+    .replace('{{ORDER_DATA}}', orderData);
 }
 
 // ── AI STATE ──────────────────────────────────────────────────────────────────
@@ -2857,6 +2923,30 @@ function processAIActions(text) {
       pendingId = 'aiop-' + Date.now();
       asyncOps.push({ id: pendingId, op: aiExec_publish() });
       syncResults.push(`__PENDING__${pendingId}`);
+    } else if (cmd === 'order_note') {
+      const [,oid,...noteParts] = parts;
+      const note = noteParts.join('|');
+      if (oid && note) {
+        pendingId = 'aiop-' + Date.now();
+        asyncOps.push({ id: pendingId, op: aiExec_orderNote(oid, note) });
+        syncResults.push(`__PENDING__${pendingId}`);
+      }
+    } else if (cmd === 'confirm_payment') {
+      const [,oid] = parts;
+      if (oid) {
+        pendingId = 'aiop-' + Date.now();
+        asyncOps.push({ id: pendingId, op: aiExec_confirmPayment(oid) });
+        syncResults.push(`__PENDING__${pendingId}`);
+      }
+    } else if (cmd === 'stock') {
+      const [,id,cat,val] = parts;
+      if (id && cat) syncResults.push(aiExec_setStock(id, cat, val !== 'false'));
+    } else if (cmd === 'promo_set') {
+      const [,code,type,val] = parts;
+      if (code && type && val) syncResults.push(aiExec_promoSet(code, type, parseFloat(val)));
+    } else if (cmd === 'promo_remove') {
+      const [,code] = parts;
+      if (code) syncResults.push(aiExec_promoRemove(code));
     }
   }
 
@@ -2963,6 +3053,81 @@ function aiExec_announce(msg) {
   if (typeof addNotif === 'function') addNotif('info','AI Announcement', msg, 'Just now');
   if (typeof addLog === 'function') addLog('info',`AI announcement: ${msg}`);
   return `✓ Announcement posted: <em>"${msg}"</em>`;
+}
+
+// ── ORDER NOTE ────────────────────────────────────────────────────────────────
+async function aiExec_orderNote(orderId, note) {
+  const order = (window.ORDERS || []).find(o =>
+    o.id === orderId || o.id?.endsWith(orderId) || orderId.endsWith(o.id?.slice(-8) || '')
+  );
+  if (!order) return `⚠ Order not found: ${orderId}`;
+  order.adminNote = note;
+  try { localStorage.setItem('ducor-orders', JSON.stringify(window.ORDERS)); } catch(e) {}
+  try {
+    if (typeof db !== 'undefined' && typeof updateDoc === 'function') {
+      await updateDoc(doc(db, 'orders', order.id), { adminNote: note });
+    }
+  } catch(e) {}
+  if (typeof addNotif === 'function') addNotif('info','AI: Note Added',`Order #${order.id.slice(-8)}: ${note}`);
+  if (typeof addLog === 'function') addLog('info',`AI note on #${order.id.slice(-8)}: ${note}`);
+  return `✓ Note saved on order <strong>#${order.id.slice(-8)}</strong>: <em>"${note}"</em>`;
+}
+
+// ── CONFIRM PAYMENT ───────────────────────────────────────────────────────────
+async function aiExec_confirmPayment(orderId) {
+  const order = (window.ORDERS || []).find(o =>
+    o.id === orderId || o.id?.endsWith(orderId) || orderId.endsWith(o.id?.slice(-8) || '')
+  );
+  if (!order) return `⚠ Order not found: ${orderId}`;
+  order.paymentConfirmed = true;
+  order.paymentConfirmedAt = new Date().toISOString();
+  try { localStorage.setItem('ducor-orders', JSON.stringify(window.ORDERS)); } catch(e) {}
+  try {
+    if (typeof db !== 'undefined' && typeof updateDoc === 'function') {
+      await updateDoc(doc(db, 'orders', order.id), { paymentConfirmed: true, paymentConfirmedAt: order.paymentConfirmedAt });
+    }
+  } catch(e) {}
+  if (typeof renderAllTables === 'function') renderAllTables();
+  if (typeof addNotif === 'function') addNotif('success','AI: Payment Confirmed',`Order #${order.id.slice(-8)} payment marked as received`);
+  if (typeof addLog === 'function') addLog('success',`AI confirmed payment on #${order.id.slice(-8)}`);
+  return `✓ Payment confirmed on order <strong>#${order.id.slice(-8)}</strong> (${order.customerName || '?'})`;
+}
+
+// ── STOCK STATUS ──────────────────────────────────────────────────────────────
+function aiExec_setStock(id, cat, inStock) {
+  const p = window.PRODUCTS?.[cat]?.find(x => x.id === id);
+  if (!p) return `⚠ Product not found: ${id}`;
+  p.outOfStock = !inStock;
+  if (typeof saveProducts === 'function') saveProducts();
+  if (typeof renderAllTables === 'function') renderAllTables();
+  const label = inStock ? 'In Stock ✓' : 'Out of Stock ✗';
+  if (typeof addNotif === 'function') addNotif('info','AI: Stock Updated',`${p.name} → ${label}`);
+  if (typeof addLog === 'function') addLog('info',`AI stock: ${p.name} → ${label}`);
+  return `✓ <strong>${p.name}</strong> marked as <strong>${label}</strong>`;
+}
+
+// ── PROMO CODES ───────────────────────────────────────────────────────────────
+function aiExec_promoSet(code, type, value) {
+  let promos = {};
+  try { promos = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
+  promos[code.toUpperCase()] = { type, value };
+  localStorage.setItem('ducor-promos', JSON.stringify(promos));
+  const display = type === 'percent' ? `${value}% off` : `$${value} off`;
+  if (typeof addNotif === 'function') addNotif('success','AI: Promo Set',`Code ${code.toUpperCase()} → ${display}`);
+  if (typeof addLog === 'function') addLog('info',`AI promo set: ${code.toUpperCase()} = ${display}`);
+  return `✓ Promo code <strong>${code.toUpperCase()}</strong> set to <strong>${display}</strong>`;
+}
+
+function aiExec_promoRemove(code) {
+  let promos = {};
+  try { promos = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
+  const upper = code.toUpperCase();
+  if (!promos[upper]) return `⚠ Promo code not found: ${upper}`;
+  delete promos[upper];
+  localStorage.setItem('ducor-promos', JSON.stringify(promos));
+  if (typeof addNotif === 'function') addNotif('warning','AI: Promo Removed',`Code ${upper} has been deleted`);
+  if (typeof addLog === 'function') addLog('warning',`AI removed promo: ${upper}`);
+  return `✓ Promo code <strong>${upper}</strong> removed`;
 }
 
 // ── PUBLISH TO GITHUB ─────────────────────────────────────────────────────────
