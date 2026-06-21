@@ -1078,6 +1078,19 @@
         <button class="btn btn-primary" id="order-status-btn" style="white-space:nowrap">Update Status</button>
       </div>
     </div>
+    <!-- WhatsApp Delivery Confirmation Link (appears when order is marked Ready) -->
+    <div id="wa-confirm-section" style="display:none;padding:14px 22px;border-top:2px solid #bbf7d0;background:#f0fdf4">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <strong style="font-size:12px;color:#166534;letter-spacing:.5px;text-transform:uppercase">WhatsApp Delivery Confirmation</strong>
+      </div>
+      <p style="font-size:12px;color:#166534;margin-bottom:10px">Copy this message and send it to the customer on WhatsApp. When they receive their delivery, they tap the link — it auto-confirms in your dashboard.</p>
+      <div id="wa-msg-preview" style="background:#fff;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#14532d;white-space:pre-wrap;word-break:break-all;margin-bottom:10px;line-height:1.6;max-height:140px;overflow-y:auto"></div>
+      <button onclick="copyWaLink()" style="background:#25d366;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:inherit" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+        <span id="wa-copy-label">Copy Message</span>
+      </button>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('order-modal')">Close</button>
     </div>
@@ -1145,11 +1158,45 @@ if (_adminSession) {
 }
 
 window.doLogout = async function() {
-  addLog('warning', `Admin signed out: ${currentUser?.email}`);
-  await signOut(auth);
+  const logEmail = _adminEmail || currentUser?.email || 'Admin';
+  addLog('warning', `Admin signed out: ${logEmail}`);
+  try { await signOut(auth); } catch(e) {}
   sessionStorage.clear();
   window.location.href = '/admin.html';
 };
+
+// ── FIRESTORE REAL-TIME LISTENER ──
+// Watches for delivery confirmations the customer makes via WhatsApp link
+function startDeliveryListener() {
+  try {
+    const ordersCol = collection(db, 'orders');
+    onSnapshot(ordersCol, (snapshot) => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type !== 'modified') return;
+        const data = change.doc.data();
+        const docId = change.doc.id;
+        const local = ORDERS.find(o => o.id === docId || o.id === (data.id || ''));
+        if (!local) return;
+        // Customer confirmed delivery via the WhatsApp link
+        if (data.status === 'delivered' && data.confirmedByCustomer && local.status !== 'delivered') {
+          local.status = 'delivered';
+          local.deliveredAt = data.deliveredAt || new Date().toISOString();
+          local.confirmedByCustomer = true;
+          localStorage.setItem('ducor-orders', JSON.stringify(ORDERS));
+          const name = `${local.firstName || ''} ${local.lastName || ''}`.trim();
+          addNotif('success', '✅ Delivery Confirmed!',
+            `${name} confirmed receipt of order #${docId.slice(-8).toUpperCase()}`, 'just now');
+          addLog('info', `Customer confirmed delivery for order #${docId.slice(-8)}`);
+          renderOrders();
+          renderRecentOrders();
+          updateOrderCount();
+        }
+      });
+    });
+  } catch(e) {
+    // Firestore listener not critical — silently ignore
+  }
+}
 
 // ── INIT ──
 function init() {
@@ -1164,6 +1211,7 @@ function init() {
   addNotif('success','Website Online','All pages are running normally.','Just now');
   updateOrderCount();
   setInterval(loadOrders, 30000);
+  startDeliveryListener();
 }
 
 // ── LIVE CLOCK ──
@@ -1238,7 +1286,7 @@ window.showSection = function(name, btn) {
   if (name === 'notifications') renderNotifications();
   if (name === 'security') renderSecurityLog();
   if (name === 'analytics') loadAnalytics();
-  if (name === 'settings') { document.getElementById('acc-email').textContent = currentUser?.email || '—'; }
+  if (name === 'settings') { document.getElementById('acc-email').textContent = _adminEmail || currentUser?.email || '—'; }
   if (name === 'team') renderTeamSlots();
   if (name === 'hero-photos') renderHeroSlots();
   if (name === 'product-photos') renderPhotoGrid();
@@ -1732,7 +1780,47 @@ window.viewOrder = function(id) {
   sel.value = o.status || 'new';
   const btn = document.getElementById('order-status-btn');
   btn.onclick = () => updateOrderStatus(id);
+
+  // Show WhatsApp confirm panel if order is ready and has a token
+  const waSection = document.getElementById('wa-confirm-section');
+  const waPreview = document.getElementById('wa-msg-preview');
+  if ((o.status === 'ready' || o.status === 'delivered') && o.confirmToken) {
+    const confirmUrl = `${window.location.origin}/confirm-delivery.html?order=${encodeURIComponent(o.id)}&token=${encodeURIComponent(o.confirmToken)}`;
+    const customerName = `${o.firstName || ''} ${o.lastName || ''}`.trim() || 'Valued Customer';
+    const orderNum = o.id.slice(-8).toUpperCase();
+    waPreview.textContent = `Hello ${customerName},\n\nYour Ducor International Pharmacy order #${orderNum} is on its way! 🚚\n\nOnce you RECEIVE your delivery, please tap this link to confirm:\n${confirmUrl}\n\nThank you for choosing Ducor Pharmacy!`;
+    waSection.style.display = '';
+    waSection.dataset.link = confirmUrl;
+    waSection.dataset.msg = waPreview.textContent;
+  } else {
+    waSection.style.display = 'none';
+  }
+
   openModal('order-modal');
+};
+
+window.copyWaLink = function() {
+  const waSection = document.getElementById('wa-confirm-section');
+  const msg = waSection.dataset.msg || '';
+  if (!msg) return;
+  navigator.clipboard.writeText(msg).then(() => {
+    const label = document.getElementById('wa-copy-label');
+    label.textContent = '✓ Copied!';
+    setTimeout(() => { label.textContent = 'Copy Message'; }, 2500);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = msg;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const label = document.getElementById('wa-copy-label');
+    label.textContent = '✓ Copied!';
+    setTimeout(() => { label.textContent = 'Copy Message'; }, 2500);
+  });
 };
 
 window.updateOrderStatus = async function(id) {
@@ -1743,18 +1831,34 @@ window.updateOrderStatus = async function(id) {
   if (newStatus === o.status) { closeModal('order-modal'); return; }
   const prev = o.status || 'new';
   o.status = newStatus;
+
+  // Generate a unique delivery confirm token when marking Ready
+  if (newStatus === 'ready' && !o.confirmToken) {
+    o.confirmToken = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+      .map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  }
+
   localStorage.setItem('ducor-orders', JSON.stringify(ORDERS));
   addLog('info', `Order #${id.slice(-8)}: ${prev} → ${newStatus}`);
+
   // Sync to Firestore
   try {
-    await updateDoc(doc(db, 'orders', id), { status: newStatus, statusUpdatedAt: new Date().toISOString() });
+    const update = { status: newStatus, statusUpdatedAt: new Date().toISOString() };
+    if (o.confirmToken) update.confirmToken = o.confirmToken;
+    await updateDoc(doc(db, 'orders', id), update);
   } catch(e) {
     // Firestore may not have the doc yet (localStorage-only orders) — ignore
   }
+
   closeModal('order-modal');
   renderOrders();
   renderRecentOrders();
   updateOrderCount();
+
+  // If just marked ready, re-open the modal so admin sees the WhatsApp link
+  if (newStatus === 'ready') {
+    setTimeout(() => viewOrder(id), 200);
+  }
 };
 
 window.exportOrders = function() {

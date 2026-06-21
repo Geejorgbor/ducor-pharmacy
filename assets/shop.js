@@ -240,7 +240,7 @@ const PRODUCTS = {
     {id:'vit020',name:'Magnesium Oxide 400mg',price:20.00},
     {id:'vit021',name:"Men's Multivitamin Gummy",price:18.00},
     {id:'vit022',name:"Men's One A Day Multivitamin",price:18.00},
-    {id:'vit023',name:"Poly-Vi-Sol Children's Vitamins",price:7.00},
+    {id:'vit023',name:"Poly-Vi-Sol Children's Vitamins",price:7.00,adminOnly:true},
     {id:'vit024',name:'Poly-Vi-Sol with Iron',price:7.00},
     {id:'vit025',name:'Prenatal Vitamins',price:12.00},
     {id:'vit026',name:'Probiotics Formula Capsules',price:24.00},
@@ -363,7 +363,7 @@ const Cart = {
         <div class="cart-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
         <div class="cart-item-info">
           <h4>${item.name}</h4>
-          <p>$${(item.price * item.qty).toFixed(2)}</p>
+          <p>${item.category === 'rx' ? '<span style="color:#0891b2;font-size:11px;font-weight:600">Contact for pricing</span>' : '$' + (item.price * item.qty).toFixed(2)}</p>
         </div>
         <div class="cart-item-qty">
           <button class="qty-btn" onclick="Cart.setQty('${item.id}', ${item.qty - 1})">−</button>

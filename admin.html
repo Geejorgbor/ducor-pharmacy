@@ -80,7 +80,7 @@
         <label>Password</label>
         <div class="input-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <input type="password" id="password" placeholder="••••••••••" required autocomplete="current-password" id="pw-input"/>
+          <input type="password" id="password" placeholder="••••••••••" required autocomplete="current-password"/>
           <button type="button" class="show-pw" onclick="togglePw()" id="eye-btn">
             <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
@@ -101,37 +101,71 @@
 </div>
 
 <script>
+  var _failedAttempts = 0;
+  var MAX_ATTEMPTS = 5;
+  var _lockedOut = false;
+  var _lockTimer = null;
+
+  function _showError(msg) {
+    var el = document.getElementById('error-msg');
+    document.getElementById('error-text').textContent = msg;
+    el.classList.add('show');
+  }
+
+  function _hideError() {
+    document.getElementById('error-msg').classList.remove('show');
+  }
+
+  function _updateAttemptBar() {
+    var fill = document.getElementById('attempt-fill');
+    var pct = Math.min((_failedAttempts / MAX_ATTEMPTS) * 100, 100);
+    fill.style.width = pct + '%';
+  }
+
   window.handleLogin = function(e) {
     e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const btn = document.getElementById('login-btn');
+    if (_lockedOut) return;
+
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var btn = document.getElementById('login-btn');
 
     if (email === 'ducor.admin@ducorpharmacy.com' && password === 'Ducor@2025') {
       sessionStorage.setItem('ducor-admin', '1');
       sessionStorage.setItem('ducor-admin-email', email);
       sessionStorage.setItem('ducor-admin-login', Date.now());
       btn.textContent = '✓ Redirecting…';
+      btn.disabled = true;
+      _hideError();
       window.location.href = '/dashboard.html';
     } else {
-      const err = document.getElementById('error-msg');
-      document.getElementById('error-text').textContent = 'Invalid email or password.';
-      err.classList.add('show');
-      setTimeout(() => err.classList.remove('show'), 4000);
+      _failedAttempts++;
+      _updateAttemptBar();
+
+      if (_failedAttempts >= MAX_ATTEMPTS) {
+        _lockedOut = true;
+        btn.disabled = true;
+        btn.textContent = 'Locked – wait 60 s';
+        _showError('Too many failed attempts. This form is locked for 60 seconds.');
+        _lockTimer = setTimeout(function() {
+          _lockedOut = false;
+          _failedAttempts = 0;
+          _updateAttemptBar();
+          btn.disabled = false;
+          btn.textContent = 'Sign In to Dashboard';
+          _hideError();
+        }, 60000);
+      } else {
+        var remaining = MAX_ATTEMPTS - _failedAttempts;
+        _showError('Invalid email or password. ' + remaining + ' attempt' + (remaining === 1 ? '' : 's') + ' remaining.');
+      }
     }
   };
 
   window.togglePw = function() {
-    const inp = document.getElementById('password');
+    var inp = document.getElementById('password');
     inp.type = inp.type === 'password' ? 'text' : 'password';
   };
-
-  function showError(msg) {
-    const el = document.getElementById('error-msg');
-    document.getElementById('error-text').textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 5000);
-  }
 </script>
 </body>
 </html>
