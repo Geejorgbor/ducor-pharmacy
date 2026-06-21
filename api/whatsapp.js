@@ -1,10 +1,25 @@
-// Vercel serverless function — sends WhatsApp order notification via Green API
-// Credentials stay server-side, never exposed to browser
+// Vercel serverless function — sends WhatsApp notifications via Green API
+// Handles: new order alerts + delivery confirmation alerts to the boss
 //
 // SETUP — add these 3 env vars in Vercel dashboard → Settings → Environment Variables:
-//   GREEN_API_URL   = https://7107.api.greenapi.com   (the apiUrl shown in your instance dashboard)
-//   GREEN_API_ID    = 7107656793                       (idInstance from dashboard)
-//   GREEN_API_TOKEN = <click the eye icon next to apiTokenInstance and copy it>
+//   GREEN_API_URL   = https://7107.api.greenapi.com
+//   GREEN_API_ID    = 7107656793
+//   GREEN_API_TOKEN = <apiTokenInstance from your Green API dashboard>
+
+const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp in international format
+
+async function sendWhatsApp(apiUrl, id, token, message) {
+  const response = await fetch(
+    `${apiUrl}/waInstance${id}/sendMessage/${token}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: BOSS_CHAT_ID, message }),
+    }
+  );
+  const data = await response.json();
+  return { ok: response.ok && !!data.idMessage, data };
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,29 +31,48 @@ export default async function handler(req, res) {
   const TOKEN   = process.env.GREEN_API_TOKEN;
 
   if (!API_URL || !ID || !TOKEN) {
-    // Not yet configured — return ok so checkout doesn't break
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
 
-  const { order } = req.body || {};
-  if (!order) {
-    return res.status(400).json({ ok: false, error: 'No order data' });
-  }
+  const { order, type, delivery } = req.body || {};
 
   try {
+    // ── Delivery confirmed by customer ──
+    if (type === 'delivery_confirmed' && delivery) {
+      const message = [
+        '✅ DELIVERY CONFIRMED — Ducor Pharmacy',
+        '',
+        `📋 Order: #${(delivery.orderId || '').slice(-8).toUpperCase()}`,
+        `👤 Customer: ${delivery.customerName || '—'}`,
+        `📞 Phone: ${delivery.customerPhone || '—'}`,
+        `💵 Total: $${delivery.total || '—'}`,
+        '',
+        '🎉 Customer confirmed they received their order.',
+        `⏰ Confirmed at: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' })}`,
+      ].join('\n');
+
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      return res.status(200).json(result);
+    }
+
+    // ── New order placed ──
+    if (!order) {
+      return res.status(400).json({ ok: false, error: 'No order or delivery data' });
+    }
+
     const items = (order.items || [])
-      .map(i => `  • ${i.name} x${i.qty}${i.category === 'rx' ? ' (RX - price at pickup)' : ' — $' + ((i.price || 0) * i.qty).toFixed(2)}`)
+      .map(i => `  • ${i.name} ×${i.qty}${i.category === 'rx' ? ' (RX — price to be confirmed)' : ' — $' + ((i.price || 0) * i.qty).toFixed(2)}`)
       .join('\n');
 
     const patientLine = order.orderingFor === 'other' && order.patientName
-      ? `\n👥 For patient: ${order.patientName} (${order.patientRelationship || 'relative'})${order.patientPhone ? ' — ' + order.patientPhone : ''}`
+      ? `\n👥 For: ${order.patientName} (${order.patientRelationship || 'relative'})${order.patientPhone ? ' — ' + order.patientPhone : ''}`
       : '';
 
-    const rxFlag = order.hasRx ? '\n\n⚠️ RX ORDER — Prescription required' : '';
+    const rxFlag = order.rxPricesPending ? '\n⚠️  RX ORDER — Contact customer for pricing' : '';
 
     const message = [
-      '🛒 NEW ORDER — Ducor Pharmacy',
-      '',
+      '🛒 NEW ORDER — Ducor International Pharmacy',
+      '━━━━━━━━━━━━━━━━━━━━━━━━',
       `📋 Ref: ${order.ref}`,
       `👤 Customer: ${order.buyerName}`,
       `📧 ${order.buyerEmail}`,
@@ -47,36 +81,22 @@ export default async function handler(req, res) {
       '',
       `📦 Items:\n${items}`,
       '',
-      `💰 Subtotal: $${(order.subtotal || 0).toFixed(2)}`,
-      `🚚 Shipping: $${(order.shipping || 0).toFixed(2)}`,
-      `💵 TOTAL: $${(order.total || 0).toFixed(2)}`,
+      order.subtotal > 0 ? `💰 OTC Subtotal: $${(order.subtotal || 0).toFixed(2)}` : '',
+      order.discount > 0 ? `🏷️  Discount: -$${order.discount.toFixed(2)} (${order.promoCode})` : '',
+      `💵 Total: $${(order.total || 0).toFixed(2)}${order.rxPricesPending ? ' + RX (TBC)' : ''}`,
       `💳 Payment: ${order.paymentMethod} (${order.paymentStatus})`,
       '',
-      `🏪 Pickup: ${order.pickupName}`,
-      `📱 Phone: ${order.pickupPhone}`,
+      `🏪 Collector: ${order.pickupName}`,
+      `📱 Collector Phone: ${order.pickupPhone}`,
       order.notes ? `📝 Notes: ${order.notes}` : '',
-      rxFlag
+      rxFlag,
+      '',
+      '👉 View in dashboard: ducor-international-pharmacy.com/dashboard.html',
     ].filter(Boolean).join('\n');
 
-    // Boss WhatsApp — international format without + followed by @c.us
-    const BOSS_CHAT_ID = '231887221275@c.us';
+    const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+    return res.status(200).json(result);
 
-    const response = await fetch(
-      `${API_URL}/waInstance${ID}/sendMessage/${TOKEN}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: BOSS_CHAT_ID, message }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.ok && data.idMessage) {
-      return res.status(200).json({ ok: true, messageId: data.idMessage });
-    } else {
-      return res.status(200).json({ ok: false, error: data });
-    }
   } catch (err) {
     return res.status(200).json({ ok: false, error: err.message });
   }

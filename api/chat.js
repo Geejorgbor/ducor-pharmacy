@@ -42,11 +42,12 @@ export default async function handler(req, res) {
 - Our pharmacist reviews the questionnaire before processing the order
 
 ━━━ PAYMENT OPTIONS ━━━
-- MTN Mobile Money (Lonestar): +231 88 722 1275
-- Sendwave: Send to +231 88 722 1275
-- Chase Bank Transfer (USA): Account #958758598, Routing: 075000019
-- Cash on Delivery / Cash at pickup
-- After paying electronically, send your receipt on WhatsApp to +231 887 221 275
+- MTN Mobile Money: Pay via mobile money (number provided after order)
+- Sendwave: International transfer (details provided after order)
+- Bank Transfer: Any bank accepted — local or international. WhatsApp us at +231 887 221 275 after ordering and we will send you the full bank account details
+- Cash on Delivery: Pay cash when your order is delivered or when you pick it up at the pharmacy
+- Delivery fee: FREE for walk-in pickup. Home delivery fee depends on location — our team will confirm before dispatch
+- For prescription medications, prices are not fixed. Our pharmacist will contact you with the exact price before your order is dispatched
 
 ━━━ IMPORTANT RULES ━━━
 - NEVER provide specific medical diagnoses or replace professional medical advice

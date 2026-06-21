@@ -161,18 +161,35 @@ async function processOrder(orderDoc, token) {
     return;
   }
 
-  // Confirm delivery
+  // Confirm delivery in Firestore
   await updateDoc(orderDoc.ref, {
     status: 'delivered',
     deliveredAt: new Date().toISOString(),
     confirmedByCustomer: true
   });
 
-  // Show success
+  // Notify boss on WhatsApp
+  const customerName = ((data.firstName || '') + ' ' + (data.lastName || '')).trim();
+  try {
+    await fetch('/api/whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'delivery_confirmed',
+        delivery: {
+          orderId: data.id || orderDoc.id,
+          customerName: customerName || '—',
+          customerPhone: data.phone || data.buyerPhone || '—',
+          total: data.total || '—',
+        }
+      })
+    });
+  } catch(e) { /* notification failure should not affect customer experience */ }
+
+  // Show success to customer
   const ordNum = (data.id || orderDoc.id).slice(-8).toUpperCase();
-  const name = (data.firstName || '') + ' ' + (data.lastName || '');
   document.getElementById('s-order-num').textContent = '#' + ordNum;
-  document.getElementById('s-customer').textContent = name.trim() || '—';
+  document.getElementById('s-customer').textContent = customerName || '—';
   document.getElementById('s-total').textContent = '$' + (data.total || '0.00');
   document.getElementById('success-order-box').style.display = 'block';
   show('state-success');
