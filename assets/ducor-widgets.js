@@ -272,7 +272,9 @@ function initChat() {
       });
       const data = await resp.json();
       hideTyping();
-      if (data.reply) {
+      if (data.creditError) {
+        appendMsg('We are not available at this moment. Please <a href="https://wa.me/231880187490" target="_blank">contact us on WhatsApp</a> (+231 880 187 490) or call us at +1 (630) 936-6050 and we will be happy to assist you.', 'bot');
+      } else if (data.reply) {
         appendMsg(data.reply, 'bot');
         chatHistory.push({ role: 'assistant', content: data.reply });
         if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);

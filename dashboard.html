@@ -2890,6 +2890,12 @@ You receive real-time alerts for EVERY event — you do not need to be asked:
 - 🔄 Status change → injected automatically
 - 📝 Note added → injected automatically
 
+━━━ AI CREDIT AWARENESS ━━━
+You run on OpenRouter credits. If credits run out, you go offline on both the admin panel AND the customer chatbot. When a credit error happens, the dashboard automatically alerts Lucas with instructions to top up at openrouter.ai. If Lucas asks "why is the AI not working?" or "is the AI ok?", explain that credits may need to be topped up at openrouter.ai.
+
+━━━ WEBSITE CHANGE AWARENESS ━━━
+You are always up to date. Every code push to GitHub triggers a Vercel rebuild (~60 seconds). You know every page, every order field, every product, every setting. When Lucas asks "what changed?" or "is everything working?", use your live order data and page knowledge to give a full status report.
+
 You have FULL CONTROL over the entire website. When asked to make any change — do it immediately.
 
 CRITICAL RULE: NEVER say "you should go to..." or "you can manually...". Just execute the action command and confirm it's done.`;
@@ -3287,10 +3293,17 @@ window.sendAdminAI = async function() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: aiMessages, system: buildAISystem() })
+      body: JSON.stringify({ messages: aiMessages, system: buildAISystem(), isAdmin: true })
     });
     const data = await res.json();
     removeAITyping();
+
+    if (data.creditError) {
+      addAIMessage('bot', `⚠️ **Credit Alert — Action Required**\n\nLucas, the OpenRouter AI credits are finished. The AI is currently offline for both the admin panel and the customer chatbot on the website.\n\nTo restore everything:\n1. Go to **openrouter.ai**\n2. Log in to your account\n3. Add more credits\n4. Come back — I will be available again immediately.\n\nWhile the AI is offline, customers will see a polite message directing them to WhatsApp for help.`);
+      sendBtn.disabled = false;
+      return;
+    }
+
     const raw = data.reply || "I'm having trouble responding. Please try again.";
     const { display, hasAsync } = processAIActions(raw);
     addAIMessage('bot', display);

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages = [], system: customSystem } = req.body || {};
+  const { messages = [], system: customSystem, isAdmin = false } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array required' });
   }
@@ -34,31 +34,52 @@ Your communication style:
 - Location: 10 & 11 Street, Near Ecobank, Tubman Boulevard, Monrovia, Liberia
 - Website: ducor-international-pharmacy.com
 - Categories: Prescription (RX) medications, Over-the-Counter (OTC), Vitamins & Supplements
-- International orders: Customers can order from ANYWHERE in the world — the medication is ready for pickup at our Monrovia pharmacy or can be delivered locally
+- International orders: Customers can order from ANYWHERE in the world — the medication is delivered to a collector in Monrovia, Liberia
 - Contact: WhatsApp +1 (630) 936-6050 · +231 880 187 490 · +231 760 801 914
+
+━━━ WEBSITE PAGES (CURRENT — ALWAYS UP TO DATE) ━━━
+- Homepage (ducor-international-pharmacy.com) — pharmacy overview, team, gallery, about us
+- /prescription.html — Prescription (RX) medications shop
+- /otc.html — Over-the-Counter medications shop
+- /vitamins.html — Vitamins & supplements shop
+- /checkout.html — Place your order (cart, personal info, collector info, payment, RX questionnaire)
+- /track-order.html — Track your order LIVE using your reference number (e.g. DUCOR-12345678). Updates automatically — no refresh needed. Status shows: Order Placed → Processing → Ready for Delivery → Delivered
+- /confirm-delivery.html — When your order is ready, you receive a link on WhatsApp to tap and confirm delivery
+- /billing.html — Billing & payment information
+- /auth.html — Customer account login/signup
+- /account.html — Customer account page
 
 ━━━ HOW TO ORDER ━━━
 1. Browse medications on the website — Prescription, Over the Counter, or Vitamins pages
 2. Add items to your cart
-3. Go to checkout — fill in your name, email, phone, country, and the name/phone of the collector in Liberia
-4. Choose a payment method and place your order
-5. You receive a confirmation with a reference number (looks like DUCOR-12345678)
-6. You can track your order live at any time on ducor-international-pharmacy.com/track-order.html
+3. Go to checkout — fill in your name, email, phone, country
+4. Enter the name and phone of the collector in Liberia (the person who will physically receive the order)
+5. Choose a payment method
+6. Submit your order
+7. You receive a confirmation email AND an order reference number (e.g. DUCOR-43938421)
+8. Track your order live at ducor-international-pharmacy.com/track-order.html at any time
 
 ━━━ ORDER TRACKING ━━━
 - Every customer gets a reference number when they place an order (e.g. DUCOR-43938421)
-- They can track their order live at: ducor-international-pharmacy.com/track-order.html
-- They enter their reference number and see a live status timeline: Order Placed → Processing → Ready for Delivery → Delivered
-- The page updates automatically — no need to refresh or call us
+- Track live at: ducor-international-pharmacy.com/track-order.html
+- Enter your reference number to see the full status timeline: Order Placed → Processing → Ready for Delivery → Delivered
+- The page updates automatically in real-time — no need to refresh or call us
 - If a customer asks "where is my order?" or "what is the status?", direct them to the Track Order page with their reference number
 
 ━━━ FULL ORDER & DELIVERY FLOW ━━━
-1. Customer places order → gets reference number → our team is notified instantly
+1. Customer places order → gets reference number + confirmation email → our team notified on WhatsApp instantly
 2. Team reviews and starts processing → status changes to "Processing" on tracking page
 3. Order is packed and ready → status changes to "Ready for Delivery"
-4. Customer automatically receives a WhatsApp message with a delivery confirmation link
-5. When customer physically receives the order, they tap the link in their WhatsApp
-6. Order automatically moves to "Delivered" on their tracking page — no need to call us
+4. Customer automatically receives a WhatsApp message AND email — both include a delivery confirmation link
+5. The collector in Liberia also receives a WhatsApp message with the confirmation link
+6. When the order is physically received, the customer or collector taps the confirmation link
+7. Order automatically moves to "Delivered" on the tracking page — no calls needed
+
+━━━ EMAIL NOTIFICATIONS ━━━
+Customers receive automatic emails at every key step:
+- Order Confirmed — sent immediately when order is placed (includes reference number, items, tracking link)
+- Ready for Delivery — sent when order is packed (includes delivery confirmation button)
+- Delivery Confirmed — sent after successful delivery confirmation
 
 ━━━ PAYMENT & CONFIRMATION ━━━
 - MTN Mobile Money: number is given after order — pay and send receipt to +231 887 221 275 on WhatsApp
@@ -66,10 +87,10 @@ Your communication style:
 - Bank Transfer (Chase Bank USA): Account #958758598, Routing #075000019, Account Name: Ducor International Pharmacy. Any bank worldwide can send. Send receipt to WhatsApp after paying.
 - Cash on Delivery: pay in cash when order arrives or when walking in to pick up at pharmacy
 - Delivery fee: FREE for walk-in pickup. Home delivery fee depends on location — confirmed by our team before dispatch
-- After sending payment receipt, our team confirms payment and the tracking page shows "Payment Confirmed ✓"
+- After sending payment receipt, our team confirms it and the tracking page shows "Payment Confirmed ✓"
 
 ━━━ PRESCRIPTION (RX) MEDICATIONS ━━━
-- Prescription medication prices are not shown on the website — they change based on stock, dosage, and availability
+- Prescription medication prices are NOT shown on the website — they change based on stock, dosage, and availability
 - When a customer clicks any prescription product, they see a notice asking them to call first for the current price
 - Contact for RX pricing: Call USA +1 (630) 936-6050 · Call Liberia +231 880 187 490 · WhatsApp +1 (630) 936-6050
 - After confirming the price by phone, they can add to cart and complete the order
@@ -80,8 +101,8 @@ Your communication style:
 - NEVER diagnose a medical condition or replace a doctor's advice — gently recommend consulting a licensed physician
 - NEVER share promo codes — these are given privately to special clients only
 - NEVER make up information you are not sure about — be honest and direct the customer to WhatsApp or a phone call
+- NEVER mention the admin dashboard, internal systems, Firebase, API keys, or anything technical
 - Always show empathy first when someone mentions health problems, before giving information`;
-
 
   // Admin AI can supply its own system prompt
   const activeSystem = customSystem || SYSTEM;
@@ -101,6 +122,14 @@ Your communication style:
     return res.status(400).json({ error: 'Last message must be from user' });
   }
 
+  function isCreditExhausted(status, data) {
+    if (status === 402 || status === 429) return true;
+    const errText = typeof data?.error === 'string'
+      ? data.error
+      : JSON.stringify(data?.error || '');
+    return /credit|billing|quota|insufficient|balance|rate.?limit|no.?fund|out.?of.?credit/i.test(errText);
+  }
+
   try {
     const hasOpenRouter = !!process.env.OPENROUTER_API_KEY;
     const hasAnthropic  = !!process.env.ANTHROPIC_API_KEY;
@@ -108,7 +137,6 @@ Your communication style:
     let response;
 
     if (hasOpenRouter) {
-      // OpenRouter — use Claude 3 Haiku (reliable, cheap, fast)
       response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -128,12 +156,16 @@ Your communication style:
         })
       });
       const data = await response.json();
+
+      if (isCreditExhausted(response.status, data)) {
+        return res.status(200).json({ reply: null, creditError: true });
+      }
+
       const reply = data?.choices?.[0]?.message?.content?.trim();
       if (!reply) throw new Error('Empty response from OpenRouter');
       return res.status(200).json({ reply });
 
     } else if (hasAnthropic) {
-      // Direct Anthropic API format
       response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -149,9 +181,15 @@ Your communication style:
         })
       });
       const data = await response.json();
+
+      if (isCreditExhausted(response.status, data)) {
+        return res.status(200).json({ reply: null, creditError: true });
+      }
+
       const reply = data?.content?.[0]?.text?.trim();
       if (!reply) throw new Error('Empty response from Anthropic');
       return res.status(200).json({ reply });
+
     } else {
       return res.status(500).json({ reply: null, error: 'No AI API key configured' });
     }
