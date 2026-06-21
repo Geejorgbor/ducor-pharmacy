@@ -54,7 +54,7 @@
     .pay-option.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; width: 20px; height: 20px; background: var(--navy); color: white; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 20px; text-align: center; }
     .pay-option-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
     .pay-option-icon.mtn { background: #FFC107; }
-    .pay-option-icon.sendwave { background: #2563eb; }
+    .pay-option-icon.sendwave { background: #00c2cb; }
     .pay-option-icon.bank { background: #0d1b2a; }
     .pay-option-icon.cash { background: #16a34a; }
     .pay-option h4 { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
@@ -63,7 +63,7 @@
     /* ── Payment Details Box ── */
     .pay-details-box { border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
     .pay-details-box.mtn-info { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1.5px solid #fcd34d; }
-    .pay-details-box.sendwave-info { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; }
+    .pay-details-box.sendwave-info { background: linear-gradient(135deg, #f0fdfd, #ccfbf1); border: 1.5px solid #5eead4; }
     .pay-details-box.bank-info { background: linear-gradient(135deg, #f0f4f8, #d9e2ec); border: 1.5px solid #94a3b8; }
     .pay-details-box.cash-info { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1.5px solid #86efac; }
     .pay-detail-row { background: white; border-radius: 10px; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -327,8 +327,12 @@
         </div>
         <!-- Sendwave -->
         <div class="pay-option" onclick="selectPayment(this,'sendwave')" id="pay-sendwave">
-          <div class="pay-option-icon sendwave">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          <div class="pay-option-icon sendwave" style="background:#00c2cb;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+            <!-- Sendwave brand: teal with wave lines -->
+            <svg width="30" height="20" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 22 C8 22, 10 8, 16 8 C22 8, 24 22, 30 22 C36 22, 38 8, 44 8 C50 8, 52 22, 58 22" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+              <path d="M2 14 C8 14, 10 4, 16 4 C22 4, 24 14, 30 14 C36 14, 38 4, 44 4 C50 4, 52 14, 58 14" stroke="rgba(255,255,255,0.45)" stroke-width="3" stroke-linecap="round" fill="none"/>
+            </svg>
           </div>
           <h4>Sendwave</h4>
           <p>International transfer</p>
@@ -563,10 +567,10 @@ window._db = _db;
     },
     sendwave: {
       boxClass: 'sendwave-info',
-      iconBg: '#2563eb',
-      titleColor: '#1e40af',
-      subColor: '#1d4ed8',
-      noteColor: '#1d4ed8',
+      iconBg: '#00c2cb',
+      titleColor: '#0f766e',
+      subColor: '#0d9488',
+      noteColor: '#0d9488',
       title: 'Send Payment via Sendwave',
       sub: 'Send to the number below using the Sendwave app',
       labelNumber: 'Phone Number',
