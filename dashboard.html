@@ -1165,33 +1165,110 @@ window.doLogout = async function() {
   window.location.href = '/admin.html';
 };
 
+// ── FIRESTORE ORDER NORMALIZER ──
+// Maps checkout field names → dashboard field names so all orders display correctly
+function normalizeFirestoreOrder(docId, data) {
+  const rawName = data.buyerName || data.firstName && (data.firstName + ' ' + (data.lastName || '')) || '';
+  const nameParts = rawName.trim().split(' ');
+  const firstName = data.firstName || nameParts[0] || '';
+  const lastName  = data.lastName  || nameParts.slice(1).join(' ') || '';
+  return {
+    id: docId,
+    ref: data.ref || docId.slice(-8).toUpperCase(),
+    status: data.status || 'new',
+    firstName,
+    lastName,
+    email: data.buyerEmail || data.email || '',
+    phone: data.buyerPhone || data.phone || '',
+    country: data.buyerCountry || data.country || '',
+    payment: data.paymentMethod || data.payment || '—',
+    paymentMethod: data.paymentMethod || data.payment || '—',
+    paymentStatus: data.paymentStatus || '',
+    paymentConfirmed: data.paymentConfirmed || false,
+    paymentConfirmedAt: data.paymentConfirmedAt || null,
+    pickupName: data.pickupName || '',
+    pickupPhone: data.pickupPhone || '',
+    items: data.items || [],
+    total: data.total || 0,
+    subtotal: data.subtotal || 0,
+    discount: data.discount || 0,
+    promoCode: data.promoCode || null,
+    rxPricesPending: data.rxPricesPending || false,
+    confirmedByCustomer: data.confirmedByCustomer || false,
+    deliveredAt: data.deliveredAt || null,
+    confirmToken: data.confirmToken || null,
+    adminNote: data.adminNote || null,
+    notes: data.notes || '',
+    createdAt: data.createdAt || new Date().toISOString(),
+    time: data.createdAt || data.time || new Date().toISOString(),
+    orderingFor: data.orderingFor || 'self',
+    patientName: data.patientName || null,
+    patientRelationship: data.patientRelationship || null,
+    patientPhone: data.patientPhone || null,
+    healthQuestionnaire: data.healthQuestionnaire || null,
+  };
+}
+
 // ── FIRESTORE REAL-TIME LISTENER ──
-// Watches for delivery confirmations the customer makes via WhatsApp link
+// Syncs ALL orders from Firestore — new orders appear instantly, delivery confirmations update live
+let _firestoreReady = false;
 function startDeliveryListener() {
   try {
     const ordersCol = collection(db, 'orders');
     onSnapshot(ordersCol, (snapshot) => {
+      let changed = false;
       snapshot.docChanges().forEach(change => {
-        if (change.type !== 'modified') return;
         const data = change.doc.data();
         const docId = change.doc.id;
-        const local = ORDERS.find(o => o.id === docId || o.id === (data.id || ''));
-        if (!local) return;
-        // Customer confirmed delivery via the WhatsApp link
-        if (data.status === 'delivered' && data.confirmedByCustomer && local.status !== 'delivered') {
-          local.status = 'delivered';
-          local.deliveredAt = data.deliveredAt || new Date().toISOString();
-          local.confirmedByCustomer = true;
-          localStorage.setItem('ducor-orders', JSON.stringify(ORDERS));
-          const name = `${local.firstName || ''} ${local.lastName || ''}`.trim();
-          addNotif('success', '✅ Delivery Confirmed!',
-            `${name} confirmed receipt of order #${docId.slice(-8).toUpperCase()}`, 'just now');
-          addLog('info', `Customer confirmed delivery for order #${docId.slice(-8)}`);
-          renderOrders();
-          renderRecentOrders();
-          updateOrderCount();
+
+        if (change.type === 'added') {
+          // New order from Firestore — add to dashboard if not already present
+          const exists = ORDERS.find(o => o.id === docId || (data.ref && o.ref === data.ref));
+          if (!exists) {
+            const normalized = normalizeFirestoreOrder(docId, data);
+            ORDERS.push(normalized);
+            changed = true;
+            // Only show notification for orders that arrive AFTER the dashboard loaded
+            if (_firestoreReady) {
+              const name = `${normalized.firstName} ${normalized.lastName}`.trim() || 'Customer';
+              addNotif('info', '🛒 New Order Received!', `${name} — $${normalized.total}`, 'just now');
+              addLog('info', `New order #${docId.slice(-8)} from Firestore: ${name}`);
+              // Flash the orders badge
+              const badge = document.getElementById('orders-badge');
+              if (badge) { badge.style.display = ''; badge.textContent = ORDERS.filter(o=>o.status==='new'||o.status==='Pending').length || ''; }
+            }
+          } else if (exists) {
+            // Update the existing local order with latest Firestore data
+            Object.assign(exists, normalizeFirestoreOrder(docId, data));
+            changed = true;
+          }
+
+        } else if (change.type === 'modified') {
+          // Order updated — sync changes
+          const local = ORDERS.find(o => o.id === docId || (data.ref && o.ref === data.ref));
+          if (local) {
+            const wasDelivered = local.confirmedByCustomer;
+            Object.assign(local, normalizeFirestoreOrder(docId, data));
+            changed = true;
+            // Delivery confirmed by customer via WhatsApp link
+            if (data.confirmedByCustomer && !wasDelivered) {
+              const name = `${local.firstName} ${local.lastName}`.trim();
+              addNotif('success', '✅ Delivery Confirmed!',
+                `${name} confirmed receipt of order #${docId.slice(-8).toUpperCase()}`, 'just now');
+              addLog('info', `Customer confirmed delivery for order #${docId.slice(-8)}`);
+            }
+          }
         }
       });
+
+      _firestoreReady = true; // After first snapshot, we're fully synced
+
+      if (changed) {
+        localStorage.setItem('ducor-orders', JSON.stringify(ORDERS));
+        renderOrders();
+        renderRecentOrders();
+        updateOrderCount();
+      }
     });
   } catch(e) {
     // Firestore listener not critical — silently ignore
@@ -2814,7 +2891,11 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
     const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString() : (o.date || '?');
     const paid = o.paymentConfirmed ? ' [PAID✓]' : '';
     const note = o.adminNote ? ` | Note: ${o.adminNote}` : '';
-    return `#${(o.id||'').slice(-8)} | ${o.customerName||'?'} | ${o.customerPhone||'?'} | ${o.country||'?'} | ${itemSummary} | ${o.paymentMethod||'?'}${paid} | ${o.status} | ${total} | ${date}${note}`;
+    const name = `${o.firstName||o.buyerName||'?'}${o.lastName ? ' '+o.lastName : ''}`.trim();
+    const phone = o.phone || o.buyerPhone || '?';
+    const country = o.country || o.buyerCountry || '?';
+    const payment = o.paymentMethod || o.payment || '?';
+    return `#${(o.id||o.ref||'').slice(-8)} | ${name} | ${phone} | ${country} | ${itemSummary} | ${payment}${paid} | ${o.status} | ${total} | ${date}${note}`;
   });
 
   const orderData = statsLine + '\n\nFormat: order_id | customer | phone | country | items | payment | status | total | date\n' + (orderLines.join('\n') || '(no orders yet)');
