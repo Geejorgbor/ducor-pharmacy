@@ -2665,22 +2665,53 @@ Business: Ducor International Pharmacy (DIP)
 Owner & Admin: Lucas Paye
 Location: 10 & 11 Street, Near Ecobank, Tubman Boulevard, Monrovia, Liberia
 Website: ducor-international-pharmacy.com
-Payment: MTN Mobile Money (+231 88 722 1275) · Sendwave (+231 88 722 1275) · Chase Bank (Acct #958758598, Routing 075000019) · Cash on Delivery
-Categories: Prescription (RX), Over-the-Counter (OTC), Vitamins & Supplements
-Order flow: new → processing → ready → delivered
-International orders: Customers order from anywhere in the world; medication is picked up at Monrovia pharmacy
 WhatsApp: +1 (630) 936-6050 · +231 880 187 490 · +231 760 801 914
+Categories: Prescription (RX), Over-the-Counter (OTC), Vitamins & Supplements
+International orders: Customers order from anywhere in the world; medication is picked up at Monrovia pharmacy or delivered locally
+
+━━━ PAYMENT METHODS ━━━
+1. MTN Mobile Money — customer pays via mobile money (number given after order)
+2. Sendwave — international transfer (details given after order)
+3. Bank Transfer — ANY bank is accepted, local or international. Customer WhatsApps us at +231 887 221 275 and we send them the full account details. Bank name and account number will be added when Lucas is ready.
+4. Cash on Delivery / Walk-in — customer pays cash when order is delivered or picked up at pharmacy
+- There is NO fixed delivery fee. Walk-in pickup = FREE. Home delivery fee depends on the customer's location and is confirmed by the team before dispatch.
+- After electronic payment, customers send their receipt to +231 887 221 275 on WhatsApp
+
+━━━ PRESCRIPTION (RX) MEDICATION PRICING ━━━
+- RX medication prices are NOT shown to customers on the website — prices are not stable and vary by stock, dosage, and availability
+- When a customer orders RX items, the order is flagged as "rxPricesPending: true"
+- The dashboard shows a yellow warning banner on that order saying "RX PRICE PENDING"
+- Lucas or the pharmacist must contact the customer to confirm the price before dispatching
+- Customers are told at checkout: "Our pharmacist will contact you with the exact price before your order is dispatched"
+- RX items show "Contact for pricing" everywhere on the website (cart, checkout, order summary)
 
 ━━━ CHECKOUT — PRESCRIPTION MEDICATIONS ━━━
-- Customers with RX items in cart NO LONGER upload a prescription photo/PDF
-- Instead they fill a HEALTH QUESTIONNAIRE at checkout:
-  • "What is this medication for?" — REQUIRED field
+- Customers with RX items fill a HEALTH QUESTIONNAIRE at checkout:
+  • "What is this medication for?" — REQUIRED
   • Doctor's name — optional
   • Other current medications — optional
   • Medication allergies — optional
-  • Confirmation checkbox — REQUIRED (they confirm info is accurate)
-- Our pharmacist reviews the questionnaire before processing
-- Data is saved in Firestore as healthQuestionnaire field on the order
+  • Confirmation checkbox — REQUIRED
+- Pharmacist reviews the questionnaire before processing the order
+- Data saved in Firestore as healthQuestionnaire on the order
+
+━━━ ORDER FLOW & WHATSAPP DELIVERY CONFIRMATION ━━━
+Full order flow: new → processing → ready → delivered
+
+When you mark an order "Ready for Delivery":
+1. A unique secret delivery confirmation link is automatically generated
+2. A green WhatsApp panel appears in the order detail with a pre-written message
+3. You copy that message and send it to the customer on WhatsApp
+4. The customer clicks the link when they physically receive their delivery
+5. The website automatically marks the order as "Delivered" in real-time
+6. A WhatsApp notification is sent to the boss phone (+231 887 221 275) saying "Customer confirmed delivery"
+7. The dashboard shows a green "✅ DELIVERY CONFIRMED BY CUSTOMER" banner on that order
+
+━━━ WHATSAPP NOTIFICATIONS TO BOSS ━━━
+- Every new order → automatic WhatsApp sent to +231 887 221 275 instantly
+- Every customer delivery confirmation → automatic WhatsApp sent to boss instantly
+- Powered by Green API (already configured and live)
+- Boss sees: customer name, phone, country, items ordered, payment method, collector info
 
 ━━━ PROMO CODES (ADMIN ONLY — SECRET) ━━━
 There are 4 active promo codes. Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients.
