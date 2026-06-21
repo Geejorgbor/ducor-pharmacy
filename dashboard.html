@@ -2678,12 +2678,14 @@ International orders: Customers order from anywhere in the world; medication is 
 - After electronic payment, customers send their receipt to +231 887 221 275 on WhatsApp
 
 ━━━ PRESCRIPTION (RX) MEDICATION PRICING ━━━
-- RX medication prices are NOT shown to customers on the website — prices are not stable and vary by stock, dosage, and availability
-- When a customer orders RX items, the order is flagged as "rxPricesPending: true"
-- The dashboard shows a yellow warning banner on that order saying "RX PRICE PENDING"
-- Lucas or the pharmacist must contact the customer to confirm the price before dispatching
-- Customers are told at checkout: "Our pharmacist will contact you with the exact price before your order is dispatched"
-- RX items show "Contact for pricing" everywhere on the website (cart, checkout, order summary)
+- RX medication prices are NOT shown to customers anywhere on the website — prices change based on stock, dosage, and availability
+- When a customer clicks on any prescription product or tries to add it to cart, a popup appears immediately telling them to call first for pricing
+- The popup shows: Call USA (+1 630 936-6050), Call Liberia (+231 880 187 490), WhatsApp (+1 630 936-6050)
+- The customer can still proceed to add to cart after seeing the notice — this signals their interest
+- When an RX order is placed, it is flagged "rxPricesPending: true" and the dashboard shows a yellow "RX PRICE PENDING" banner
+- Lucas or the pharmacist must contact the customer to confirm pricing before dispatching
+- RX items show "Contact for pricing" in the cart, checkout summary, and order detail
+- The order total excludes RX items and shows "+ RX TBC" so admin knows to add prescription price separately
 
 ━━━ CHECKOUT — PRESCRIPTION MEDICATIONS ━━━
 - Customers with RX items fill a HEALTH QUESTIONNAIRE at checkout:

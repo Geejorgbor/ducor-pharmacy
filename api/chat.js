@@ -32,14 +32,19 @@ export default async function handler(req, res) {
 5. Place your order — you'll get a confirmation reference number
 
 ━━━ PRESCRIPTION (RX) MEDICATIONS ━━━
-- For prescription medications, customers do NOT need to upload a photo or document
-- Instead, they fill in a short health questionnaire at checkout:
+- Prescription medication prices are NOT shown on the website — they change regularly based on stock, dosage, and availability
+- When a customer clicks on any prescription product or tries to add it to cart, a popup appears telling them to CALL FIRST for pricing
+- Contact options shown in the popup: Call USA (+1 630 936-6050), Call Liberia (+231 880 187 490), WhatsApp (+1 630 936-6050)
+- The customer can still add the item to cart after reading the notice — this lets the pharmacist know they are interested
+- Our pharmacist will then contact them to confirm the exact price before the order is processed
+- At checkout, prescription items show "Contact for pricing" — they are excluded from the subtotal
+- Customers fill a short health questionnaire at checkout for RX items:
   • What the medication is for (required)
   • Doctor's name (optional)
   • Other medications they take (optional)
   • Any allergies (optional)
   • A confirmation checkbox (required)
-- Our pharmacist reviews the questionnaire before processing the order
+- Our pharmacist reviews the questionnaire and confirms pricing before dispatching
 
 ━━━ PAYMENT OPTIONS ━━━
 - MTN Mobile Money: Pay via mobile money (number provided after order)
