@@ -1760,21 +1760,62 @@ window.viewOrder = function(id) {
   activeOrderId = id;
   document.getElementById('order-modal-title').textContent = `Order #${id.slice(-8)}`;
   const discountRow = o.discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;color:#16a34a"><span>Discount (${o.promoCode||''})</span><strong>-$${parseFloat(o.discount||0).toFixed(2)}</strong></div>` : '';
-  const rxRow = o.prescriptionFile ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#1d4ed8"><strong>📋 Prescription uploaded</strong> — ${o.prescriptionFile.name||'file'} (${((o.prescriptionFile.size||0)/1024).toFixed(0)} KB)</div>` : '';
+
+  const rxPendingBanner = o.rxPricesPending ? `
+    <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px">
+      <strong>⚠️ RX PRICE PENDING</strong> — Contact this customer to confirm prescription medication pricing before dispatching.
+    </div>` : '';
+
+  const confirmedBanner = o.confirmedByCustomer ? `
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#166534;display:flex;align-items:center;gap:8px">
+      <strong>✅ DELIVERY CONFIRMED BY CUSTOMER</strong>${o.deliveredAt ? ' — ' + new Date(o.deliveredAt).toLocaleString() : ''}
+    </div>` : '';
+
   document.getElementById('order-modal-body').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-      <div><strong style="font-size:12px;color:var(--muted)">CUSTOMER</strong><p style="margin-top:4px;font-weight:600">${o.firstName} ${o.lastName}</p><p style="font-size:12px;color:var(--muted)">${o.email||''}<br>${o.phone||''}</p></div>
-      <div><strong style="font-size:12px;color:var(--muted)">DELIVERY ADDRESS</strong><p style="margin-top:4px;font-size:13px">${o.address||''}<br>${o.city||''} ${o.region||''}</p></div>
-      <div><strong style="font-size:12px;color:var(--muted)">PAYMENT</strong><p style="margin-top:4px">${o.payment||'—'}</p></div>
-      <div><strong style="font-size:12px;color:var(--muted)">CURRENT STATUS</strong><p style="margin-top:6px"><span class="order-status status-${o.status||'new'}">${o.status||'new'}</span></p></div>
+    ${rxPendingBanner}
+    ${confirmedBanner}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">CUSTOMER (ORDERING FROM)</strong>
+        <p style="margin-top:4px;font-weight:600">${o.firstName||''} ${o.lastName||''}</p>
+        <p style="font-size:12px;color:var(--muted)">${o.email||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">${o.phone||o.buyerPhone||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">🌍 ${o.buyerCountry||o.country||'—'}</p>
+      </div>
+      <div>
+        <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">COLLECTOR IN LIBERIA</strong>
+        <p style="margin-top:4px;font-weight:600">${o.pickupName||o.firstName||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">📞 ${o.pickupPhone||o.phone||'—'}</p>
+      </div>
+      <div>
+        <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">PAYMENT METHOD</strong>
+        <p style="margin-top:4px;font-weight:600">${o.paymentMethod||o.payment||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">${o.paymentStatus||'—'}</p>
+      </div>
+      <div>
+        <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">STATUS</strong>
+        <p style="margin-top:6px"><span class="order-status status-${o.status||'new'}">${o.status||'new'}</span></p>
+        ${o.confirmedByCustomer ? '<p style="font-size:11px;color:#16a34a;margin-top:4px">✅ Confirmed by customer</p>' : ''}
+      </div>
     </div>
-    ${rxRow}
-    ${o.notes ? `<p style="font-size:13px;color:var(--muted);margin-bottom:16px"><strong>Notes:</strong> ${o.notes}</p>` : ''}
-    <strong style="font-size:12px;color:var(--muted)">ORDER ITEMS</strong>
+    ${o.notes ? `<div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px"><strong>📝 Notes:</strong> ${o.notes}</div>` : ''}
+    <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">ORDER ITEMS</strong>
     <div style="margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      ${(o.items||[]).map(item => `<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px"><span>${item.name||item.id||'Item'} × ${item.qty||1}</span><strong>$${((item.price||0)*(item.qty||1)).toFixed(2)}</strong></div>`).join('')}
+      ${(o.items||[]).map(item => {
+        const isRx = item.category === 'rx';
+        const priceDisplay = isRx
+          ? '<span style="color:#0891b2;font-size:12px;font-weight:600">Contact for pricing</span>'
+          : '$' + ((item.price||0)*(item.qty||1)).toFixed(2);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
+          <span>${item.name||item.id||'Item'} × ${item.qty||1}${isRx ? ' <span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600">RX</span>' : ''}</span>
+          <strong>${priceDisplay}</strong>
+        </div>`;
+      }).join('')}
       ${discountRow}
-      <div style="display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:700;background:#fafafa"><span>Total</span><span>$${o.total||'0.00'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:700;background:#fafafa">
+        <span>Total${o.rxPricesPending ? ' (excl. RX)' : ''}</span>
+        <span>$${o.total||'0.00'}${o.rxPricesPending ? ' <span style="font-size:11px;color:#0891b2;font-weight:400">+ RX TBC</span>' : ''}</span>
+      </div>
     </div>`;
   const sel = document.getElementById('order-status-select');
   sel.value = o.status || 'new';
