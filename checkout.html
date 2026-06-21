@@ -531,6 +531,7 @@
     <h3 id="cod-overlay-title">Order Placed!</h3>
     <div class="order-ref" id="cod-ref">DUCOR-000000</div>
     <p id="cod-overlay-msg">Your order has been received. Our team will contact you to confirm delivery and collect payment on arrival.</p>
+    <a id="track-order-btn" href="/track-order.html" style="display:inline-block;width:100%;margin-bottom:10px;padding:13px;background:linear-gradient(135deg,#0d1b2a,#162540);color:#c9a055;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;text-align:center">📦 Track My Order</a>
     <button onclick="orderDone()">Continue Shopping</button>
   </div>
 </div>
@@ -841,6 +842,7 @@ window._db = _db;
     document.getElementById('cod-overlay-title').textContent = selectedPayment === 'cash' ? 'Order Placed!' : 'Order Confirmed!';
     document.getElementById('cod-overlay-msg').textContent = overlayMsg[selectedPayment] || overlayMsg.cash;
     document.getElementById('cod-ref').textContent = ref;
+    document.getElementById('track-order-btn').href = `/track-order.html?ref=${encodeURIComponent(ref)}`;
     document.getElementById('cod-overlay').classList.add('show');
   }
 

@@ -3181,6 +3181,16 @@ async function aiExec_updateOrder(orderId, newStatus) {
   if (typeof renderAllTables === 'function') renderAllTables();
   if (typeof addNotif === 'function') addNotif('info','AI: Order Updated',`#${order.id.slice(-8)}: ${prev} → ${newStatus}`);
   if (typeof addLog === 'function') addLog('info',`AI updated order #${order.id.slice(-8)}: ${prev} → ${newStatus}`);
+  // Notify boss on WhatsApp when status changes
+  const customerName = `${order.firstName||''} ${order.lastName||''}`.trim() || order.buyerName || '—';
+  fetch('/api/whatsapp', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ type:'status_update', delivery:{
+      ref: order.ref, orderId: order.id,
+      customerName, customerPhone: order.phone||order.buyerPhone||'—',
+      prevStatus: prev, newStatus
+    }})
+  }).catch(()=>{});
   return `✓ Order <strong>#${order.id.slice(-8)}</strong>: ${prev} → <strong>${newStatus}</strong>`;
 }
 

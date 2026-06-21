@@ -55,6 +55,41 @@ export default async function handler(req, res) {
       return res.status(200).json(result);
     }
 
+    // ── Payment confirmed by boss ──
+    if (type === 'payment_confirmed' && delivery) {
+      const message = [
+        '💳 PAYMENT CONFIRMED — Ducor Pharmacy',
+        '',
+        `📋 Order: ${delivery.ref || '—'}`,
+        `👤 Customer: ${delivery.customerName || '—'}`,
+        `📞 Phone: ${delivery.customerPhone || '—'}`,
+        `💵 Amount: $${delivery.total || '—'}`,
+        `💳 Method: ${delivery.paymentMethod || '—'}`,
+        '',
+        '✅ Payment marked as received. Order is now Processing.',
+        `⏰ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' })}`,
+      ].join('\n');
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      return res.status(200).json(result);
+    }
+
+    // ── Order status changed ──
+    if (type === 'status_update' && delivery) {
+      const statusEmoji = { processing:'⚙️', ready:'📦', delivered:'✅', cancelled:'❌' };
+      const emoji = statusEmoji[delivery.newStatus] || '🔄';
+      const message = [
+        `${emoji} ORDER STATUS UPDATE — Ducor Pharmacy`,
+        '',
+        `📋 Order: ${delivery.ref || delivery.orderId || '—'}`,
+        `👤 Customer: ${delivery.customerName || '—'}`,
+        `📞 Phone: ${delivery.customerPhone || '—'}`,
+        `🔄 Status: ${(delivery.prevStatus||'—').toUpperCase()} → ${(delivery.newStatus||'—').toUpperCase()}`,
+        `⏰ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' })}`,
+      ].join('\n');
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      return res.status(200).json(result);
+    }
+
     // ── New order placed ──
     if (!order) {
       return res.status(400).json({ ok: false, error: 'No order or delivery data' });
@@ -69,6 +104,8 @@ export default async function handler(req, res) {
       : '';
 
     const rxFlag = order.rxPricesPending ? '\n⚠️  RX ORDER — Contact customer for pricing' : '';
+
+    const confirmPayUrl = `https://ducor-international-pharmacy.com/confirm-payment.html?ref=${encodeURIComponent(order.ref)}`;
 
     const message = [
       '🛒 NEW ORDER — Ducor International Pharmacy',
@@ -91,7 +128,11 @@ export default async function handler(req, res) {
       order.notes ? `📝 Notes: ${order.notes}` : '',
       rxFlag,
       '',
-      '👉 View in dashboard: ducor-international-pharmacy.com/dashboard.html',
+      '━━━━━━━━━━━━━━━━━━━━━━━━',
+      `✅ Confirm payment received — tap link below:`,
+      confirmPayUrl,
+      '',
+      '👉 Dashboard: ducor-international-pharmacy.com/dashboard.html',
     ].filter(Boolean).join('\n');
 
     const result = await sendWhatsApp(API_URL, ID, TOKEN, message);

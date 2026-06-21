@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Confirm Payment – Ducor International Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0d1b2a 0%,#162540 50%,#0d1b2a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:#fff;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.4);text-align:center}
+    .card-top{background:linear-gradient(135deg,#0d1b2a,#162540);padding:32px 32px 28px}
+    .logo-wrap{display:flex;align-items:center;justify-content:center;gap:12px}
+    .logo-wrap img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,160,85,.4)}
+    .brand h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:1px;text-align:left}
+    .brand p{font-size:10px;color:#c9a055;letter-spacing:3px;text-transform:uppercase;text-align:left}
+    .card-body{padding:36px 32px 40px}
+    .icon-wrap{width:80px;height:80px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center}
+    .icon-wrap.loading{background:#f1f5f9}
+    .icon-wrap.success{background:#f0fdf4}
+    .icon-wrap.already{background:#fffbeb}
+    .icon-wrap.error{background:#fef2f2}
+    h2{font-size:22px;font-weight:700;color:#0d1b2a;margin-bottom:8px}
+    .sub{font-size:14px;color:#64748b;line-height:1.6;margin-bottom:24px}
+    .order-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;text-align:left;margin-bottom:24px}
+    .order-box .row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #f1f5f9}
+    .order-box .row:last-child{border-bottom:none}
+    .order-box .row span:first-child{color:#64748b}
+    .order-box .row strong{color:#0d1b2a;text-align:right;max-width:60%}
+    .btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .2s}
+    .btn-green{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}
+    .btn-green:hover{opacity:.88}
+    .spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#c9a055;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-top">
+    <div class="logo-wrap">
+      <img src="/assets/company-logo.jpg" alt="Ducor"/>
+      <div class="brand">
+        <h1>DUCOR</h1>
+        <p>International Pharmacy</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <!-- Loading -->
+    <div id="state-loading">
+      <div class="icon-wrap loading"><div class="spinner"></div></div>
+      <h2>Loading order…</h2>
+      <p class="sub">Please wait a moment.</p>
+    </div>
+
+    <!-- Confirm prompt -->
+    <div id="state-confirm" style="display:none">
+      <div class="icon-wrap" style="background:#eff6ff">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <h2>Confirm Payment</h2>
+      <p class="sub">Tap the button below to confirm that payment has been received for this order.</p>
+      <div class="order-box" id="order-details"></div>
+      <button class="btn btn-green" onclick="doConfirm()">✓ Confirm Payment Received</button>
+    </div>
+
+    <!-- Success -->
+    <div id="state-success" style="display:none">
+      <div class="icon-wrap success">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>Payment Confirmed!</h2>
+      <p class="sub">Payment has been marked as received. The order status has been updated in the dashboard and the customer's tracking page will now show payment confirmed.</p>
+      <div class="order-box" id="success-details"></div>
+    </div>
+
+    <!-- Already confirmed -->
+    <div id="state-already" style="display:none">
+      <div class="icon-wrap already">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <h2>Already Confirmed</h2>
+      <p class="sub">Payment for this order was already confirmed. No action needed.</p>
+      <div class="order-box" id="already-details"></div>
+    </div>
+
+    <!-- Error -->
+    <div id="state-error" style="display:none">
+      <div class="icon-wrap error">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <h2>Order Not Found</h2>
+      <p class="sub" id="error-msg">This link is invalid or the order could not be found. Please check the dashboard.</p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
+  authDomain: "ducor-pharmacy.firebaseapp.com",
+  projectId: "ducor-pharmacy",
+  storageBucket: "ducor-pharmacy.firebasestorage.app",
+  messagingSenderId: "952933384266",
+  appId: "1:952933384266:web:55b906e903d96940d426b3"
+});
+const db = getFirestore(app);
+
+function show(id) {
+  ['state-loading','state-confirm','state-success','state-already','state-error']
+    .forEach(s => document.getElementById(s).style.display = s === id ? '' : 'none');
+}
+
+function orderRows(data, docId) {
+  const name = data.buyerName || `${data.firstName||''} ${data.lastName||''}`.trim() || '—';
+  return `
+    <div class="row"><span>Order Ref</span><strong>${data.ref || docId.slice(-8).toUpperCase()}</strong></div>
+    <div class="row"><span>Customer</span><strong>${name}</strong></div>
+    <div class="row"><span>Phone</span><strong>${data.buyerPhone||data.phone||'—'}</strong></div>
+    <div class="row"><span>Total</span><strong>$${(data.total||0).toFixed(2)}${data.rxPricesPending?' + RX':''}</strong></div>
+    <div class="row"><span>Payment</span><strong>${data.paymentMethod||'—'}</strong></div>`;
+}
+
+const params = new URLSearchParams(window.location.search);
+const orderRef = params.get('ref');
+let orderDocRef = null;
+let orderData = null;
+let orderDocId = null;
+
+async function init() {
+  if (!orderRef) { show('state-error'); return; }
+  try {
+    const q = query(collection(db, 'orders'), where('ref', '==', orderRef));
+    const snap = await getDocs(q);
+    if (snap.empty) { show('state-error'); return; }
+
+    const d = snap.docs[0];
+    orderDocRef = d.ref;
+    orderData = d.data();
+    orderDocId = d.id;
+
+    if (orderData.paymentConfirmed) {
+      document.getElementById('already-details').innerHTML = orderRows(orderData, orderDocId);
+      show('state-already');
+      return;
+    }
+
+    document.getElementById('order-details').innerHTML = orderRows(orderData, orderDocId);
+    show('state-confirm');
+  } catch(e) {
+    document.getElementById('error-msg').textContent = 'Something went wrong. Please check the admin dashboard.';
+    show('state-error');
+  }
+}
+
+window.doConfirm = async function() {
+  document.querySelector('.btn-green').disabled = true;
+  document.querySelector('.btn-green').textContent = 'Confirming…';
+  try {
+    await updateDoc(orderDocRef, {
+      paymentConfirmed: true,
+      paymentConfirmedAt: new Date().toISOString(),
+      status: orderData.status === 'new' || orderData.status === 'Pending' ? 'processing' : orderData.status
+    });
+    // Notify via WhatsApp (boss gets confirmation of their own action)
+    try {
+      await fetch('/api/whatsapp', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          type: 'payment_confirmed',
+          payment: {
+            ref: orderData.ref || orderDocId.slice(-8).toUpperCase(),
+            customerName: orderData.buyerName || `${orderData.firstName||''} ${orderData.lastName||''}`.trim(),
+            customerPhone: orderData.buyerPhone || orderData.phone || '—',
+            total: orderData.total || 0,
+            paymentMethod: orderData.paymentMethod || '—',
+          }
+        })
+      });
+    } catch(e) {}
+    document.getElementById('success-details').innerHTML = orderRows(orderData, orderDocId);
+    show('state-success');
+  } catch(e) {
+    document.querySelector('.btn-green').disabled = false;
+    document.querySelector('.btn-green').textContent = '✓ Confirm Payment Received';
+    alert('Error confirming payment. Please try again or use the dashboard.');
+  }
+};
+
+init();
+</script>
+</body>
+</html>

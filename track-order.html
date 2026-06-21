@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Your Order – Ducor International Pharmacy</title>
+  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <link rel="stylesheet" href="/assets/shop.css"/>
+  <style>
+    .track-wrap{max-width:560px;margin:48px auto;padding:0 16px 60px}
+    .track-card{background:#fff;border-radius:20px;box-shadow:0 4px 32px rgba(13,27,42,.10);overflow:hidden}
+    .track-top{background:linear-gradient(135deg,#0d1b2a,#162540);padding:28px 28px 24px;text-align:center}
+    .track-top img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,160,85,.4);margin-bottom:10px}
+    .track-top h2{font-size:20px;font-weight:700;color:#fff;margin:0}
+    .track-top p{font-size:11px;color:#c9a055;letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+    .track-body{padding:28px}
+    .search-label{font-size:13px;font-weight:600;color:#0d1b2a;margin-bottom:6px;display:block}
+    .search-row{display:flex;gap:10px}
+    .search-row input{flex:1;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 16px;font-size:14px;font-family:inherit;outline:none;transition:border .2s}
+    .search-row input:focus{border-color:#c9a055}
+    .search-row button{background:linear-gradient(135deg,#0d1b2a,#162540);color:#c9a055;border:none;border-radius:10px;padding:12px 20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap}
+    .search-row button:hover{opacity:.88}
+    .hint{font-size:12px;color:#94a3b8;margin-top:8px}
+
+    /* Result area */
+    #result{margin-top:24px;display:none}
+    .order-header{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;margin-bottom:20px}
+    .order-header .ref{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+    .order-header .name{font-size:18px;font-weight:700;color:#0d1b2a;margin:4px 0}
+    .order-header .meta{font-size:12px;color:#64748b}
+
+    /* Timeline */
+    .timeline{display:flex;flex-direction:column;gap:0}
+    .tl-step{display:flex;gap:16px;position:relative}
+    .tl-step:not(:last-child) .tl-line{position:absolute;left:19px;top:40px;bottom:0;width:2px;background:#e2e8f0;z-index:0}
+    .tl-step:not(:last-child).done .tl-line{background:#16a34a}
+    .tl-step:not(:last-child).active .tl-line{background:#e2e8f0}
+    .tl-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;border:2px solid #e2e8f0;background:#fff}
+    .tl-step.done .tl-dot{background:#f0fdf4;border-color:#16a34a}
+    .tl-step.active .tl-dot{background:#eff6ff;border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.15)}
+    .tl-step.pending .tl-dot{background:#f8fafc;border-color:#e2e8f0}
+    .tl-content{padding:8px 0 28px}
+    .tl-title{font-size:14px;font-weight:700;color:#0d1b2a}
+    .tl-step.pending .tl-title{color:#94a3b8}
+    .tl-desc{font-size:12px;color:#64748b;margin-top:2px;line-height:1.5}
+    .tl-time{font-size:11px;color:#94a3b8;margin-top:4px}
+
+    .items-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-top:4px}
+    .items-box h4{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+    .item-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f1f5f9}
+    .item-row:last-child{border-bottom:none}
+    .item-name{color:#0d1b2a}
+    .item-price{color:#0d1b2a;font-weight:600}
+    .total-row{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:#0d1b2a;padding:10px 0 0;margin-top:6px;border-top:2px solid #e2e8f0}
+
+    .not-found{text-align:center;padding:32px 16px;color:#64748b;font-size:14px}
+    .not-found svg{display:block;margin:0 auto 12px;opacity:.3}
+
+    .wa-help{display:flex;align-items:center;justify-content:center;gap:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-top:20px;font-size:13px;color:#15803d;text-decoration:none;font-weight:600}
+    .wa-help:hover{background:#dcfce7}
+
+    .spinner{width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#c9a055;border-radius:50%;animation:spin .8s linear infinite;margin:32px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="nav-brand">
+    <img src="/assets/company-logo.jpg" alt="Ducor" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>
+    <span>Ducor International Pharmacy</span>
+  </a>
+  <div class="nav-links">
+    <a href="/index.html">Home</a>
+    <a href="/prescription.html">Prescription</a>
+    <a href="/otc.html">Over the Counter</a>
+    <a href="/vitamins.html">Vitamins</a>
+    <a href="/checkout.html">Checkout</a>
+  </div>
+</nav>
+
+<div class="track-wrap">
+  <div class="track-card">
+    <div class="track-top">
+      <img src="/assets/company-logo.jpg" alt="Ducor"/>
+      <h2>Track Your Order</h2>
+      <p>Ducor International Pharmacy</p>
+    </div>
+    <div class="track-body">
+      <label class="search-label">Enter your order reference number</label>
+      <div class="search-row">
+        <input type="text" id="ref-input" placeholder="e.g. DUCOR-43938421" autocomplete="off" autocapitalize="characters"/>
+        <button onclick="searchOrder()">Track</button>
+      </div>
+      <p class="hint">Your reference number was shown on the order confirmation page and in your order summary.</p>
+
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <a href="https://wa.me/16309366050" target="_blank" class="wa-help" style="margin-top:16px;border-radius:12px;background:#fff;border:1px solid #e2e8f0;color:#0d1b2a;text-decoration:none;display:flex;padding:14px 20px">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    Need help? Contact us on WhatsApp — +1 (630) 936-6050
+  </a>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
+  authDomain: "ducor-pharmacy.firebaseapp.com",
+  projectId: "ducor-pharmacy",
+  storageBucket: "ducor-pharmacy.firebasestorage.app",
+  messagingSenderId: "952933384266",
+  appId: "1:952933384266:web:55b906e903d96940d426b3"
+});
+const db = getFirestore(app);
+
+const STEPS = [
+  { key: 'new',        label: 'Order Placed',          desc: 'We have received your order and it is being reviewed by our team.' },
+  { key: 'processing', label: 'Order Processing',       desc: 'Your order is being prepared by our pharmacy team.' },
+  { key: 'ready',      label: 'Ready for Delivery',     desc: 'Your order is packed and ready. Our team will contact you shortly.' },
+  { key: 'delivered',  label: 'Delivered / Collected',  desc: 'Your order has been delivered or collected successfully. Thank you!' },
+];
+
+const STATUS_ORDER = { new: 0, pending: 0, processing: 1, ready: 2, delivered: 3 };
+
+let unsubscribe = null;
+
+window.searchOrder = function() {
+  const raw = document.getElementById('ref-input').value.trim().toUpperCase();
+  if (!raw) return;
+  const ref = raw.startsWith('DUCOR-') ? raw : 'DUCOR-' + raw;
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').innerHTML = '<div class="spinner"></div>';
+  loadOrder(ref);
+};
+
+document.getElementById('ref-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.searchOrder();
+});
+
+async function loadOrder(ref) {
+  try {
+    const q = query(collection(db, 'orders'), where('ref', '==', ref));
+    unsubscribe = onSnapshot(q, snap => {
+      if (snap.empty) {
+        document.getElementById('result').innerHTML = `
+          <div class="not-found">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <strong>Order not found</strong><br>
+            Please check your reference number. It looks like <strong>DUCOR-XXXXXXXX</strong>.
+          </div>`;
+        return;
+      }
+      renderOrder(snap.docs[0].data(), snap.docs[0].id);
+    });
+  } catch(e) {
+    document.getElementById('result').innerHTML = `<div class="not-found">Something went wrong. Please try again or contact us on WhatsApp.</div>`;
+  }
+}
+
+function renderOrder(data, docId) {
+  const firstName = data.firstName || (data.buyerName || '').split(' ')[0] || '';
+  const lastName  = data.lastName  || (data.buyerName || '').split(' ').slice(1).join(' ') || '';
+  const name = `${firstName} ${lastName}`.trim() || 'Customer';
+  const status = (data.status || 'new').toLowerCase();
+  const currentStep = STATUS_ORDER[status] ?? 0;
+  const date = data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) : '';
+
+  const stepsHtml = STEPS.map((step, i) => {
+    const stepIdx = i;
+    let cls = 'pending';
+    if (stepIdx < currentStep) cls = 'done';
+    else if (stepIdx === currentStep) cls = 'active';
+
+    const icon = cls === 'done'
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+      : cls === 'active'
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="#3b82f6"><circle cx="12" cy="12" r="5"/></svg>`
+      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg>`;
+
+    const timeLabel = stepIdx === 0 && date ? `<div class="tl-time">${date}</div>` :
+                      stepIdx === 3 && data.deliveredAt ? `<div class="tl-time">${new Date(data.deliveredAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>` : '';
+
+    return `<div class="tl-step ${cls}">
+      <div class="tl-line"></div>
+      <div class="tl-dot">${icon}</div>
+      <div class="tl-content">
+        <div class="tl-title">${step.label}</div>
+        <div class="tl-desc">${cls !== 'pending' ? step.desc : 'Waiting…'}</div>
+        ${timeLabel}
+      </div>
+    </div>`;
+  }).join('');
+
+  const items = (data.items || []);
+  const itemsHtml = items.length ? `
+    <div class="items-box">
+      <h4>Items Ordered</h4>
+      ${items.map(i => `
+        <div class="item-row">
+          <span class="item-name">${i.name} ×${i.qty}${i.category==='rx' ? ' <span style="font-size:10px;background:#eff6ff;color:#3b82f6;border-radius:4px;padding:1px 5px;font-weight:600">RX</span>' : ''}</span>
+          <span class="item-price">${i.category==='rx' ? '<span style="color:#0891b2;font-size:12px">Pricing confirmed by team</span>' : '$'+((i.price||0)*i.qty).toFixed(2)}</span>
+        </div>`).join('')}
+      <div class="total-row"><span>Total</span><span>$${(data.total||0).toFixed(2)}${data.rxPricesPending ? ' <span style="font-size:11px;color:#0891b2">+ RX</span>' : ''}</span></div>
+    </div>` : '';
+
+  const paymentBadge = data.paymentConfirmed
+    ? `<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">✓ Payment Confirmed</span>`
+    : `<span style="background:#fffbeb;color:#d97706;border:1px solid #fde68a;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">Payment Pending</span>`;
+
+  document.getElementById('result').innerHTML = `
+    <div class="order-header">
+      <div class="ref">${data.ref || docId.slice(-8).toUpperCase()}</div>
+      <div class="name">${name}</div>
+      <div class="meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <span>${data.paymentMethod || '—'}</span>
+        ${paymentBadge}
+      </div>
+    </div>
+    <div class="timeline">${stepsHtml}</div>
+    ${itemsHtml}
+    <a href="https://wa.me/16309366050" target="_blank" class="wa-help" style="margin-top:20px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Questions? WhatsApp us — +1 (630) 936-6050
+    </a>`;
+}
+
+// Pre-fill from URL if ref passed
+const urlRef = new URLSearchParams(window.location.search).get('ref');
+if (urlRef) {
+  document.getElementById('ref-input').value = urlRef;
+  window.searchOrder();
+}
+</script>
+</body>
+</html>
