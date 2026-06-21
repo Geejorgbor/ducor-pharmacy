@@ -47,6 +47,8 @@
     .status-dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
     @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes ai-pulse-ring{0%{box-shadow:0 0 0 0 rgba(201,160,85,.7)}70%{box-shadow:0 0 0 12px rgba(201,160,85,0)}100%{box-shadow:0 0 0 0 rgba(201,160,85,0)}}
+    .ai-pulse{animation:ai-pulse-ring 1s ease-out 3!important;}
     .page-content{padding:28px;flex:1}
 
     /* ── SECTIONS ── */
@@ -1236,6 +1238,8 @@ function startDeliveryListener() {
               // Flash the orders badge
               const badge = document.getElementById('orders-badge');
               if (badge) { badge.style.display = ''; badge.textContent = ORDERS.filter(o=>o.status==='new'||o.status==='Pending').length || ''; }
+              // Inject full order alert into the AI chat panel
+              _aiNewOrderAlert(normalized, docId);
             }
           } else if (exists) {
             // Update the existing local order with latest Firestore data
@@ -2903,6 +2907,57 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
   return AI_SYSTEM_BASE
     .replace('{{PRODUCT_CATALOG}}', prodLines.join('\n') || '(no products loaded yet)')
     .replace('{{ORDER_DATA}}', orderData);
+}
+
+// ── AI NEW ORDER ALERT ────────────────────────────────────────────────────────
+// Called automatically when a new order arrives from Firestore — injects full
+// order details into the AI chat so the admin sees it instantly without asking
+function _aiNewOrderAlert(o, docId) {
+  const orderId = docId.slice(-8).toUpperCase();
+  const itemLines = (o.items || []).map(i => {
+    if (i.category === 'rx') return `  • ${i.name} ×${i.qty} — RX (call customer for price)`;
+    return `  • ${i.name} ×${i.qty} — $${((i.price || 0) * i.qty).toFixed(2)}`;
+  }).join('\n') || '  (no items)';
+
+  const rxWarning = o.rxPricesPending
+    ? '\n⚠️ RX ITEMS IN ORDER — contact customer to confirm prescription prices before dispatching.'
+    : '';
+
+  const alert = [
+    `🛒 NEW ORDER — #${orderId}`,
+    ``,
+    `👤 Customer: ${o.firstName} ${o.lastName}`,
+    `📞 Phone: ${o.phone || '—'}`,
+    `🌍 Country: ${o.country || '—'}`,
+    `🏪 Collector in Liberia: ${o.pickupName || '—'} — ${o.pickupPhone || '—'}`,
+    ``,
+    `📦 Items:`,
+    itemLines,
+    ``,
+    `💵 Total: $${o.total}${o.rxPricesPending ? ' + RX price TBC' : ''}`,
+    `💳 Payment: ${o.paymentMethod || '—'} — ${o.paymentStatus || 'Pending'}`,
+    o.notes ? `📝 Customer note: ${o.notes}` : '',
+    rxWarning,
+    ``,
+    `I've recorded this order in the system. You can ask me to update its status, confirm payment, add a note, or anything else you need.`,
+  ].filter(l => l !== null && l !== undefined).join('\n');
+
+  // Add to AI chat — the admin will see it the moment they open the AI panel
+  if (typeof addAIMessage === 'function') {
+    addAIMessage('bot', alert);
+    if (typeof aiMessages !== 'undefined') {
+      aiMessages.push({ role: 'assistant', content: alert });
+      if (aiMessages.length > 40) aiMessages = aiMessages.slice(-40);
+    }
+  }
+
+  // Pulse the AI button to signal there's new info waiting
+  const aiBtn = document.getElementById('ai-fab') || document.querySelector('[onclick="toggleAdminAI()"]');
+  if (aiBtn) {
+    aiBtn.style.animation = 'none';
+    setTimeout(() => { aiBtn.style.animation = ''; aiBtn.classList.add('ai-pulse'); }, 50);
+    setTimeout(() => aiBtn.classList.remove('ai-pulse'), 4000);
+  }
 }
 
 // ── AI STATE ──────────────────────────────────────────────────────────────────
