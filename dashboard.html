@@ -1248,18 +1248,42 @@ function startDeliveryListener() {
           }
 
         } else if (change.type === 'modified') {
-          // Order updated — sync changes
+          // Order updated — sync changes and notify AI of what changed
           const local = ORDERS.find(o => o.id === docId || (data.ref && o.ref === data.ref));
           if (local) {
-            const wasDelivered = local.confirmedByCustomer;
+            const wasDelivered   = local.confirmedByCustomer;
+            const wasPaid        = local.paymentConfirmed;
+            const prevStatus     = local.status;
+            const prevNote       = local.adminNote;
             Object.assign(local, normalizeFirestoreOrder(docId, data));
             changed = true;
-            // Delivery confirmed by customer via WhatsApp link
+
+            const name = `${local.firstName} ${local.lastName}`.trim() || 'Customer';
+
+            // Delivery confirmed by customer
             if (data.confirmedByCustomer && !wasDelivered) {
-              const name = `${local.firstName} ${local.lastName}`.trim();
               addNotif('success', '✅ Delivery Confirmed!',
                 `${name} confirmed receipt of order #${docId.slice(-8).toUpperCase()}`, 'just now');
               addLog('info', `Customer confirmed delivery for order #${docId.slice(-8)}`);
+              _aiEventAlert('delivered', local, docId, { name });
+            }
+
+            // Payment confirmed (boss tapped confirm-payment link)
+            if (data.paymentConfirmed && !wasPaid) {
+              addNotif('success', '💳 Payment Confirmed',
+                `Payment received for order #${docId.slice(-8).toUpperCase()} (${name})`, 'just now');
+              addLog('success', `Payment confirmed for order #${docId.slice(-8)}`);
+              _aiEventAlert('payment_confirmed', local, docId, { name });
+            }
+
+            // Status changed from outside (e.g. another device, or confirm-payment page auto-processing)
+            if (data.status && data.status !== prevStatus && _firestoreReady) {
+              _aiEventAlert('status_changed', local, docId, { name, prevStatus, newStatus: data.status });
+            }
+
+            // Admin note added
+            if (data.adminNote && data.adminNote !== prevNote) {
+              _aiEventAlert('note_added', local, docId, { name, note: data.adminNote });
             }
           }
         }
@@ -2791,6 +2815,16 @@ PUSH ALL CHANGES LIVE TO WEBSITE:
 [DO:publish]
 (Sends updated products to GitHub → Vercel redeploys in ~60 seconds)
 
+━━━ YOU ARE FULLY AUTOMATIC ━━━
+You receive real-time alerts for EVERY event on the website — you do not need to be asked. These appear in this chat automatically:
+- 🛒 New order placed → you are notified immediately with full order details
+- 💳 Payment confirmed (boss taps WhatsApp link) → you are notified and suggest marking Processing
+- ✅ Customer confirms delivery → you are notified and confirm the order is closed
+- 🔄 Order status changes → you are notified of what changed and who it was for
+- 📝 Note added to order → you are notified
+
+When you receive these automatic alerts, respond helpfully — suggest the logical next step, offer to take action, or confirm what happened. You are the central intelligence of this pharmacy — nothing happens without you knowing about it.
+
 ━━━ ABOUT INSTANT CHANGES ━━━
 - Product prices, names, order status, notes, payment confirmations, stock toggles — ALL take effect INSTANTLY in the dashboard the moment you issue the command
 - [DO:publish] pushes product changes to the live public website via GitHub — Vercel rebuilds in ~60 seconds. The dashboard always reflects the latest data immediately; only the public-facing website needs a publish to sync
@@ -3038,6 +3072,64 @@ function _aiNewOrderAlert(o, docId) {
   if (aiBtn) {
     aiBtn.style.animation = 'none';
     setTimeout(() => { aiBtn.style.animation = ''; aiBtn.classList.add('ai-pulse'); }, 50);
+    setTimeout(() => aiBtn.classList.remove('ai-pulse'), 4000);
+  }
+}
+
+// ── AI EVENT ALERT ────────────────────────────────────────────────────────────
+// Automatically injects Firestore events into the AI chat in real time
+function _aiEventAlert(eventType, order, docId, extra = {}) {
+  if (typeof addAIMessage !== 'function') return;
+  const ref = order.ref || docId.slice(-8).toUpperCase();
+  const phone = order.phone || order.buyerPhone || '—';
+  let msg = '';
+
+  if (eventType === 'delivered') {
+    msg = [
+      `✅ *Delivery Confirmed — Order #${docId.slice(-8).toUpperCase()}*`,
+      ``,
+      `${extra.name} just confirmed they received their order.`,
+      `📋 Order: ${ref} | 💵 Total: $${order.total || '0.00'} | 📞 ${phone}`,
+      ``,
+      `The order is now marked as *Delivered*. Would you like me to do anything else with this order?`,
+    ].join('\n');
+  } else if (eventType === 'payment_confirmed') {
+    msg = [
+      `💳 *Payment Confirmed — Order #${docId.slice(-8).toUpperCase()}*`,
+      ``,
+      `Payment has been received for ${extra.name}'s order.`,
+      `📋 Order: ${ref} | 💵 $${order.total || '0.00'} | 💳 ${order.paymentMethod || '—'}`,
+      ``,
+      `I've updated the order. Shall I mark it as *Processing* so the team starts preparing it?`,
+    ].join('\n');
+  } else if (eventType === 'status_changed') {
+    const statusEmoji = { processing:'⚙️', ready:'📦', delivered:'✅', cancelled:'❌', new:'🆕' };
+    const emoji = statusEmoji[extra.newStatus] || '🔄';
+    msg = [
+      `${emoji} *Order Status Updated — #${docId.slice(-8).toUpperCase()}*`,
+      ``,
+      `${extra.name}'s order moved from *${extra.prevStatus || '—'}* → *${extra.newStatus}*.`,
+      `📋 ${ref} | 📞 ${phone}`,
+    ].join('\n');
+  } else if (eventType === 'note_added') {
+    msg = [
+      `📝 *Note Added — Order #${docId.slice(-8).toUpperCase()}*`,
+      ``,
+      `A note was saved on ${extra.name}'s order:`,
+      `"${extra.note}"`,
+    ].join('\n');
+  }
+
+  if (!msg) return;
+  addAIMessage('bot', msg);
+  if (typeof aiMessages !== 'undefined') {
+    aiMessages.push({ role: 'assistant', content: msg });
+    if (aiMessages.length > 40) aiMessages = aiMessages.slice(-40);
+  }
+  // Pulse the AI button
+  const aiBtn = document.querySelector('[onclick="toggleAdminAI()"]');
+  if (aiBtn) {
+    aiBtn.classList.add('ai-pulse');
     setTimeout(() => aiBtn.classList.remove('ai-pulse'), 4000);
   }
 }
