@@ -1968,8 +1968,34 @@ window.updateOrderStatus = async function(id) {
     const update = { status: newStatus, statusUpdatedAt: new Date().toISOString() };
     if (o.confirmToken) update.confirmToken = o.confirmToken;
     await updateDoc(doc(db, 'orders', id), update);
-  } catch(e) {
-    // Firestore may not have the doc yet (localStorage-only orders) — ignore
+  } catch(e) {}
+
+  // Notify boss on WhatsApp for every status change
+  const custName = `${o.firstName||''} ${o.lastName||''}`.trim() || o.buyerName || '—';
+  fetch('/api/whatsapp', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ type:'status_update', delivery:{
+      ref: o.ref, orderId: id,
+      customerName: custName,
+      customerPhone: o.phone||o.buyerPhone||'—',
+      prevStatus: prev, newStatus
+    }})
+  }).catch(()=>{});
+
+  // When marked Ready → automatically send delivery confirmation link to customer on WhatsApp
+  if (newStatus === 'ready' && o.confirmToken) {
+    const confirmUrl = `${window.location.origin}/confirm-delivery.html?order=${encodeURIComponent(id)}&token=${encodeURIComponent(o.confirmToken)}`;
+    fetch('/api/whatsapp', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ type:'customer_ready', customerOrder:{
+        customerPhone: o.phone||o.buyerPhone||'',
+        customerName: custName,
+        ref: o.ref||id.slice(-8).toUpperCase(),
+        confirmUrl,
+        items: (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', ')
+      }})
+    }).catch(()=>{});
+    addNotif('success','WhatsApp Sent to Customer',`Delivery confirmation link sent to ${custName}`, 'just now');
   }
 
   closeModal('order-modal');
@@ -1977,7 +2003,7 @@ window.updateOrderStatus = async function(id) {
   renderRecentOrders();
   updateOrderCount();
 
-  // If just marked ready, re-open the modal so admin sees the WhatsApp link
+  // Re-open the modal so admin sees the WhatsApp panel
   if (newStatus === 'ready') {
     setTimeout(() => viewOrder(id), 200);
   }
@@ -2796,23 +2822,59 @@ International orders: Customers order from anywhere in the world; medication is 
 - Pharmacist reviews the questionnaire before processing the order
 - Data saved in Firestore as healthQuestionnaire on the order
 
-━━━ ORDER FLOW & WHATSAPP DELIVERY CONFIRMATION ━━━
-Full order flow: new → processing → ready → delivered
+━━━ COMPLETE ORDER FLOW ━━━
+Every order goes through: new → processing → ready → delivered
 
-When you mark an order "Ready for Delivery":
-1. A unique secret delivery confirmation link is automatically generated
-2. A green WhatsApp panel appears in the order detail with a pre-written message
-3. You copy that message and send it to the customer on WhatsApp
-4. The customer clicks the link when they physically receive their delivery
-5. The website automatically marks the order as "Delivered" in real-time
-6. A WhatsApp notification is sent to the boss phone (+231 887 221 275) saying "Customer confirmed delivery"
-7. The dashboard shows a green "✅ DELIVERY CONFIRMED BY CUSTOMER" banner on that order
+STEP 1 — Customer places order:
+- New order WhatsApp goes to boss instantly with full details + a "Confirm Payment" tap link
+- Order appears in dashboard + admin AI is notified automatically
+- Customer gets a reference number (e.g. DUCOR-43938421) and can track their order at /track-order.html
 
-━━━ WHATSAPP NOTIFICATIONS TO BOSS ━━━
-- Every new order → automatic WhatsApp sent to +231 887 221 275 instantly
-- Every customer delivery confirmation → automatic WhatsApp sent to boss instantly
-- Powered by Green API (already configured and live)
-- Boss sees: customer name, phone, country, items ordered, payment method, collector info
+STEP 2 — Boss confirms payment:
+- Boss either taps the "Confirm Payment" link in their WhatsApp, OR
+- You (admin/AI) use [DO:confirm_payment|ORDER_ID] in the dashboard
+- Either way → order Firestore is updated, customer's tracking page shows "Payment Confirmed ✓"
+
+STEP 3 — Order is being prepared (mark Processing):
+- Use [DO:order|ORDER_ID|processing] or manual status change
+- Boss gets a WhatsApp: "Order moved to PROCESSING"
+- Customer tracking page updates live
+
+STEP 4 — Order is ready (mark Ready for Delivery):
+- Use [DO:order|ORDER_ID|ready] or manual status change
+- TWO things happen automatically:
+  a) Boss gets a WhatsApp: "Order moved to READY"
+  b) Customer automatically receives a WhatsApp on their phone with a delivery confirmation tap link
+- Customer tracking page updates to "Ready for Delivery"
+- NO manual copying/pasting needed — it all happens automatically
+
+STEP 5 — Customer confirms delivery:
+- Customer taps the link in their WhatsApp when they physically receive the order
+- Order automatically moves to "Delivered" in real-time
+- Boss gets a WhatsApp: "Customer confirmed delivery ✅"
+- Customer tracking page shows "Delivered/Collected"
+
+━━━ CUSTOMER ORDER TRACKING PAGE ━━━
+- URL: ducor-international-pharmacy.com/track-order.html
+- Customers enter their reference number (DUCOR-XXXXXXXX) and see a live status timeline
+- Shows: Order Placed → Processing → Ready for Delivery → Delivered/Collected
+- Also shows payment confirmed status, items ordered, payment method
+- Updates in real-time — no refresh needed
+- Link to this page appears in all website navbars and in the checkout confirmation
+
+━━━ BOSS PAYMENT CONFIRMATION (WhatsApp link) ━━━
+- Every new order WhatsApp includes a "Confirm Payment" link at the bottom
+- Boss taps it on their phone → opens confirm-payment.html → taps "Confirm Payment Received"
+- Order is instantly updated in Firestore, tracking page updates, status moves to "Processing"
+- You can also confirm payment from here using [DO:confirm_payment|ORDER_ID]
+
+━━━ ALL WHATSAPP NOTIFICATIONS (Automatic) ━━━
+- New order placed → boss gets full order details + payment confirm link
+- Status changes to processing/ready/delivered → boss gets WhatsApp update
+- Order marked Ready → customer automatically gets WhatsApp with delivery confirm link
+- Customer confirms delivery → boss gets WhatsApp confirmation
+- Payment confirmed → boss gets WhatsApp receipt confirmation
+- All powered by Green API (instance 7107656793, boss number 231887221275)
 
 ━━━ PROMO CODES (ADMIN ONLY — SECRET) ━━━
 There are 4 active promo codes. Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients.
@@ -3181,7 +3243,7 @@ async function aiExec_updateOrder(orderId, newStatus) {
   if (typeof renderAllTables === 'function') renderAllTables();
   if (typeof addNotif === 'function') addNotif('info','AI: Order Updated',`#${order.id.slice(-8)}: ${prev} → ${newStatus}`);
   if (typeof addLog === 'function') addLog('info',`AI updated order #${order.id.slice(-8)}: ${prev} → ${newStatus}`);
-  // Notify boss on WhatsApp when status changes
+  // Notify boss on WhatsApp for every status change
   const customerName = `${order.firstName||''} ${order.lastName||''}`.trim() || order.buyerName || '—';
   fetch('/api/whatsapp', {
     method:'POST', headers:{'Content-Type':'application/json'},
@@ -3191,6 +3253,23 @@ async function aiExec_updateOrder(orderId, newStatus) {
       prevStatus: prev, newStatus
     }})
   }).catch(()=>{});
+
+  // When marked Ready → auto-send delivery link to customer on WhatsApp
+  if (newStatus === 'ready' && order.confirmToken) {
+    const confirmUrl = `${window.location.origin}/confirm-delivery.html?order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(order.confirmToken)}`;
+    fetch('/api/whatsapp', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ type:'customer_ready', customerOrder:{
+        customerPhone: order.phone||order.buyerPhone||'',
+        customerName,
+        ref: order.ref||order.id.slice(-8).toUpperCase(),
+        confirmUrl,
+        items: (order.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', ')
+      }})
+    }).catch(()=>{});
+    if (typeof addNotif === 'function') addNotif('success','WhatsApp Sent to Customer',`Delivery confirmation link sent to ${customerName}`, 'just now');
+  }
+
   return `✓ Order <strong>#${order.id.slice(-8)}</strong>: ${prev} → <strong>${newStatus}</strong>`;
 }
 

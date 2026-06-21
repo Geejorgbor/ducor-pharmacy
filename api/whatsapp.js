@@ -8,13 +8,13 @@
 
 const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp in international format
 
-async function sendWhatsApp(apiUrl, id, token, message) {
+async function sendWhatsApp(apiUrl, id, token, message, chatId = BOSS_CHAT_ID) {
   const response = await fetch(
     `${apiUrl}/waInstance${id}/sendMessage/${token}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatId: BOSS_CHAT_ID, message }),
+      body: JSON.stringify({ chatId, message }),
     }
   );
   const data = await response.json();
@@ -52,6 +52,34 @@ export default async function handler(req, res) {
       ].join('\n');
 
       const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      return res.status(200).json(result);
+    }
+
+    // ── Ready for delivery — send confirmation link to customer ──
+    if (type === 'customer_ready' && req.body.customerOrder) {
+      const co = req.body.customerOrder;
+      // Normalize phone → international format for Green API
+      const rawPhone = (co.customerPhone || '').replace(/[\s\-\(\)\+]/g, '');
+      if (!rawPhone) return res.status(200).json({ ok: false, error: 'No customer phone' });
+      const customerChatId = rawPhone + '@c.us';
+
+      const message = [
+        `Hello ${co.customerName || 'Valued Customer'}! 👋`,
+        ``,
+        `Great news — your order from *Ducor International Pharmacy* is *ready for delivery*! 🎉`,
+        ``,
+        `📋 Order: ${co.ref}`,
+        `📦 Items: ${co.items || '—'}`,
+        ``,
+        `When you receive your order, please tap the link below to confirm delivery:`,
+        ``,
+        co.confirmUrl,
+        ``,
+        `Thank you for choosing Ducor International Pharmacy. We appreciate your trust! 🙏`,
+        `— Ducor International Pharmacy, Monrovia, Liberia`,
+      ].join('\n');
+
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, customerChatId);
       return res.status(200).json(result);
     }
 
