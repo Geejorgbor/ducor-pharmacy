@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /admin.html
+Disallow: /admin.js
+Disallow: /api/
+
+Sitemap: https://ducor-pharmacy.vercel.app/sitemap.xml
