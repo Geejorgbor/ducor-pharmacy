@@ -1189,6 +1189,8 @@ const DEFAULT_PRODUCTS = {
 // ── STATE ──
 let PRODUCTS = JSON.parse(localStorage.getItem('ducor-products') || 'null') || JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
 let ORDERS = [];
+window.ORDERS = ORDERS;    // expose to non-module script (AI engine)
+window.PRODUCTS = PRODUCTS; // expose products too
 let NOTIFS = JSON.parse(localStorage.getItem('ducor-notifs') || '[]');
 let SECURITY_LOG = JSON.parse(localStorage.getItem('ducor-security-log') || '[]');
 let currentUser = null;
@@ -1356,6 +1358,7 @@ function startDeliveryListener() {
       _firestoreReady = true; // After first snapshot, we're fully synced
 
       if (changed) {
+        window.ORDERS = ORDERS; // keep non-module AI script in sync
         localStorage.setItem('ducor-orders', JSON.stringify(ORDERS));
         renderOrders();
         renderRecentOrders();
@@ -1864,6 +1867,7 @@ window.confirmDelete = function() {
 function loadOrders() {
   const raw = localStorage.getItem('ducor-orders');
   ORDERS = raw ? JSON.parse(raw) : [];
+  window.ORDERS = ORDERS;
   updateOrderCount();
   const newOrders = ORDERS.filter(o => o.status === 'new');
   if (newOrders.length > 0) {
