@@ -65,18 +65,24 @@
 </head>
 <body>
 
-<nav class="navbar">
+<nav class="shop-nav">
   <a href="/index.html" class="nav-brand">
-    <img src="/assets/company-logo.jpg" alt="Ducor" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>
-    <span>Ducor International Pharmacy</span>
+    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <div class="nav-brand-text">
+      <h1>DUCOR</h1>
+      <p>International Pharmacy</p>
+    </div>
   </a>
-  <div class="nav-links">
+  <div class="nav-links" id="nav-links">
     <a href="/index.html">Home</a>
     <a href="/prescription.html">Prescription</a>
     <a href="/otc.html">Over the Counter</a>
     <a href="/vitamins.html">Vitamins</a>
     <a href="/checkout.html">Checkout</a>
   </div>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="(function(){var nl=document.getElementById('nav-links'),nh=document.getElementById('nav-hamburger');nl.classList.toggle('open');nh.classList.toggle('open');})()">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <div class="track-wrap">

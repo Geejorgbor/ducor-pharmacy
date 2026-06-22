@@ -287,6 +287,9 @@
     @media(max-width:1200px){.quick-actions{grid-template-columns:repeat(3,1fr)}.store-links{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.health-grid{grid-template-columns:1fr 1fr}}
     @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.mob-open{transform:none;z-index:100}.sidebar-overlay.mob-open{display:block}.main{margin-left:0}.two-col,.three-col{grid-template-columns:1fr}.hamburger{display:flex}.quick-actions{grid-template-columns:repeat(2,1fr)}.store-links{grid-template-columns:1fr 1fr}.greeting-actions{display:none}.topbar-clock{display:none}.global-search-wrap{width:180px}}
+    @media(max-width:1100px){#stats-overview{grid-template-columns:repeat(3,1fr)!important}}
+    @media(max-width:768px){#stats-overview{grid-template-columns:repeat(2,1fr)!important}.topbar{padding:0 14px}.topbar-title h3{font-size:15px}.main-content{padding:16px 14px}}
+    @media(max-width:480px){#stats-overview{grid-template-columns:repeat(2,1fr)!important}.stat-card{padding:14px 12px}}
   </style>
 </head>
 <body>
@@ -444,7 +447,7 @@
       </div>
 
       <!-- Stats Grid -->
-      <div class="stats-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:22px">
+      <div class="stats-grid" id="stats-overview" style="grid-template-columns:repeat(6,1fr);margin-bottom:22px">
         <div class="stat-card rx">
           <div class="stat-icon rx"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></div>
           <div class="stat-value" id="stat-rx">151</div>
