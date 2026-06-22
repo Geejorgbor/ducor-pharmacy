@@ -3188,7 +3188,7 @@ Example: [DO:order|abc123xyz|delivered]
 
 NAVIGATE DASHBOARD:
 [DO:nav|SECTION]
-Sections: dashboard, orders, notifications, products-rx, products-otc, products-vit, analytics, settings, security, team, hero-photos, content
+Sections: dashboard, orders, notifications, products-rx, products-otc, products-vit, product-photos, analytics, settings, security, team, hero-photos, content
 Example: [DO:nav|orders]
 
 POST ANNOUNCEMENT:
@@ -3329,6 +3329,50 @@ Usage rules:
 - There is NO usage tracking yet (no per-code or per-user limit enforcement)
 - To add usage limits, a Firebase counter per code would be needed
 - The promo input field is on the checkout page but has no label pointing to it — only clients you tell privately will know to use it
+
+━━━ PRODUCT PHOTO MANAGEMENT ━━━
+Navigate to the photo manager: [DO:nav|product-photos]
+
+How photos work on this website:
+- Every product can have a real photo that shows on the shop pages (OTC, Prescription, Vitamins)
+- Photos are stored as files on GitHub at /assets/products/{productId}.jpg — uploaded from the Product Photos section
+- Custom photo URLs can also be set directly (stored locally, visible on dashboard only until published)
+- The Photo Manager section organizes every medication by category with its current photo shown
+
+AI photo commands:
+SET a photo URL for a product:
+[DO:set_photo|PRODUCT_ID|CATEGORY|IMAGE_URL]
+Example: [DO:set_photo|rx013|prescription|https://example.com/amoxicillin-500mg.jpg]
+
+REMOVE a custom photo (reverts to default):
+[DO:remove_photo|PRODUCT_ID|CATEGORY]
+Example: [DO:remove_photo|rx013|prescription]
+
+For device uploads (selecting a photo file from computer/phone):
+Navigate to the section: [DO:nav|product-photos]
+Then click "Upload" on the specific product tile.
+
+⚠⚠⚠ CRITICAL PHOTO SENSITIVITY RULES — NEVER SKIP THESE ⚠⚠⚠
+Medication photos are EXTREMELY SENSITIVE. A wrong photo on a medication product can mislead a patient about what drug they are receiving. This is a serious health safety issue.
+
+RULE 1 — Always confirm the product name BEFORE setting any photo:
+"Just to confirm — this photo will be applied to [EXACT PRODUCT NAME]. Is that correct?"
+NEVER set a photo without this confirmation first.
+
+RULE 2 — Read back the product name and ID in your confirmation:
+"Done. Photo set for Amoxicillin 500mg Capsules (ID: rx013). Please verify on the shop page that it looks correct."
+
+RULE 3 — Check URL relevance. If the image URL mentions a different drug name than the product:
+"⚠ WARNING: The photo URL contains '[word from URL]' but the product is '[product name]'. These may not match. Please double-check before I apply this photo — a wrong photo on a medication is dangerous."
+
+RULE 4 — For prescription (RX) medications: even stricter. Always say:
+"This is a prescription medication — please confirm carefully that this is the correct bottle photo before I save it."
+
+RULE 5 — If someone asks you to set a photo but does not specify which product:
+"Which specific medication should this photo be applied to? Please give me the product name or ID so I can match it correctly."
+
+RULE 6 — After setting any photo, always recommend visual verification:
+"Please visit the shop page to confirm the photo looks correct on the product listing."
 
 ━━━ ADDITIONAL ACTIONS ━━━
 
@@ -3649,6 +3693,12 @@ function processAIActions(text) {
     } else if (cmd === 'promo_remove') {
       const [,code] = parts;
       if (code) syncResults.push(aiExec_promoRemove(code));
+    } else if (cmd === 'set_photo') {
+      const [,id,cat,url] = parts;
+      if (id && cat && url) syncResults.push(aiExec_setPhoto(id, cat, url));
+    } else if (cmd === 'remove_photo') {
+      const [,id,cat] = parts;
+      if (id && cat) syncResults.push(aiExec_removePhoto(id, cat));
     }
   }
 
@@ -3872,6 +3922,32 @@ function aiExec_promoRemove(code) {
   if (typeof addNotif === 'function') addNotif('warning','AI: Promo Removed',`Code ${upper} has been deleted`);
   if (typeof addLog === 'function') addLog('warning',`AI removed promo: ${upper}`);
   return `✓ Promo code <strong>${upper}</strong> removed`;
+}
+
+// ── PHOTO ACTIONS ─────────────────────────────────────────────────────────────
+function aiExec_setPhoto(id, cat, url) {
+  const p = window.PRODUCTS?.[cat]?.find(x => x.id === id);
+  if (!p) return `⚠ Product not found: ${id} in ${cat}. Check the product ID is correct.`;
+  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+  customPhotos[id] = url;
+  localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+  try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
+  if (typeof addNotif === 'function') addNotif('success','AI: Photo Updated',`Photo set for ${p.name}`);
+  if (typeof addLog  === 'function') addLog('info',`AI set photo for ${p.name} (${id}): ${url}`);
+  return `✓ Photo set for <strong>${p.name}</strong>. It will appear on the shop page immediately. Use [DO:publish] to push to the live website.`;
+}
+
+function aiExec_removePhoto(id, cat) {
+  const p = window.PRODUCTS?.[cat]?.find(x => x.id === id);
+  if (!p) return `⚠ Product not found: ${id} in ${cat}.`;
+  const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
+  if (!customPhotos[id]) return `⚠ No custom photo found for <strong>${p.name}</strong>. It already uses the default image.`;
+  delete customPhotos[id];
+  localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+  try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
+  if (typeof addNotif === 'function') addNotif('info','AI: Photo Removed',`Custom photo removed for ${p.name}`);
+  if (typeof addLog  === 'function') addLog('info',`AI removed photo for ${p.name} (${id})`);
+  return `✓ Custom photo removed for <strong>${p.name}</strong>. Default image will be used.`;
 }
 
 // ── PUBLISH TO GITHUB ─────────────────────────────────────────────────────────
