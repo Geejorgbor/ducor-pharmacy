@@ -5,4 +5,4 @@ Disallow: /admin.html
 Disallow: /admin.js
 Disallow: /api/
 
-Sitemap: https://ducor-pharmacy.vercel.app/sitemap.xml
+Sitemap: https://www.ducor-international-pharmacy.com/sitemap.xml

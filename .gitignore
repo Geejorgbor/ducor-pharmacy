@@ -1,0 +1,15 @@
+node_modules/
+*.local.json
+.env
+.env.*
+*.backup
+dev-scripts/
+pharmacy-photos/
+assets/brochure-photos/
+assets/hero-pharmacy.jpg
+crop-person.py
+extract-photos.js
+copy-photos.js
+set-admin-only.js
+package.json
+package-lock.json
