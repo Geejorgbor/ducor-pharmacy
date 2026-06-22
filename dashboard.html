@@ -2929,6 +2929,7 @@ window.saveTeam = function() {
       <p>Pharmacy Owner · Always here for you</p>
     </div>
     <div class="ai-status"><div class="ai-status-dot"></div>Online</div>
+    <button onclick="clearAIHistory()" title="Clear conversation history" style="background:none;border:none;color:rgba(255,255,255,.45);cursor:pointer;font-size:11px;padding:4px 8px;border-radius:6px;margin-right:2px;transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.45)'">Clear</button>
     <button class="ai-close" onclick="toggleAdminAI()">×</button>
   </div>
   <div class="ai-suggestions" id="ai-suggestions">
@@ -3564,8 +3565,71 @@ function _aiEventAlert(eventType, order, docId, extra = {}) {
 }
 
 // ── AI STATE ──────────────────────────────────────────────────────────────────
-let aiMessages = [];
+const _AI_HIST_KEY = 'ducor-ai-history';
+const _AI_MAX      = 60; // keep last 60 messages (30 exchanges)
+
+function _aiHistSave() {
+  try {
+    localStorage.setItem(_AI_HIST_KEY, JSON.stringify({
+      messages: aiMessages.slice(-_AI_MAX),
+      display:  aiDisplayHistory.slice(-_AI_MAX)
+    }));
+  } catch(e) {}
+}
+
+function _aiHistLoad() {
+  try { return JSON.parse(localStorage.getItem(_AI_HIST_KEY) || 'null'); } catch(e) { return null; }
+}
+
+const _savedHist = _aiHistLoad();
+let aiMessages       = (_savedHist?.messages) || [];
+let aiDisplayHistory = (_savedHist?.display)  || []; // [{role, html, ts}]
 let aiOpen = false;
+
+window.clearAIHistory = function() {
+  if (!confirm('Clear all conversation history? This cannot be undone.')) return;
+  aiMessages = [];
+  aiDisplayHistory = [];
+  localStorage.removeItem(_AI_HIST_KEY);
+  const msgs = document.getElementById('ai-messages');
+  if (msgs) msgs.innerHTML = `<div class="ai-msg bot">
+    <div class="ai-msg-avatar">LP</div>
+    <div class="ai-msg-bubble">
+      Good day and welcome to the Ducor International Pharmacy admin panel.<br><br>
+      My name is Lucas — I'm the website developer always present here to assist with running the pharmacy smoothly. Before we get started, I'd like to make sure I know who I'm speaking with today.<br><br>
+      <strong>Could you please tell me your name?</strong>
+    </div>
+  </div>`;
+  if (typeof addNotif === 'function') addNotif('info', 'History Cleared', 'Conversation history has been wiped.');
+};
+
+// Restore previous conversation into the chat panel
+document.addEventListener('DOMContentLoaded', function() {
+  if (!aiDisplayHistory.length) return;
+  const msgs = document.getElementById('ai-messages');
+  if (!msgs) return;
+  // Replace welcome bubble with history
+  msgs.innerHTML = '';
+  // Session divider
+  const sep = document.createElement('div');
+  sep.style.cssText = 'text-align:center;font-size:11px;color:#94a3b8;padding:6px 0 10px;';
+  const oldest = aiDisplayHistory[0]?.ts ? new Date(aiDisplayHistory[0].ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  sep.textContent = oldest ? `— History from ${oldest} —` : '— Previous conversation —';
+  msgs.appendChild(sep);
+  // Render each saved bubble
+  aiDisplayHistory.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'ai-msg ' + h.role;
+    div.innerHTML = `<div class="ai-msg-avatar">${h.role === 'bot' ? 'LP' : 'You'}</div><div class="ai-msg-bubble">${h.html}</div>`;
+    msgs.appendChild(div);
+  });
+  // New session marker
+  const nowSep = document.createElement('div');
+  nowSep.style.cssText = 'text-align:center;font-size:11px;color:#c9a055;font-weight:700;padding:8px 0;border-top:1px dashed #e8c97a;margin-top:4px;';
+  nowSep.textContent = '— New session started —';
+  msgs.appendChild(nowSep);
+  msgs.scrollTop = msgs.scrollHeight;
+});
 
 // ── PANEL TOGGLE ──────────────────────────────────────────────────────────────
 window.toggleAdminAI = function() {
@@ -3590,6 +3654,7 @@ window.sendAdminAI = async function() {
 
   addAIMessage('user', text);
   aiMessages.push({ role: 'user', content: text });
+  _aiHistSave();
 
   const sendBtn = document.getElementById('ai-send-btn');
   sendBtn.disabled = true;
@@ -3614,7 +3679,8 @@ window.sendAdminAI = async function() {
     const { display, hasAsync } = processAIActions(raw);
     addAIMessage('bot', display);
     aiMessages.push({ role: 'assistant', content: raw });
-    if (aiMessages.length > 24) aiMessages = aiMessages.slice(-24);
+    if (aiMessages.length > _AI_MAX) aiMessages = aiMessages.slice(-_AI_MAX);
+    _aiHistSave();
   } catch(e) {
     removeAITyping();
     addAIMessage('bot', 'Connection issue. Check your internet and try again.');
@@ -4021,16 +4087,22 @@ function addAIMessage(role, text) {
     [content, card] = content.split('__CARD__');
   }
 
-  content = content
+  const rendered = content
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/^- (.+)/gm, '• $1')
     .replace(/\n/g, '<br>');
 
+  const bubbleHtml = rendered + (card || '');
   div.innerHTML = `
-    <div class="ai-msg-avatar">${role === 'bot' ? 'AI' : 'You'}</div>
-    <div class="ai-msg-bubble">${content}${card ? card : ''}</div>`;
+    <div class="ai-msg-avatar">${role === 'bot' ? 'LP' : 'You'}</div>
+    <div class="ai-msg-bubble">${bubbleHtml}</div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+
+  // Save to display history (skip auto-alert injections that are just system events)
+  aiDisplayHistory.push({ role, html: bubbleHtml, ts: Date.now() });
+  if (aiDisplayHistory.length > _AI_MAX) aiDisplayHistory = aiDisplayHistory.slice(-_AI_MAX);
+  _aiHistSave();
 }
 
 function showAITyping() {
