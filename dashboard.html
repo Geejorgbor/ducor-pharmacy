@@ -1474,9 +1474,9 @@ function renderTable(tbodyId, category) {
   const tagColors = {prescription:'tag-rx',otc:'tag-otc',vitamins:'tag-vit'};
   const tagLabels = {prescription:'RX',otc:'OTC',vitamins:'VIT'};
   tbody.innerHTML = list.map((p,i) => `
-    <tr id="row-${p.id}">
+    <tr id="row-${p.id}" ${p.adminOnly ? 'style="background:#fafafa"' : ''}>
       <td style="color:var(--muted);font-size:12px">${i+1}</td>
-      <td><span class="tag ${tagColors[category]}">${tagLabels[category]}</span> <span id="name-${p.id}">${p.name}</span></td>
+      <td><span class="tag ${tagColors[category]}">${tagLabels[category]}</span> <span id="name-${p.id}">${p.name}</span>${p.adminOnly ? ' <span style="display:inline-block;background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.4px">NO PHOTO — HIDDEN</span>' : ''}</td>
       <td><strong>$<span id="price-${p.id}">${p.price.toFixed(2)}</span></strong></td>
       <td style="white-space:nowrap">
         <button class="btn btn-outline btn-sm" onclick="openEditModal('${p.id}','${category}')">Edit</button>
