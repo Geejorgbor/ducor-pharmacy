@@ -1394,13 +1394,14 @@ function init() {
 function startClock() {
   function tick() {
     const now = new Date();
-    const h = now.getHours().toString().padStart(2,'0');
-    const m = now.getMinutes().toString().padStart(2,'0');
-    const s = now.getSeconds().toString().padStart(2,'0');
+    const lib = new Date(now.toLocaleString('en-US', {timeZone: 'Africa/Monrovia'}));
+    const h = lib.getHours().toString().padStart(2,'0');
+    const m = lib.getMinutes().toString().padStart(2,'0');
+    const s = lib.getSeconds().toString().padStart(2,'0');
     const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     document.getElementById('clock-time').textContent = `${h}:${m}:${s}`;
-    document.getElementById('clock-date').textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+    document.getElementById('clock-date').textContent = `${days[lib.getDay()]}, ${months[lib.getMonth()]} ${lib.getDate()}`;
   }
   tick(); setInterval(tick, 1000);
 }
