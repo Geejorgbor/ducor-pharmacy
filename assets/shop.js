@@ -953,8 +953,8 @@ function _applyImage(productId, imageUrl, svgFallback) {
   const img = new Image();
   img.onload = () => {
     el.innerHTML = '';
-    el.style.cssText = 'background:#f8fafc;padding:12px;';
-    img.style.cssText = 'max-width:100%;max-height:258px;object-fit:contain;border-radius:8px;display:block;margin:auto;';
+    el.style.cssText = 'background:#ffffff;padding:12px;';
+    img.style.cssText = 'max-width:100%;max-height:258px;object-fit:contain;display:block;margin:auto;';
     el.appendChild(img);
   };
   img.onerror = () => { el.innerHTML = svgFallback; };
@@ -1126,15 +1126,23 @@ const ProductModal = {
     const icons = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
     frame.innerHTML = icons[dispCat] || ICONS.rx;
 
-    const t = new Image();
-    t.onload = () => {
-      const img = document.createElement('img');
-      img.src = '/assets/products/' + productId + '.jpg';
-      img.alt = product.name;
-      frame.innerHTML = '';
-      frame.appendChild(img);
-    };
-    t.src = '/assets/products/' + productId + '.jpg';
+    const tryLoad = (src) => new Promise(res => {
+      const i = new Image(); i.onload = () => res(src); i.onerror = () => res(null); i.src = src;
+    });
+    (async () => {
+      const src = await tryLoad('/assets/products/' + productId + '.png')
+               || await tryLoad('/assets/products/' + productId + '.jpg');
+      if (src) {
+        const img = document.createElement('img');
+        img.src = src; img.alt = product.name;
+        if (dispCat === 'vitamins') {
+          imgSide.style.background = '#ffffff';
+          img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;';
+        }
+        frame.innerHTML = '';
+        frame.appendChild(img);
+      }
+    })();
 
     if (dispCat === 'rx') {
       document.getElementById('pm-btn-cart').onclick = () => {
