@@ -1168,7 +1168,7 @@ function showRxPricingNotice(productId, category, productName) {
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
     overlay.innerHTML = `
       <div style="background:#fff;border-radius:20px;max-width:430px;width:100%;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.4)">
-        <div style="background:linear-gradient(135deg,#0d1b2a,#162540);padding:26px 28px;text-align:center">
+        <div style="background:linear-gradient(135deg,#1e4a1a,#2d6b26);padding:26px 28px;text-align:center;border-bottom:3px solid #c9a055">
           <div style="width:60px;height:60px;background:rgba(201,160,85,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
           </div>
@@ -1178,7 +1178,7 @@ function showRxPricingNotice(productId, category, productName) {
         <div style="padding:24px 28px">
           <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#78350f;line-height:1.7">
             <strong>⚠️ Prescription Pricing Notice</strong><br>
-            The price for <strong id="rx-notice-name" style="color:#0d1b2a"></strong> is <strong>not fixed</strong>. Prescription medication prices change regularly based on current stock levels, dosage availability, and international supply costs.<br><br>
+            The price for <strong id="rx-notice-name" style="color:#1e4a1a"></strong> is <strong>not fixed</strong>. Prescription medication prices change regularly based on current stock levels, dosage availability, and international supply costs.<br><br>
             <strong>Please contact us first</strong> to get the exact current price before placing your order.
           </div>
           <p style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:.5px;text-transform:uppercase;margin:0 0 10px">Contact us now</p>
@@ -1198,7 +1198,7 @@ function showRxPricingNotice(productId, category, productName) {
           </div>
           <div style="display:flex;gap:10px">
             <button onclick="document.getElementById('rx-price-notice').style.display='none'" style="flex:1;padding:13px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#64748b">Cancel</button>
-            <button id="rx-notice-add-btn" style="flex:2;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,#0d1b2a,#162540);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Add to Cart & Order</button>
+            <button id="rx-notice-add-btn" style="flex:2;padding:13px;border:none;border-radius:10px;background:#c9a055;color:#1a3a16;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Add to Cart & Order</button>
           </div>
           <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:10px;line-height:1.6">Adding to cart lets us know you are interested. Our pharmacist will confirm the price with you before your order is dispatched.</p>
         </div>
@@ -1253,9 +1253,9 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
-        ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#0891b2;font-size:12px;font-weight:600">📞 Call for pricing</p>` : `<p class="product-price">$${p.price.toFixed(2)} <span>/ Dose</span></p>`}
+        ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#c9a055;font-size:12px;font-weight:700">📞 Call for pricing</p>` : `<p class="product-price">$${p.price.toFixed(2)} <span>/ Dose</span></p>`}
         ${(category === 'rx' || category === 'prescription')
-          ? `<button class="btn-add" id="btn-${p.id}" onclick="showRxPricingNotice('${p.id}','${category}','${p.name.replace(/'/g, '&apos;').replace(/"/g, '&quot;')}')" style="background:linear-gradient(135deg,#0d1b2a,#162540)">
+          ? `<button class="btn-add" id="btn-${p.id}" onclick="showRxPricingNotice('${p.id}','${category}','${p.name.replace(/'/g, '&apos;').replace(/"/g, '&quot;')}')">`
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
               Inquire &amp; Order
             </button>`

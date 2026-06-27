@@ -29,9 +29,10 @@
       min-height: 440px; padding: 44px;
       position: sticky; top: 88px;
     }
-    .pd-img-wrap.rx-bg  { background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 100%); }
-    .pd-img-wrap.otc-bg { background: linear-gradient(145deg, #cffafe 0%, #ecfeff 100%); }
-    .pd-img-wrap.vit-bg { background: linear-gradient(145deg, #dcfce7 0%, #f0fdf4 100%); }
+    .pd-img-wrap.rx-bg  { background: #ffffff; border: 1px solid #e2e8f0; }
+    .pd-img-wrap.otc-bg { background: #ffffff; border: 1px solid #e2e8f0; }
+    .pd-img-wrap.vit-bg { background: #ffffff; border: 1px solid #e2e8f0; }
+    .pd-img-wrap { border-top: 4px solid #c9a055; }
 
     #pd-img-frame { width: 100%; display: flex; align-items: center; justify-content: center; }
     #pd-img-frame img {
@@ -93,14 +94,14 @@
     /* ── Action buttons ── */
     .pd-actions { display: flex; flex-direction: column; gap: 12px; }
     .pd-btn-cart {
-      width: 100%; padding: 16px; background: var(--navy); color: var(--white);
-      border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+      width: 100%; padding: 16px; background: #c9a055; color: #1a3a16;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
       font-family: inherit; cursor: pointer; transition: background 0.2s, transform 0.1s;
       display: flex; align-items: center; justify-content: center; gap: 10px;
     }
-    .pd-btn-cart:hover { background: var(--navy-light); }
+    .pd-btn-cart:hover { background: #e8c97a; color: #1a3a16; }
     .pd-btn-cart:active { transform: scale(0.98); }
-    .pd-btn-cart.added { background: var(--success); }
+    .pd-btn-cart.added { background: #16a34a; color: #ffffff; }
 
     .pd-btn-buy {
       width: 100%; padding: 16px; background: #f59e0b; color: #1a1a2e;
