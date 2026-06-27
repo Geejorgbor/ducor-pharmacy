@@ -962,7 +962,16 @@ function _applyImage(productId, imageUrl, svgFallback) {
 }
 
 async function _loadProductImage(productId, productName, category, svgFallback) {
-  // 1. Local photo — /assets/products/{id}.jpg
+  // 1a. PNG with transparent background (preferred — no white box)
+  const pngOk = await new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(true);
+    img.onerror = () => res(false);
+    img.src = '/assets/products/' + productId + '.png';
+  });
+  if (pngOk) { _applyImage(productId, '/assets/products/' + productId + '.png', svgFallback); return; }
+
+  // 1b. Local photo — /assets/products/{id}.jpg
   const localOk = await new Promise(res => {
     const img = new Image();
     img.onload = () => res(true);
