@@ -231,7 +231,7 @@ const PRODUCTS = {
     {id:'vit011',name:'Cranberry Tablets',price:8.00,adminOnly:true},
     {id:'vit012',name:'Cyproheptadine 4mg',price:14.00},
     {id:'vit013',name:'Daily-Vite Multivitamin',price:8.00},
-    {id:'vit014',name:"Children's Multivitamins Chewable",price:8.00},
+    {id:'vit014',name:"Children's Multivitamins Chewable",price:8.00,adminOnly:true},
     {id:'vit015',name:'Fish Oil 1000mg',price:8.00},
     {id:'vit016',name:'Flaxseed Oil 1000mg (Omega 3, 6, 9)',price:18.00},
     {id:'vit017',name:'Glucosamine/Chondroitin',price:18.00},
