@@ -238,7 +238,7 @@ const PRODUCTS = {
     {id:'vit018',name:'Hair, Skin & Nails Formula',price:10.00},
     {id:'vit019',name:'Magnesium Glycinate',price:16.00},
     {id:'vit020',name:'Magnesium Oxide 400mg',price:20.00},
-    {id:'vit021',name:"Men's Multivitamin Gummy",price:18.00},
+    {id:'vit021',name:"Men's Multivitamin Gummy",price:18.00,adminOnly:true},
     {id:'vit022',name:"Men's One A Day Multivitamin",price:18.00},
     {id:'vit023',name:"Poly-Vi-Sol Children's Vitamins",price:7.00,adminOnly:true},
     {id:'vit024',name:'Poly-Vi-Sol with Iron',price:7.00},
