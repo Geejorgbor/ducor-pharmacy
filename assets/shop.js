@@ -153,7 +153,7 @@ const PRODUCTS = {
     {id:'rx148',name:'Valproic Acid 250mg',price:26.00},
     {id:'rx149',name:'Vancomycin 250mg',price:35.00},
     {id:'rx150',name:'Venlafaxine IR 75mg',price:10.00},
-    {id:'rx151',name:'Vitamin D3 50,000 IU (Rx)',price:24.00},
+    {id:'rx151',name:'Vitamin D2 50,000 IU (Rx)',price:24.00},
     {id:'rx152',name:'Tranexamic Acid 650mg',price:24.00},
   ],
   otc: [
