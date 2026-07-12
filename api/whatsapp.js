@@ -21,7 +21,14 @@ async function sendWhatsApp(apiUrl, id, token, message, chatId = BOSS_CHAT_ID) {
   return { ok: response.ok && !!data.idMessage, data };
 }
 
+const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
+
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }

@@ -1,8 +1,15 @@
 // Vercel serverless function — sends SMS via Africa's Talking
 // API key stays server-side, never exposed to browser
 
+const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
+const PHONE_RE = /^\+?[\d\s\-\(\)]{7,20}$/;
+
 export default async function handler(req, res) {
-  // Only allow POST
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
@@ -11,6 +18,12 @@ export default async function handler(req, res) {
 
   if (!phone || !code) {
     return res.status(400).json({ ok: false, error: 'Phone and code required' });
+  }
+  if (!PHONE_RE.test(phone)) {
+    return res.status(400).json({ ok: false, error: 'Invalid phone number' });
+  }
+  if (typeof code !== 'string' || !/^\d{4,8}$/.test(code)) {
+    return res.status(400).json({ ok: false, error: 'Invalid code format' });
   }
 
   const AT_USER   = process.env.AT_USERNAME;

@@ -2,10 +2,15 @@
 // SETUP: Add RESEND_API_KEY to Vercel Environment Variables
 // Get your free key at resend.com (free tier = 3,000 emails/month)
 
+const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_TYPES = new Set(['order_ready', 'order_confirmed', 'delivery_confirmed']);
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false });
 
@@ -13,6 +18,11 @@ export default async function handler(req, res) {
   if (!API_KEY) return res.status(200).json({ ok: false, error: 'Email not configured — add RESEND_API_KEY to Vercel' });
 
   const { type, data } = req.body || {};
+
+  if (!type || !ALLOWED_TYPES.has(type)) return res.status(400).json({ ok: false, error: 'Invalid email type' });
+  if (!data || typeof data !== 'object') return res.status(400).json({ ok: false, error: 'Missing data' });
+  if (!data.buyerEmail || !EMAIL_RE.test(data.buyerEmail)) return res.status(400).json({ ok: false, error: 'Invalid email address' });
+  if (!data.ref || typeof data.ref !== 'string' || data.ref.length > 60) return res.status(400).json({ ok: false, error: 'Invalid order ref' });
 
   try {
     let emailPayload = null;
