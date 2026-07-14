@@ -171,7 +171,7 @@ const PRODUCTS = {
     {id:'otc012',name:'Bacitracin Ointment',price:4.00},
     {id:'otc013',name:'Diphenhydramine 25mg (Benadryl)',price:6.00},
     {id:'otc014',name:'Benzoyl Peroxide 5% Gel',price:14.00},
-    {id:'otc015',name:'Blood Glucose Meter',price:15.00},
+    {id:'otc015',name:'Blood Glucose Monitoring System',price:15.00},
     {id:'otc016',name:'Blood Pressure Monitor',price:24.00},
     {id:'otc017',name:'Calamine Lotion',price:6.00},
     {id:'otc018',name:'Cetirizine 10mg',price:8.00},
@@ -222,12 +222,12 @@ const PRODUCTS = {
     {id:'vit002',name:'B-Complex with B-12',price:12.00},
     {id:'vit003',name:'B-Complex with Vitamin C',price:12.00},
     {id:'vit004',name:'Calcium with Vitamin D',price:14.00},
-    {id:'vit005',name:'Certa-Vite Senior with Lutein',price:8.00},
+    {id:'vit005',name:'CertaVite Senior Multivitamin',price:8.00},
     {id:'vit006',name:'CoQ10 30mg',price:10.00},
     {id:'vit007',name:'CoQ10 50mg',price:14.00},
     {id:'vit008',name:'CoQ10 100mg',price:16.00},
     {id:'vit009',name:'Cod Liver Oil',price:10.00},
-    {id:'vit010',name:'Collagen Tablets',price:16.00},
+    {id:'vit010',name:'Collagen Formula Capsules',price:16.00},
     {id:'vit011',name:'Cranberry Tablets',price:8.00},
     {id:'vit012',name:'Cyproheptadine 4mg',price:14.00},
     {id:'vit013',name:'Daily-Vite Multivitamin',price:8.00},
@@ -238,7 +238,7 @@ const PRODUCTS = {
     {id:'vit018',name:'Hair, Skin & Nails Formula',price:10.00},
     {id:'vit019',name:'Magnesium Glycinate',price:16.00},
     {id:'vit020',name:'Magnesium Oxide 400mg',price:20.00},
-    {id:'vit021',name:"Men's Multivitamin Gummy",price:18.00},
+    {id:'vit021',name:"Men's Multi Gummies",price:18.00},
     {id:'vit022',name:"Men's One A Day Multivitamin",price:18.00},
     {id:'vit023',name:"Poly-Vi-Sol Children's Vitamins",price:7.00,adminOnly:true},
     {id:'vit024',name:'Poly-Vi-Sol with Iron',price:7.00},
@@ -953,8 +953,8 @@ function _applyImage(productId, imageUrl, svgFallback) {
   const img = new Image();
   img.onload = () => {
     el.innerHTML = '';
-    el.style.cssText = 'background:#ffffff;padding:12px;';
-    img.style.cssText = 'max-width:100%;max-height:258px;object-fit:contain;display:block;margin:auto;';
+    el.style.cssText = 'padding:0;overflow:hidden;background:#f8fafc;';
+    img.style.cssText = 'width:110%;height:110%;margin:-5%;object-fit:cover;object-position:center center;display:block;';
     el.appendChild(img);
   };
   img.onerror = () => { el.innerHTML = svgFallback; };
@@ -1135,11 +1135,10 @@ const ProductModal = {
       if (src) {
         const img = document.createElement('img');
         img.src = src; img.alt = product.name;
-        if (dispCat === 'vitamins') {
-          imgSide.style.background = '#ffffff';
-          img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;';
-        }
+        imgSide.style.background = '#f8fafc';
+        img.style.cssText = 'width:110%;height:110%;margin:-5%;object-fit:cover;object-position:center center;display:block;';
         frame.innerHTML = '';
+        frame.style.cssText = 'width:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;';
         frame.appendChild(img);
       }
     })();
