@@ -953,8 +953,11 @@ function _applyImage(productId, imageUrl, svgFallback) {
   const img = new Image();
   img.onload = () => {
     el.innerHTML = '';
-    el.style.cssText = 'padding:0;overflow:hidden;background:#f8fafc;';
-    img.style.cssText = 'width:110%;height:110%;margin:-5%;object-fit:cover;object-position:center center;display:block;';
+    el.style.cssText = 'padding:0;background:#fff;';
+    const _m = 'linear-gradient(to right,transparent 0%,black 8%,black 92%,transparent 100%),linear-gradient(to bottom,transparent 0%,black 8%,black 92%,transparent 100%)';
+    img.style.cssText = 'max-width:100%;max-height:258px;object-fit:contain;display:block;margin:auto;'
+      + '-webkit-mask-image:' + _m + ';-webkit-mask-composite:destination-in;'
+      + 'mask-image:' + _m + ';mask-composite:intersect;';
     el.appendChild(img);
   };
   img.onerror = () => { el.innerHTML = svgFallback; };
@@ -1135,10 +1138,13 @@ const ProductModal = {
       if (src) {
         const img = document.createElement('img');
         img.src = src; img.alt = product.name;
-        imgSide.style.background = '#f8fafc';
-        img.style.cssText = 'width:110%;height:110%;margin:-5%;object-fit:cover;object-position:center center;display:block;';
+        imgSide.style.background = '#fff';
+        const _m = 'linear-gradient(to right,transparent 0%,black 5%,black 95%,transparent 100%),linear-gradient(to bottom,transparent 0%,black 5%,black 95%,transparent 100%)';
+        img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;'
+          + '-webkit-mask-image:' + _m + ';-webkit-mask-composite:destination-in;'
+          + 'mask-image:' + _m + ';mask-composite:intersect;';
         frame.innerHTML = '';
-        frame.style.cssText = 'width:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+        frame.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px;box-sizing:border-box;';
         frame.appendChild(img);
       }
     })();
