@@ -273,17 +273,17 @@ function initChat() {
       const data = await resp.json();
       hideTyping();
       if (data.creditError) {
-        appendMsg('We are not available at this moment. Please <a href="https://wa.me/231880187490" target="_blank">contact us on WhatsApp</a> (+231 880 187 490) or call us at +1 (630) 936-6050 and we will be happy to assist you.', 'bot');
+        appendMsg('We are not available at this moment. Please contact us directly — <a href="https://wa.me/16309366050" target="_blank">WhatsApp +1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank">+231 760 801 914</a>. We will be happy to assist you.', 'bot');
       } else if (data.reply) {
         appendMsg(data.reply, 'bot');
         chatHistory.push({ role: 'assistant', content: data.reply });
         if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
       } else {
-        appendMsg('Sorry, I\'m having trouble connecting right now. Please <a href="https://wa.me/231880187490" target="_blank">contact us on WhatsApp</a> for immediate help.', 'bot');
+        appendMsg('Sorry, I\'m having trouble connecting right now. For immediate help please WhatsApp us: <a href="https://wa.me/16309366050" target="_blank">+1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank">+231 760 801 914</a>.', 'bot');
       }
     } catch(e) {
       hideTyping();
-      appendMsg('I\'m temporarily offline. For urgent help, please <a href="https://wa.me/231880187490" target="_blank">contact us on WhatsApp</a> or call us directly.', 'bot');
+      appendMsg('I\'m temporarily offline. For urgent help, please WhatsApp or call us directly: <a href="https://wa.me/16309366050" target="_blank">+1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank">+231 760 801 914</a>.', 'bot');
     }
   }
 }
