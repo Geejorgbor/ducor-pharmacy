@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Orders — checkout creates orders without requiring an account.
+    // Tracking (by ref), delivery confirmation, and payment confirmation
+    // are all public "secret link" flows for guest checkout, so reads
+    // stay open. Updates are restricted to only the status/confirmation
+    // fields the site's own code ever writes — price, items, and buyer
+    // info are locked after creation so a guessed/leaked link can't be
+    // used to tamper with an order's contents.
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly([
+                        'status', 'statusUpdatedAt', 'confirmToken',
+                        'deliveredAt', 'confirmedByCustomer',
+                        'paymentConfirmed', 'paymentConfirmedAt', 'adminNote'
+                      ]);
+      allow delete: if false;
+    }
+
+    // Customers — signup can create a record for the account just
+    // created; after that, only that same authenticated person can
+    // read or update their own record.
+    match /customers/{docId} {
+      allow create: if request.auth != null
+                      && request.resource.data.email == request.auth.token.email;
+      allow read, update: if request.auth != null
+                      && resource.data.email == request.auth.token.email;
+      allow delete: if false;
+    }
+
+    // Analytics counters — write-only, never readable by clients.
+    match /analytics_visits/{id} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+    match /analytics_days/{id} {
+      allow write: if true;
+      allow read: if false;
+    }
+
+    // Simple connectivity check used by the site itself.
+    match /_health_/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

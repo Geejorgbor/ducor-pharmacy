@@ -688,7 +688,13 @@ window._db = _db;
   }
 
   function generateRef() {
-    return 'DUCOR-' + Date.now().toString().slice(-8);
+    // Timestamp suffix keeps refs roughly chronological; the random suffix
+    // (32 bits) is what actually makes a ref hard to guess — order tracking,
+    // delivery confirmation, and payment confirmation are all public "secret
+    // link" pages that trust an unguessable ref, so this matters for real.
+    const rand = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+      .map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    return 'DUCOR-' + Date.now().toString().slice(-6) + rand;
   }
 
   function getTotal() {
