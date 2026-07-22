@@ -125,14 +125,24 @@ function show(id) {
     .forEach(s => document.getElementById(s).style.display = s === id ? '' : 'none');
 }
 
+// SECURITY: order fields are customer-controlled at checkout with no
+// server-side content validation; this page is a public "secret link" (sent
+// to the boss via WhatsApp) rendered via innerHTML, so anything
+// customer-controlled must be escaped before insertion.
+function _escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
 function orderRows(data, docId) {
-  const name = data.buyerName || `${data.firstName||''} ${data.lastName||''}`.trim() || '—';
+  const name = _escHtml(data.buyerName || `${data.firstName||''} ${data.lastName||''}`.trim()) || '—';
   return `
-    <div class="row"><span>Order Ref</span><strong>${data.ref || docId.slice(-8).toUpperCase()}</strong></div>
+    <div class="row"><span>Order Ref</span><strong>${_escHtml(data.ref) || docId.slice(-8).toUpperCase()}</strong></div>
     <div class="row"><span>Customer</span><strong>${name}</strong></div>
-    <div class="row"><span>Phone</span><strong>${data.buyerPhone||data.phone||'—'}</strong></div>
+    <div class="row"><span>Phone</span><strong>${_escHtml(data.buyerPhone||data.phone)||'—'}</strong></div>
     <div class="row"><span>Total</span><strong>$${(data.total||0).toFixed(2)}${data.rxPricesPending?' + RX':''}</strong></div>
-    <div class="row"><span>Payment</span><strong>${data.paymentMethod||'—'}</strong></div>`;
+    <div class="row"><span>Payment</span><strong>${_escHtml(data.paymentMethod)||'—'}</strong></div>`;
 }
 
 const params = new URLSearchParams(window.location.search);

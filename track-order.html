@@ -192,10 +192,21 @@ async function loadOrder(ref) {
   }
 }
 
+// SECURITY: order data is customer-controlled at checkout with no server-side
+// content validation. This is a public page (order tracking by ref, no login)
+// rendered via innerHTML, so any customer-controlled field must be escaped
+// before being inserted — otherwise a malicious name/note could run script in
+// the browser of anyone who opens a tracking link.
+function _escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
 function renderOrder(data, docId) {
   const firstName = data.firstName || (data.buyerName || '').split(' ')[0] || '';
   const lastName  = data.lastName  || (data.buyerName || '').split(' ').slice(1).join(' ') || '';
-  const name = `${firstName} ${lastName}`.trim() || 'Customer';
+  const name = _escHtml(`${firstName} ${lastName}`.trim()) || 'Customer';
   const status = (data.status || 'new').toLowerCase();
   const currentStep = STATUS_ORDER[status] ?? 0;
   const date = data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) : '';
@@ -232,7 +243,7 @@ function renderOrder(data, docId) {
       <h4>Items Ordered</h4>
       ${items.map(i => `
         <div class="item-row">
-          <span class="item-name">${i.name} ×${i.qty}${i.category==='rx' ? ' <span style="font-size:10px;background:#eff6ff;color:#3b82f6;border-radius:4px;padding:1px 5px;font-weight:600">RX</span>' : ''}</span>
+          <span class="item-name">${_escHtml(i.name)} ×${i.qty}${i.category==='rx' ? ' <span style="font-size:10px;background:#eff6ff;color:#3b82f6;border-radius:4px;padding:1px 5px;font-weight:600">RX</span>' : ''}</span>
           <span class="item-price">${i.category==='rx' ? '<span style="color:#0891b2;font-size:12px">Pricing confirmed by team</span>' : '$'+((i.price||0)*i.qty).toFixed(2)}</span>
         </div>`).join('')}
       <div class="total-row"><span>Total</span><span>$${(data.total||0).toFixed(2)}${data.rxPricesPending ? ' <span style="font-size:11px;color:#0891b2">+ RX</span>' : ''}</span></div>
@@ -247,7 +258,7 @@ function renderOrder(data, docId) {
       <div class="ref">${data.ref || docId.slice(-8).toUpperCase()}</div>
       <div class="name">${name}</div>
       <div class="meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-        <span>${data.paymentMethod || '—'}</span>
+        <span>${_escHtml(data.paymentMethod) || '—'}</span>
         ${paymentBadge}
       </div>
     </div>
