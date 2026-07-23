@@ -397,11 +397,11 @@
   <div class="hero-slides" id="hero-slides">
     <!-- ═══ SLIDE 0 — ULTRA PREMIUM HERO ═══ -->
     <div class="hero-slide active" id="hs-0">
-      <!-- Vivid background image — deep color-enhanced pharmacy product photo -->
-      <img src="/assets/product-prescription.jpg"
-           alt="Ducor International Pharmacy — Premium Healthcare Liberia"
-           style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.5) contrast(1.12) brightness(0.75)"
-           onerror="this.onerror=null;this.src='/assets/product-vitamins.jpg'">
+      <!-- Brand gradient background — no stock imagery, pure Ducor identity -->
+      <div style="width:100%;height:100%;background:
+           radial-gradient(circle at 78% 35%, rgba(201,160,85,0.20) 0%, transparent 42%),
+           radial-gradient(circle at 15% 78%, rgba(13,148,136,0.16) 0%, transparent 48%),
+           linear-gradient(135deg, #050e24 0%, #0a2558 40%, #0d2f5c 70%, #081a40 100%);"></div>
 
       <!-- === FULL ANIMATED OVERLAY === -->
       <div style="position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden">
@@ -411,15 +411,14 @@
         <!-- Glow orb 2 — gold -->
         <div class="hs0-glows" style="position:absolute;right:10%;top:38%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,160,85,0.22) 0%,transparent 70%);animation:hs0-pulse2 6s ease-in-out infinite 1.5s"></div>
 
-        <!-- Pharmacy Cross — glowing gold, centered on right panel -->
-        <div class="hs0-cross" style="position:absolute;right:27%;top:50%;transform:translate(50%,-50%);animation:hs0-crossglow 3.5s ease-in-out infinite">
-          <!-- Outer ring -->
-          <div style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;border:1px solid rgba(201,160,85,0.4);transform:translate(-50%,-50%);animation:hs0-ring 4s ease-in-out infinite"></div>
-          <div style="position:absolute;left:50%;top:50%;width:80px;height:80px;border-radius:50%;border:1px solid rgba(201,160,85,0.25);transform:translate(-50%,-50%);animation:hs0-ring 4s ease-in-out infinite 0.5s"></div>
-          <!-- Cross -->
-          <div style="position:relative;width:70px;height:70px">
-            <div style="position:absolute;left:50%;top:0;width:20px;height:70px;background:linear-gradient(180deg,rgba(201,160,85,0.95),rgba(201,160,85,0.5));transform:translateX(-50%);border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.6)"></div>
-            <div style="position:absolute;top:50%;left:0;height:20px;width:70px;background:linear-gradient(90deg,rgba(201,160,85,0.5),rgba(201,160,85,0.95),rgba(201,160,85,0.5));transform:translateY(-50%);border-radius:5px;box-shadow:0 0 24px rgba(201,160,85,0.6)"></div>
+        <!-- Ducor Logo — featured brand mark, glowing, centered on right panel -->
+        <div class="hs0-cross" style="position:absolute;right:36%;top:47%;transform:translate(50%,-50%);animation:hs0-crossglow 3.5s ease-in-out infinite">
+          <!-- Outer rings -->
+          <div style="position:absolute;left:50%;top:50%;width:210px;height:210px;border-radius:50%;border:1px solid rgba(201,160,85,0.4);transform:translate(-50%,-50%);animation:hs0-ring 4s ease-in-out infinite"></div>
+          <div style="position:absolute;left:50%;top:50%;width:176px;height:176px;border-radius:50%;border:1px solid rgba(201,160,85,0.25);transform:translate(-50%,-50%);animation:hs0-ring 4s ease-in-out infinite 0.5s"></div>
+          <!-- Logo -->
+          <div style="position:relative;width:158px;height:158px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.05) 0%,transparent 72%);display:flex;align-items:center;justify-content:center">
+            <img src="/assets/company-logo-transparent.png" alt="Ducor International Pharmacy" style="width:138px;height:138px;object-fit:contain;filter:drop-shadow(0 0 22px rgba(201,160,85,0.55)) drop-shadow(0 0 46px rgba(13,148,136,0.35))">
           </div>
         </div>
 
@@ -475,9 +474,10 @@
     </div>
     <!-- ═══ REAL PHOTO SLIDE 1 — Medicines / Pharmacy ═══ -->
     <div class="hero-slide" id="hs-pro-1">
-      <img src="/assets/product-vitamins.jpg"
-           alt="Professional Pharmacy — Ducor International"
-           style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.8) saturate(1.2)">
+      <div style="width:100%;height:100%;background:
+           radial-gradient(circle at 72% 42%, rgba(13,148,136,0.20) 0%, transparent 46%),
+           radial-gradient(circle at 22% 25%, rgba(201,160,85,0.14) 0%, transparent 50%),
+           linear-gradient(150deg, #061027 0%, #0a2558 45%, #0a3254 100%);"></div>
       <!-- Stats panel bottom-right -->
       <div style="position:absolute;bottom:0;right:0;left:46%;padding:30px 44px 38px;background:linear-gradient(to top left,rgba(10,37,88,0.94) 0%,rgba(10,37,88,0.55) 55%,transparent 100%);z-index:3;display:flex;align-items:flex-end;justify-content:flex-end">
         <div style="display:flex;gap:34px">
@@ -495,8 +495,8 @@
           </div>
         </div>
       </div>
-      <div style="display:none">
-        <svg viewBox="0 0 580 580" style="width:min(560px,100%);height:auto;overflow:visible">
+      <div style="position:absolute;right:6%;top:50%;transform:translateY(-50%);z-index:2;pointer-events:none">
+        <svg viewBox="0 0 580 580" style="width:min(440px,38vw);height:auto;overflow:visible">
           <defs>
             <pattern id="hex1" x="0" y="0" width="60" height="52" patternUnits="userSpaceOnUse">
               <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
