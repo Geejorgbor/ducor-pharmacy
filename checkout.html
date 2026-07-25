@@ -296,7 +296,7 @@
           <label>Your Country *</label>
           <select id="buyer-country" style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:0.92rem;color:#1e293b;background:#f8fafc;outline:none;font-family:inherit;cursor:pointer;appearance:none">
             <option value="">— Select your country —</option>
-            <option value="Liberia">🇱🇷 Liberia (I will collect myself)</option>
+            <option value="Liberia">🇱🇷 Liberia</option>
             <optgroup label="── Common Countries ──">
               <option value="United States">🇺🇸 United States</option>
               <option value="United Kingdom">🇬🇧 United Kingdom</option>
@@ -322,8 +322,30 @@
       </div>
 
       <div class="form-spacer"></div>
-      <p class="form-section-title">Pickup Person in Liberia</p>
-      <div class="form-row cols-2">
+      <p class="form-section-title">Who Will Collect the Order?</p>
+      <div class="who-grid">
+        <div class="who-option selected" onclick="selectPickup(this,'self')" id="pickup-self-opt">
+          <div class="who-icon self-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="who-text">
+            <h4>I'll Collect It Myself</h4>
+            <p>You will pick up the order in person</p>
+          </div>
+        </div>
+        <div class="who-option" onclick="selectPickup(this,'other')" id="pickup-other-opt">
+          <div class="who-icon other-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="18" cy="8" r="2.5"/><path d="M15 20c0-2 1.8-3.5 4-3.5"/></svg>
+          </div>
+          <div class="who-text">
+            <h4>Someone Else Will Collect It</h4>
+            <p>A different person will pick it up in Liberia</p>
+          </div>
+        </div>
+      </div>
+      <p id="pickup-country-note" style="display:none;font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin:-8px 0 18px">Since you're ordering from outside Liberia, please provide the details of the person in Liberia who will collect this order on your behalf.</p>
+
+      <div class="form-row cols-2" id="pickup-collector-section" style="display:none">
         <div class="form-group">
           <label>Collector's Full Name *</label>
           <input type="text" id="pickup-name" placeholder="Name of person collecting"/>
@@ -592,13 +614,39 @@ window._db = _db;
 <script>
   let selectedPayment = 'mtn';
   let orderingFor = 'self';
+  let pickupWho = 'self';
 
   function selectWho(el, who) {
-    document.querySelectorAll('.who-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('#who-self, #who-other').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
     orderingFor = who;
     document.getElementById('patient-section').style.display = who === 'other' ? '' : 'none';
   }
+
+  function selectPickup(el, who) {
+    document.querySelectorAll('#pickup-self-opt, #pickup-other-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    pickupWho = who;
+    document.getElementById('pickup-collector-section').style.display = who === 'other' ? '' : 'none';
+  }
+
+  // If ordering from outside Liberia, the buyer physically can't be the
+  // collector — force "someone else" and lock the "myself" option.
+  document.getElementById('buyer-country').addEventListener('change', function() {
+    const isLiberia = this.value === 'Liberia';
+    const selfOpt = document.getElementById('pickup-self-opt');
+    const note = document.getElementById('pickup-country-note');
+    if (this.value && !isLiberia) {
+      selfOpt.style.opacity = '0.45';
+      selfOpt.style.pointerEvents = 'none';
+      note.style.display = '';
+      selectPickup(document.getElementById('pickup-other-opt'), 'other');
+    } else {
+      selfOpt.style.opacity = '';
+      selfOpt.style.pointerEvents = '';
+      note.style.display = 'none';
+    }
+  });
 
   const PAY_CONFIG = {
     mtn: {
@@ -767,15 +815,17 @@ window._db = _db;
       document.getElementById('buyer-country').focus();
       return false;
     }
-    if (!document.getElementById('pickup-name').value.trim()) {
-      showToast('Please enter the name of the person collecting in Liberia');
-      document.getElementById('pickup-name').focus();
-      return false;
-    }
-    if (!document.getElementById('pickup-phone').value.trim()) {
-      showToast('Please enter the collector\'s Liberia phone number');
-      document.getElementById('pickup-phone').focus();
-      return false;
+    if (pickupWho === 'other') {
+      if (!document.getElementById('pickup-name').value.trim()) {
+        showToast('Please enter the name of the person collecting in Liberia');
+        document.getElementById('pickup-name').focus();
+        return false;
+      }
+      if (!document.getElementById('pickup-phone').value.trim()) {
+        showToast('Please enter the collector\'s Liberia phone number');
+        document.getElementById('pickup-phone').focus();
+        return false;
+      }
     }
     if (orderingFor === 'other') {
       if (!document.getElementById('patient-name').value.trim()) {
@@ -826,8 +876,8 @@ window._db = _db;
       buyerEmail: email,
       buyerPhone: phone,
       buyerCountry: document.getElementById('buyer-country').value,
-      pickupName: document.getElementById('pickup-name').value.trim(),
-      pickupPhone: document.getElementById('pickup-phone').value.trim(),
+      pickupName: pickupWho === 'self' ? (first + ' ' + last) : document.getElementById('pickup-name').value.trim(),
+      pickupPhone: pickupWho === 'self' ? phone : document.getElementById('pickup-phone').value.trim(),
       notes: document.getElementById('notes').value.trim(),
       items: Cart.items.map(i => ({ id: i.id, name: i.name, category: i.category, price: i.category === 'rx' ? null : i.price, qty: i.qty })),
       subtotal: otcSub,
