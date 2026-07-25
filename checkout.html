@@ -363,6 +363,29 @@
       </div>
 
       <div class="form-spacer"></div>
+      <p class="form-section-title">How Would You Like to Receive Your Order?</p>
+      <div class="who-grid">
+        <div class="who-option selected" onclick="selectDelivery(this,'pickup')" id="delivery-pickup-opt">
+          <div class="who-icon self-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l9-6 9 6v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 21V12h6v9"/></svg>
+          </div>
+          <div class="who-text">
+            <h4>Pick Up at Pharmacy</h4>
+            <p>No delivery fee</p>
+          </div>
+        </div>
+        <div class="who-option" onclick="selectDelivery(this,'delivery')" id="delivery-deliver-opt">
+          <div class="who-icon other-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div class="who-text">
+            <h4>Deliver to Me</h4>
+            <p>$12.00 delivery fee</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-spacer"></div>
       <p class="form-section-title">Payment Method</p>
 
       <div class="payment-grid">
@@ -630,6 +653,16 @@ window._db = _db;
     document.getElementById('pickup-collector-section').style.display = who === 'other' ? '' : 'none';
   }
 
+  const DELIVERY_FEE = 12;
+  let deliveryMethod = 'pickup';
+
+  function selectDelivery(el, method) {
+    document.querySelectorAll('#delivery-pickup-opt, #delivery-deliver-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    deliveryMethod = method;
+    renderSummary();
+  }
+
   // If ordering from outside Liberia, the buyer physically can't be the
   // collector — force "someone else" and lock the "myself" option.
   document.getElementById('buyer-country').addEventListener('change', function() {
@@ -883,9 +916,10 @@ window._db = _db;
       subtotal: otcSub,
       discount,
       promoCode: activePromo ? activePromo.code : null,
-      shipping: 0,
+      deliveryMethod,
+      shipping: deliveryMethod === 'delivery' ? DELIVERY_FEE : 0,
       rxPricesPending: hasRx,
-      total: parseFloat((otcSub - discount).toFixed(2)),
+      total: parseFloat((otcSub - discount + (deliveryMethod === 'delivery' ? DELIVERY_FEE : 0)).toFixed(2)),
       orderingFor,
       patientName: orderingFor === 'other' ? document.getElementById('patient-name').value.trim() : null,
       patientRelationship: orderingFor === 'other' ? document.getElementById('patient-relationship').value : null,
@@ -966,7 +1000,8 @@ window._db = _db;
     const rxItems  = Cart.items.filter(i => i.category === 'rx');
     const sub = otcItems.reduce((s, i) => s + i.price * i.qty, 0);
     const discount = getDiscount(sub);
-    const total = parseFloat((sub - discount).toFixed(2));
+    const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
+    const total = parseFloat((sub - discount + deliveryFee).toFixed(2));
     const discountRow = discount > 0 ? `<div class="order-line" style="color:#16a34a;font-weight:600"><span>Discount (${activePromo.code})</span><span>-$${discount.toFixed(2)}</span></div>` : '';
     const rxNote = rxItems.length > 0 ? `
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#1d4ed8;line-height:1.6">
@@ -990,9 +1025,8 @@ window._db = _db;
       ${otcItems.length > 0 ? `<div class="order-line"><span>Subtotal (OTC &amp; Vitamins)</span><span>$${sub.toFixed(2)}</span></div>` : ''}
       ${rxItems.length > 0 ? `<div class="order-line"><span>Prescription Items (${rxItems.length})</span><span style="color:#0891b2;font-size:12px;font-weight:600">Price to be confirmed</span></div>` : ''}
       ${discountRow}
-      <div class="order-line"><span>Delivery Fee</span><span style="color:#0891b2;font-weight:600;font-size:12px">Confirmed by team</span></div>
-      <div class="order-line" style="font-size:11px"><span style="color:var(--muted)">Walk-in pickup: no delivery fee. Home delivery fee depends on your location.</span></div>
-      ${otcItems.length > 0 ? `<div class="order-line total"><span>Total (excl. delivery${rxItems.length > 0 ? ' &amp; RX' : ''})</span><span>$${total.toFixed(2)}</span></div>` : `<div class="order-line total" style="font-size:13px"><span>Total</span><span style="color:#0891b2">Confirmed by pharmacist</span></div>`}`;
+      <div class="order-line"><span>Delivery Fee</span><span style="${deliveryFee > 0 ? '' : 'color:#16a34a;font-weight:600'}">${deliveryFee > 0 ? '$' + deliveryFee.toFixed(2) : 'Free (pickup)'}</span></div>
+      ${otcItems.length > 0 ? `<div class="order-line total"><span>Total${rxItems.length > 0 ? ' (excl. RX)' : ''}</span><span>$${total.toFixed(2)}</span></div>` : `<div class="order-line total" style="font-size:13px"><span>Total</span><span style="color:#0891b2">Confirmed by pharmacist</span></div>`}`;
     if (hasRxItems()) document.getElementById('rx-health-section').style.display = 'block';
   }
 
