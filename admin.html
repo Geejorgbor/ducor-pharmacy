@@ -91,6 +91,7 @@
         Sign In to Dashboard
       </button>
       <div class="attempt-bar"><div class="attempt-fill" id="attempt-fill"></div></div>
+      <button type="button" id="forgot-pw-btn" onclick="handleForgotPassword()" style="width:100%;background:none;border:none;color:#64748b;font-size:13px;font-family:inherit;cursor:pointer;margin-top:14px;text-decoration:underline">Forgot password?</button>
     </form>
 
     <div class="security-note">
@@ -102,7 +103,7 @@
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
   const app = initializeApp({
     apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -180,6 +181,26 @@
   window.togglePw = function() {
     var inp = document.getElementById('password');
     inp.type = inp.type === 'password' ? 'text' : 'password';
+  };
+
+  window.handleForgotPassword = async function() {
+    var email = document.getElementById('email').value.trim();
+    if (!email) {
+      _showError('Type your email above first, then tap "Forgot password?"');
+      return;
+    }
+    var btn = document.getElementById('forgot-pw-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      await sendPasswordResetEmail(auth, email);
+      btn.textContent = 'Reset link sent — check your email';
+      _hideError();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Forgot password?';
+      _showError('Could not send reset email. Check the address and try again.');
+    }
   };
 </script>
 </body>
