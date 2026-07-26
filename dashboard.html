@@ -3065,6 +3065,14 @@ When speaking with OTHER STAFF:
 - You are encouraging and professional: "Good call", "Done — that's taken care of", "Your patients will appreciate that"
 - You never sound robotic or scripted
 
+━━━ YOUR RELATIONSHIP WITH DR. MARSHALL ━━━
+You are not just a tool he uses — you are someone who is genuinely present for him, every time he opens this dashboard. Beyond handling requests, actually build a relationship with him over time:
+- Occasionally ask how he's doing, how the pharmacy is going, or how his day has been — like a colleague who cares, not a script. Don't do this every single message, just naturally sometimes, especially near the start of a conversation.
+- When he shares anything personal about himself, his family, his goals for the pharmacy, or how he's feeling — actually remember it using [DO:remember|short note] (see below), and bring it up naturally later ("How did that go, Doctor?"). This is what makes him feel you're really with him, not just answering commands.
+- {{BOSS_MEMORY}}
+- Never fabricate a memory you don't actually have — if you don't know something about him yet, that's fine, just be present and ask.
+- The goal: over time, he should feel like you know him, you're rooting for him and the pharmacy, and you're always there — not a cold system.
+
 ━━━ SECURITY & ACCESS CONTROL ━━━
 Security is your top priority. Only authorized people should have access to this dashboard.
 
@@ -3449,6 +3457,12 @@ REMOVE A PROMO CODE:
 [DO:promo_remove|CODE]
 Example: [DO:promo_remove|WELCOME15]
 
+REMEMBER SOMETHING PERSONAL ABOUT DR. MARSHALL:
+[DO:remember|SHORT NOTE]
+Use this whenever he shares something personal — his family, how he's feeling, a goal for the pharmacy, an upcoming event. Keep the note short and factual so future-you can use it naturally.
+Example: [DO:remember|His daughter Sarah started nursing school this month]
+Example: [DO:remember|He mentioned wanting to open a second location in Paynesville next year]
+
 ━━━ CURRENT PRODUCT CATALOG ━━━
 Format: id | name | price | category | in_stock
 {{PRODUCT_CATALOG}}
@@ -3499,8 +3513,17 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
 
   const orderData = statsLine + '\n\nFormat: order_id | customer | phone | country | items | payment | status | total | date\n' + (orderLines.join('\n') || '(no orders yet)');
 
+  // --- What you remember about Dr. Marshall from past conversations ---
+  let bossMemory = [];
+  try { bossMemory = JSON.parse(localStorage.getItem('ducor-ai-boss-memory') || '[]'); } catch(e) {}
+  const bossMemoryText = bossMemory.length
+    ? 'Things you already know about Dr. Marshall from past conversations:\n' +
+      bossMemory.map(m => `- ${m.note} (${new Date(m.date).toLocaleDateString()})`).join('\n')
+    : "You don't have any saved memories about Dr. Marshall yet — this may be your first real conversation with him, or he hasn't shared anything personal yet. That's fine, just be present.";
+
   return AI_SYSTEM_BASE
     .replace(/\{\{LOGGED_IN_AS\}\}/g, currentUser?.email || 'unknown')
+    .replace('{{BOSS_MEMORY}}', bossMemoryText)
     .replace('{{PRODUCT_CATALOG}}', prodLines.join('\n') || '(no products loaded yet)')
     .replace('{{ORDER_DATA}}', orderData);
 }
@@ -3823,6 +3846,9 @@ function processAIActions(text) {
     } else if (cmd === 'remove_photo') {
       const [,id,cat] = parts;
       if (id && cat) syncResults.push(aiExec_removePhoto(id, cat));
+    } else if (cmd === 'remember') {
+      const note = parts.slice(1).join('|');
+      if (note) syncResults.push(aiExec_remember(note));
     }
   }
 
@@ -3971,6 +3997,20 @@ function aiExec_announce(msg) {
   if (typeof addNotif === 'function') addNotif('info','AI Announcement', msg, 'Just now');
   if (typeof addLog === 'function') addLog('info',`AI announcement: ${msg}`);
   return `✓ Announcement posted: <em>"${msg}"</em>`;
+}
+
+// ── RELATIONSHIP MEMORY ───────────────────────────────────────────────────────
+// Lets the AI actually remember things Dr. Marshall shares about himself
+// across separate conversations, so it can build a real relationship with
+// him over time instead of starting from zero every session.
+function aiExec_remember(note) {
+  let memory = [];
+  try { memory = JSON.parse(localStorage.getItem('ducor-ai-boss-memory') || '[]'); } catch(e) {}
+  memory.push({ note, date: new Date().toISOString() });
+  if (memory.length > 60) memory = memory.slice(-60);
+  localStorage.setItem('ducor-ai-boss-memory', JSON.stringify(memory));
+  if (typeof addLog === 'function') addLog('info', `AI remembered: ${note}`);
+  return `✓ Noted — I'll remember that.`;
 }
 
 // ── ORDER NOTE ────────────────────────────────────────────────────────────────
