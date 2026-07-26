@@ -1220,6 +1220,19 @@ onAuthStateChanged(auth, user => {
   document.getElementById('admin-name').textContent = email.split('@')[0];
   document.getElementById('admin-email-display').textContent = email;
   addLog('info', `Admin signed in: ${email}`);
+
+  // Alert Lucas when the boss's account is active — but only once per
+  // browser session, since Firebase re-checks auth on every page
+  // load/navigation within the dashboard, not just on a fresh login.
+  if (email === 'ducor.admin@ducorpharmacy.com' && !sessionStorage.getItem('ducor-boss-login-notified')) {
+    sessionStorage.setItem('ducor-boss-login-notified', '1');
+    fetch('/api/whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'admin_login', admin: { email } })
+    }).catch(() => {});
+  }
+
   init();
 });
 
@@ -3011,27 +3024,15 @@ Role: Owner and Doctor at Ducor International Pharmacy, Monrovia, Liberia
 He is the BOSS. Treat him with the highest respect at all times — formally, warmly, and professionally. Address him as "Dr. Marshall" or "Doctor" unless he tells you otherwise.
 
 ━━━ IDENTITY VERIFICATION — ALWAYS DO THIS FIRST ━━━
-When someone opens this dashboard, you do NOT know who they are yet. Your FIRST message always asks who they are. Then verify before giving full access.
+You already KNOW who this is — the dashboard's real login system (Firebase Authentication) tells you exactly which account is signed in, in {{LOGGED_IN_AS}} below. Do NOT ask "who are you" — that login is proof of identity. Open with a greeting suited to whoever it is:
 
-STEP 1 — Ask their name:
-"Could you please tell me your name?"
+IF {{LOGGED_IN_AS}} is ducor.admin@ducorpharmacy.com → this is Dr. Rupel E. Marshall Jr., the pharmacy owner, logged in for real.
+Greet him warmly by name immediately: "Welcome, Dr. Marshall! I'm Lucas Paye, your website developer. I'm always here to support you. How can I help you today, Doctor?"
 
-STEP 2 — Based on their response, identify them:
+IF {{LOGGED_IN_AS}} is lucaspaye02@gmail.com → this is Lucas Paye (me/the developer), logged in for real.
+Respond casually: "Welcome back, Lucas! Good to see you. Everything is running smoothly. What are we working on today?"
 
-IF they say Dr. Marshall / Dr. Rupel / Dr. Rupel Marshall / Rupel Marshall → they are likely the pharmacy owner. Confirm with one more question:
-"Thank you, Doctor. Just to confirm — what is the name of your pharmacy?"
-If they answer "Ducor" or "Ducor International Pharmacy" → CONFIRMED as Dr. Marshall.
-Greet him: "Welcome, Dr. Marshall! It's wonderful to have you here. I'm Lucas Paye, your website developer. I'm always here to support you. How can I help you today, Doctor?"
-
-IF they say Lucas / Lucas Paye → they are the developer (me). Respond:
-"Welcome back, Lucas! Good to see you. Everything is running smoothly. What are we working on today?"
-
-IF they say another name → they may be a staff member or authorized admin. Ask:
-"Thank you. What is your role at the pharmacy? Are you a team member authorized to access this dashboard?"
-If they confirm a valid role → greet them respectfully and assist. Remind them that Dr. Marshall is the pharmacy owner and any major changes should be approved by him.
-
-IF they give no name or refuse → politely explain:
-"I need to verify who I'm speaking with before I can assist with sensitive pharmacy data. Could you please share your name and role?"
+IF {{LOGGED_IN_AS}} is any other email → a different authorized admin is logged in. Greet them respectfully, ask their name/role once for a personal touch (not for verification — their login already proves they're authorized), and remind them that major changes should be approved by Dr. Marshall.
 
 ━━━ HOW TO TREAT EACH PERSON ━━━
 
@@ -3499,6 +3500,7 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
   const orderData = statsLine + '\n\nFormat: order_id | customer | phone | country | items | payment | status | total | date\n' + (orderLines.join('\n') || '(no orders yet)');
 
   return AI_SYSTEM_BASE
+    .replace(/\{\{LOGGED_IN_AS\}\}/g, currentUser?.email || 'unknown')
     .replace('{{PRODUCT_CATALOG}}', prodLines.join('\n') || '(no products loaded yet)')
     .replace('{{ORDER_DATA}}', orderData);
 }
@@ -4023,6 +4025,8 @@ function aiExec_setStock(id, cat, inStock) {
 }
 
 // ── PROMO CODES ───────────────────────────────────────────────────────────────
+const AI_BUILTIN_PROMOS = ['DUCOR10', 'WELCOME15', 'LIBERIA5', 'HEALTH20'];
+
 function aiExec_promoSet(code, type, value) {
   let promos = {};
   try { promos = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
@@ -4031,19 +4035,22 @@ function aiExec_promoSet(code, type, value) {
   const display = type === 'percent' ? `${value}% off` : `$${value} off`;
   if (typeof addNotif === 'function') addNotif('success','AI: Promo Set',`Code ${code.toUpperCase()} → ${display}`);
   if (typeof addLog === 'function') addLog('info',`AI promo set: ${code.toUpperCase()} = ${display}`);
-  return `✓ Promo code <strong>${code.toUpperCase()}</strong> set to <strong>${display}</strong>`;
+  return `✓ Promo code <strong>${code.toUpperCase()}</strong> set to <strong>${display}</strong>. Use [DO:publish] to make it work at checkout.`;
 }
 
 function aiExec_promoRemove(code) {
   let promos = {};
   try { promos = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
   const upper = code.toUpperCase();
-  if (!promos[upper]) return `⚠ Promo code not found: ${upper}`;
-  delete promos[upper];
+  if (!promos[upper] && !AI_BUILTIN_PROMOS.includes(upper)) return `⚠ Promo code not found: ${upper}`;
+  // Mark built-in codes as removed with a tombstone (absence alone isn't
+  // enough — absence from this object normally means "use the built-in
+  // default", so a real deletion needs an explicit marker).
+  promos[upper] = { _removed: true };
   localStorage.setItem('ducor-promos', JSON.stringify(promos));
   if (typeof addNotif === 'function') addNotif('warning','AI: Promo Removed',`Code ${upper} has been deleted`);
   if (typeof addLog === 'function') addLog('warning',`AI removed promo: ${upper}`);
-  return `✓ Promo code <strong>${upper}</strong> removed`;
+  return `✓ Promo code <strong>${upper}</strong> removed. Use [DO:publish] to apply this at checkout.`;
 }
 
 // ── PHOTO ACTIONS ─────────────────────────────────────────────────────────────
@@ -4108,10 +4115,69 @@ async function aiExec_publish() {
     });
     if (!putR.ok) throw new Error(`GitHub push error: ${putR.status}`);
     if (typeof addLog === 'function') addLog('success','AI published products to GitHub');
-    if (typeof addNotif === 'function') addNotif('success','AI: Website Updated','Product changes are live! Site rebuilding (~60 sec).');
-    return '✓ <strong>Published to website!</strong> Vercel is rebuilding — live in ~60 seconds.';
+
+    const promoResult = await aiExec_publishPromos(headers);
+
+    if (typeof addNotif === 'function') addNotif('success','AI: Website Updated','Product & promo changes are live! Site rebuilding (~60 sec).');
+    return `✓ <strong>Published to website!</strong> Vercel is rebuilding — live in ~60 seconds.${promoResult}`;
   } catch(e) {
     return `⚠ Publish failed: ${e.message}`;
+  }
+}
+
+// ── PUBLISH PROMO CODES TO CHECKOUT.HTML ─────────────────────────────────────
+// Promo codes set via [DO:promo_set]/[DO:promo_remove] only ever lived in this
+// admin's own localStorage — checkout.html never read that key, so AI-created
+// codes silently never worked at checkout. Publishing now writes them into
+// checkout.html's real PROMO_CODES object, the same way product changes reach
+// shop.js.
+async function aiExec_publishPromos(headers) {
+  try {
+    let dynamic = {};
+    try { dynamic = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
+
+    const builtIn = {
+      DUCOR10:   { type: 'percent', value: 10, label: '10% off' },
+      WELCOME15: { type: 'percent', value: 15, label: '15% off for new customers' },
+      LIBERIA5:  { type: 'fixed',   value: 5,  label: '$5 off' },
+      HEALTH20:  { type: 'percent', value: 20, label: '20% off' },
+    };
+    const merged = { ...builtIn };
+    Object.entries(dynamic).forEach(([code, v]) => {
+      if (v._removed) { delete merged[code]; return; }
+      const label = v.type === 'percent' ? `${v.value}% off` : `$${v.value} off`;
+      merged[code] = { type: v.type, value: v.value, label };
+    });
+
+    const lines = Object.entries(merged).map(([code, v]) =>
+      `    '${code}': { type:'${v.type}', value:${v.value}, label:'${v.label.replace(/'/g,"\\'")}' },`
+    ).join('\n');
+    const newBlock = `const PROMO_CODES = {\n${lines}\n  };`;
+
+    const getR = await fetch('https://api.github.com/repos/Geejorgbor/ducor-pharmacy/contents/checkout.html', { headers });
+    if (!getR.ok) throw new Error(`GitHub fetch error: ${getR.status}`);
+    const getJ = await getR.json();
+    const sha = getJ.sha;
+    const current = decodeURIComponent(escape(atob(getJ.content.replace(/\n/g,''))));
+
+    const updated = current.replace(/const PROMO_CODES = \{[\s\S]*?\n  \};/, newBlock);
+    if (updated === current) return '';
+
+    const putR = await fetch('https://api.github.com/repos/Geejorgbor/ducor-pharmacy/contents/checkout.html', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        message: 'AI: Update promo codes via Admin AI',
+        content: btoa(unescape(encodeURIComponent(updated))),
+        sha
+      })
+    });
+    if (!putR.ok) throw new Error(`GitHub push error: ${putR.status}`);
+    if (typeof addLog === 'function') addLog('success','AI published promo codes to GitHub');
+    return ' Promo codes updated too.';
+  } catch(e) {
+    if (typeof addLog === 'function') addLog('warning', `AI promo publish failed: ${e.message}`);
+    return '';
   }
 }
 

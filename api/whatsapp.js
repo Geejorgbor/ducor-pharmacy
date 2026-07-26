@@ -7,6 +7,7 @@
 //   GREEN_API_TOKEN = <apiTokenInstance from your Green API dashboard>
 
 const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp in international format
+const DEV_CHAT_ID = '16309366050@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never the boss's
 
 async function sendWhatsApp(apiUrl, id, token, message, chatId = BOSS_CHAT_ID) {
   const response = await fetch(
@@ -41,9 +42,21 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
 
-  const { order, type, delivery } = req.body || {};
+  const { order, type, delivery, admin } = req.body || {};
 
   try {
+    // ── Boss logged into the admin dashboard — alert Lucas, never the boss ──
+    if (type === 'admin_login' && admin) {
+      const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
+      const message = [
+        '🔑 Dr. Marshall just logged into the admin dashboard',
+        '',
+        `⏰ ${when} (Monrovia time)`,
+      ].join('\n');
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, DEV_CHAT_ID);
+      return res.status(200).json(result);
+    }
+
     // ── Delivery confirmed by customer ──
     if (type === 'delivery_confirmed' && delivery) {
       const message = [
