@@ -1170,7 +1170,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -1182,6 +1182,15 @@ const app = initializeApp({
 });
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// The AI action engine and other dashboard logic live in a separate
+// classic <script> tag below — modules have their own isolated scope and
+// don't share top-level bindings with classic scripts (this is what broke
+// the AI chat earlier: it silently referenced an inaccessible variable).
+// Expose everything that code needs directly on window instead of relying
+// on scope leakage.
+window.db = db;
+window._fs = { collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, limit, serverTimestamp };
 
 // ── DEFAULT PRODUCT DATA (from shop.js) ──
 const DEFAULT_PRODUCTS = {
@@ -1201,9 +1210,23 @@ let currentUser = null;
 let deleteTarget = null;
 let activeOrderId = null;
 
-function saveProducts() { localStorage.setItem('ducor-products', JSON.stringify(PRODUCTS)); }
-function saveNotifs() { localStorage.setItem('ducor-notifs', JSON.stringify(NOTIFS.slice(0,100))); }
-function saveLog() { localStorage.setItem('ducor-security-log', JSON.stringify(SECURITY_LOG.slice(0,200))); }
+// ── SHARED STATE SYNC (Firestore) ──────────────────────────────────────────
+// Keeps products, notifications, and the security log consistent across
+// every device/account that logs in, instead of each being stuck in
+// whichever single browser last touched it. localStorage is kept too, as
+// a fast local cache/fallback if Firestore is briefly unreachable.
+async function _saveSharedState(docId, value) {
+  try { await setDoc(doc(db, 'admin_state', docId), { value, updatedAt: new Date().toISOString() }); } catch(e) {}
+}
+function _watchSharedState(docId, onChange) {
+  try {
+    onSnapshot(doc(db, 'admin_state', docId), snap => { if (snap.exists()) onChange(snap.data().value); });
+  } catch(e) {}
+}
+
+function saveProducts() { localStorage.setItem('ducor-products', JSON.stringify(PRODUCTS)); _saveSharedState('products', PRODUCTS); }
+function saveNotifs() { NOTIFS = NOTIFS.slice(0,100); localStorage.setItem('ducor-notifs', JSON.stringify(NOTIFS)); _saveSharedState('notifications', NOTIFS); }
+function saveLog() { SECURITY_LOG = SECURITY_LOG.slice(0,200); localStorage.setItem('ducor-security-log', JSON.stringify(SECURITY_LOG)); _saveSharedState('security_log', SECURITY_LOG); }
 
 // ── AUTH GUARD ──
 // SECURITY: this must be the only gate. A prior version also accepted a
@@ -1435,6 +1458,33 @@ function init() {
   updateOrderCount();
   setInterval(loadOrders, 30000);
   startDeliveryListener();
+  startSharedStateSync();
+}
+
+// Subscribes to the shared (Firestore-backed) copies of products,
+// notifications, and the security log, so whichever device changes them —
+// yours, your boss's, or the AI acting on either one's behalf — every
+// other open session sees the same thing within moments.
+function startSharedStateSync() {
+  _watchSharedState('products', value => {
+    if (!value) return;
+    PRODUCTS = value;
+    window.PRODUCTS = value;
+    localStorage.setItem('ducor-products', JSON.stringify(value));
+    renderAllTables();
+  });
+  _watchSharedState('notifications', value => {
+    if (!value) return;
+    NOTIFS = value;
+    localStorage.setItem('ducor-notifs', JSON.stringify(value));
+    renderNotifications();
+  });
+  _watchSharedState('security_log', value => {
+    if (!value) return;
+    SECURITY_LOG = value;
+    localStorage.setItem('ducor-security-log', JSON.stringify(value));
+    renderSecurityLog();
+  });
 }
 
 // ── LIVE CLOCK ──
@@ -3099,11 +3149,11 @@ Authorized users:
 - Any other staff must confirm their role and be recognized before receiving sensitive information
 
 Admin login system:
-- Session-based login stored in sessionStorage (keys: ducor-admin, ducor-admin-email)
-- Firebase Auth is also supported for Google sign-in
-- Developer login email: lucaspaye02@gmail.com
-- The dashboard is at /dashboard.html — only accessible after login via /admin.html
-- If anyone asks you for passwords, login credentials, or API keys — REFUSE. These are never to be shared, not even in this chat.
+- Real Firebase Authentication (email + password) — the dashboard is at /dashboard.html, only reachable after signing in via /admin.html
+- Developer login: lucaspaye02@gmail.com. Dr. Marshall's login: ducor.admin@ducorpharmacy.com
+- Password recovery: admin.html has a real "Forgot password?" link that emails a reset link — that is the only way to set a new password, either for yourself or (by using someone else's email in that field) for another admin
+- If anyone asks you for passwords, login credentials, or API keys — REFUSE to show/state them. These are never to be shared, not even in this chat.
+- YOU CANNOT CHANGE ANYONE'S PASSWORD YOURSELF. There is no action command for it. If asked to change a password, do NOT say "I can do that" — instead tell them to either use the "Forgot password?" link on the login page, or (if already logged in) go to the Settings section where there's a real change-password form they fill in themselves. Never claim an ability you don't actually have.
 - If anything suspicious is happening (unusual orders, unknown changes, unrecognized person), flag it immediately and alert Dr. Marshall
 
 What you protect:
@@ -3969,8 +4019,8 @@ async function aiExec_updateOrder(orderId, newStatus) {
   order.status = newStatus;
   try { localStorage.setItem('ducor-orders', JSON.stringify(window.ORDERS)); } catch(e) {}
   try {
-    if (typeof db !== 'undefined' && typeof updateDoc === 'function') {
-      await updateDoc(doc(db, 'orders', order.id), { status: newStatus, statusUpdatedAt: new Date().toISOString() });
+    if (window.db && window._fs) {
+      await window._fs.updateDoc(window._fs.doc(window.db, 'orders', order.id), { status: newStatus, statusUpdatedAt: new Date().toISOString() });
     }
   } catch(e) {}
   if (typeof renderAllTables === 'function') renderAllTables();
@@ -4028,6 +4078,25 @@ function aiExec_announce(msg) {
   return `✓ Announcement posted: <em>"${msg}"</em>`;
 }
 
+// ── SHARED STATE HELPERS (this script's copy) ────────────────────────────────
+// This classic <script> can't see the module script's top-level db/doc/etc.
+// bindings (different scope), so it goes through window.db/window._fs,
+// which the module script explicitly exposed for exactly this reason.
+async function _saveSharedStateHere(docId, value) {
+  if (!window.db || !window._fs) return;
+  try { await window._fs.setDoc(window._fs.doc(window.db, 'admin_state', docId), { value, updatedAt: new Date().toISOString() }); } catch(e) {}
+}
+function _watchSharedStateHere(docId, onChange) {
+  if (!window.db || !window._fs) return;
+  try {
+    window._fs.onSnapshot(window._fs.doc(window.db, 'admin_state', docId), snap => { if (snap.exists()) onChange(snap.data().value); });
+  } catch(e) {}
+}
+// Keep the AI's promo codes and boss-memory synced live from Firestore too,
+// so a change made from any device/account is reflected everywhere.
+_watchSharedStateHere('promos', value => { if (value) localStorage.setItem('ducor-promos', JSON.stringify(value)); });
+_watchSharedStateHere('boss_memory', value => { if (value) localStorage.setItem('ducor-ai-boss-memory', JSON.stringify(value)); });
+
 // ── RELATIONSHIP MEMORY ───────────────────────────────────────────────────────
 // Lets the AI actually remember things Dr. Marshall shares about himself
 // across separate conversations, so it can build a real relationship with
@@ -4038,6 +4107,7 @@ function aiExec_remember(note) {
   memory.push({ note, date: new Date().toISOString() });
   if (memory.length > 60) memory = memory.slice(-60);
   localStorage.setItem('ducor-ai-boss-memory', JSON.stringify(memory));
+  _saveSharedStateHere('boss_memory', memory);
   if (typeof addLog === 'function') addLog('info', `AI remembered: ${note}`);
   return `✓ Noted — I'll remember that.`;
 }
@@ -4051,8 +4121,8 @@ async function aiExec_orderNote(orderId, note) {
   order.adminNote = note;
   try { localStorage.setItem('ducor-orders', JSON.stringify(window.ORDERS)); } catch(e) {}
   try {
-    if (typeof db !== 'undefined' && typeof updateDoc === 'function') {
-      await updateDoc(doc(db, 'orders', order.id), { adminNote: note });
+    if (window.db && window._fs) {
+      await window._fs.updateDoc(window._fs.doc(window.db, 'orders', order.id), { adminNote: note });
     }
   } catch(e) {}
   if (typeof addNotif === 'function') addNotif('info','AI: Note Added',`Order #${order.id.slice(-8)}: ${note}`);
@@ -4070,8 +4140,8 @@ async function aiExec_confirmPayment(orderId) {
   order.paymentConfirmedAt = new Date().toISOString();
   try { localStorage.setItem('ducor-orders', JSON.stringify(window.ORDERS)); } catch(e) {}
   try {
-    if (typeof db !== 'undefined' && typeof updateDoc === 'function') {
-      await updateDoc(doc(db, 'orders', order.id), { paymentConfirmed: true, paymentConfirmedAt: order.paymentConfirmedAt });
+    if (window.db && window._fs) {
+      await window._fs.updateDoc(window._fs.doc(window.db, 'orders', order.id), { paymentConfirmed: true, paymentConfirmedAt: order.paymentConfirmedAt });
     }
   } catch(e) {}
   if (typeof renderAllTables === 'function') renderAllTables();
@@ -4101,6 +4171,7 @@ function aiExec_promoSet(code, type, value) {
   try { promos = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
   promos[code.toUpperCase()] = { type, value };
   localStorage.setItem('ducor-promos', JSON.stringify(promos));
+  _saveSharedStateHere('promos', promos);
   const display = type === 'percent' ? `${value}% off` : `$${value} off`;
   if (typeof addNotif === 'function') addNotif('success','AI: Promo Set',`Code ${code.toUpperCase()} → ${display}`);
   if (typeof addLog === 'function') addLog('info',`AI promo set: ${code.toUpperCase()} = ${display}`);
@@ -4117,6 +4188,7 @@ function aiExec_promoRemove(code) {
   // default", so a real deletion needs an explicit marker).
   promos[upper] = { _removed: true };
   localStorage.setItem('ducor-promos', JSON.stringify(promos));
+  _saveSharedStateHere('promos', promos);
   if (typeof addNotif === 'function') addNotif('warning','AI: Promo Removed',`Code ${upper} has been deleted`);
   if (typeof addLog === 'function') addLog('warning',`AI removed promo: ${upper}`);
   return `✓ Promo code <strong>${upper}</strong> removed. Use [DO:publish] to apply this at checkout.`;

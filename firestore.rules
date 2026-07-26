@@ -33,14 +33,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Analytics counters — write-only, never readable by clients.
+    // Analytics counters — write-only for anonymous visitors (so the site
+    // itself can log a visit), but readable by the admin dashboard so it
+    // can actually display the numbers it collects. Restricted to the two
+    // real admin accounts rather than "any authenticated user", since
+    // customers can also create Firebase Auth accounts via auth.html and
+    // shouldn't be able to read business analytics.
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in ['lucaspaye02@gmail.com', 'ducor.admin@ducorpharmacy.com'];
+    }
     match /analytics_visits/{id} {
       allow create: if true;
-      allow read, update, delete: if false;
+      allow read: if isAdmin();
+      allow update, delete: if false;
     }
     match /analytics_days/{id} {
       allow write: if true;
-      allow read: if false;
+      allow read: if isAdmin();
+    }
+
+    // Shared admin dashboard state (products, promo codes, notifications,
+    // security log, AI relationship memory) — was previously stuck in
+    // whichever single browser last touched it (localStorage only), so
+    // the two admin accounts could see completely different things.
+    // Centralizing here means both accounts, and the AI acting on either
+    // one's behalf, always see the same real state.
+    match /admin_state/{docId} {
+      allow read, write: if isAdmin();
     }
 
     // Simple connectivity check used by the site itself.
