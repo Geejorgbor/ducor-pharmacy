@@ -961,15 +961,22 @@ function _applyImage(productId, imageUrl, svgFallback) {
   img.src = imageUrl;
 }
 
+// Only these product IDs actually have a real PNG file in assets/products/ —
+// everyone else only has a .jpg, so probing .png first would just be a
+// guaranteed-404 request wasted on every product photo (slow on weak connections).
+const _PRODUCTS_WITH_PNG = new Set(['vit032']);
+
 async function _loadProductImage(productId, productName, category, svgFallback) {
-  // 1a. PNG with transparent background (preferred — no white box)
-  const pngOk = await new Promise(res => {
-    const img = new Image();
-    img.onload = () => res(true);
-    img.onerror = () => res(false);
-    img.src = '/assets/products/' + productId + '.png';
-  });
-  if (pngOk) { _applyImage(productId, '/assets/products/' + productId + '.png', svgFallback); return; }
+  // 1a. PNG with transparent background (preferred — no white box), only when known to exist
+  if (_PRODUCTS_WITH_PNG.has(productId)) {
+    const pngOk = await new Promise(res => {
+      const img = new Image();
+      img.onload = () => res(true);
+      img.onerror = () => res(false);
+      img.src = '/assets/products/' + productId + '.png';
+    });
+    if (pngOk) { _applyImage(productId, '/assets/products/' + productId + '.png', svgFallback); return; }
+  }
 
   // 1b. Local photo — /assets/products/{id}.jpg
   const localOk = await new Promise(res => {
@@ -1130,7 +1137,7 @@ const ProductModal = {
       const i = new Image(); i.onload = () => res(src); i.onerror = () => res(null); i.src = src;
     });
     (async () => {
-      const src = await tryLoad('/assets/products/' + productId + '.png')
+      const src = (_PRODUCTS_WITH_PNG.has(productId) && await tryLoad('/assets/products/' + productId + '.png'))
                || await tryLoad('/assets/products/' + productId + '.jpg');
       if (src) {
         const img = document.createElement('img');
