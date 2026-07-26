@@ -1214,12 +1214,29 @@ function saveLog() { localStorage.setItem('ducor-security-log', JSON.stringify(S
 onAuthStateChanged(auth, user => {
   if (!user) { window.location.href = '/admin.html'; return; }
   currentUser = user;
+  // This script runs as a module (its own isolated scope) but the AI chat
+  // code lives in a separate classic <script> later in the page — modules
+  // don't share top-level variables with classic scripts, so currentUser
+  // must be exposed on window to be readable from there.
+  window.currentUser = user;
   const email = user.email || '';
   const initials = email.substring(0,2).toUpperCase();
   document.getElementById('admin-initials').textContent = initials;
   document.getElementById('admin-name').textContent = email.split('@')[0];
   document.getElementById('admin-email-display').textContent = email;
   addLog('info', `Admin signed in: ${email}`);
+
+  // Show the real, identity-aware AI greeting now that we know who's
+  // actually logged in — but only if there's no saved conversation to
+  // restore instead (checked via localStorage directly since the AI
+  // chat's own variables live in a separate script scope from this one).
+  try {
+    const hasHistory = JSON.parse(localStorage.getItem('ducor-ai-history') || 'null')?.display?.length;
+    if (!hasHistory && typeof window._aiGreetingHTML === 'function') {
+      const msgs = document.getElementById('ai-messages');
+      if (msgs) msgs.innerHTML = window._aiGreetingHTML();
+    }
+  } catch(e) {}
 
   // Alert Lucas when the boss's account is active — but only once per
   // browser session, since Firebase re-checks auth on every page
@@ -2991,8 +3008,8 @@ window.saveTeam = function() {
       <div class="ai-msg-avatar">LP</div>
       <div class="ai-msg-bubble">
         Good day and welcome to the Ducor International Pharmacy admin panel.<br><br>
-        My name is Lucas — I'm the website developer always present here to assist with running the pharmacy smoothly. Before we get started, I'd like to make sure I know who I'm speaking with today.<br><br>
-        <strong>Could you please tell me your name?</strong>
+        My name is Lucas — I'm the website developer always present here to assist with running the pharmacy smoothly.<br><br>
+        <strong>How can I help you today?</strong>
       </div>
     </div>
   </div>
@@ -3522,7 +3539,7 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
     : "You don't have any saved memories about Dr. Marshall yet — this may be your first real conversation with him, or he hasn't shared anything personal yet. That's fine, just be present.";
 
   return AI_SYSTEM_BASE
-    .replace(/\{\{LOGGED_IN_AS\}\}/g, currentUser?.email || 'unknown')
+    .replace(/\{\{LOGGED_IN_AS\}\}/g, window.currentUser?.email || 'unknown')
     .replace('{{BOSS_MEMORY}}', bossMemoryText)
     .replace('{{PRODUCT_CATALOG}}', prodLines.join('\n') || '(no products loaded yet)')
     .replace('{{ORDER_DATA}}', orderData);
@@ -3667,20 +3684,32 @@ let aiMessages       = (_savedHist?.messages) || [];
 let aiDisplayHistory = (_savedHist?.display)  || []; // [{role, html, ts}]
 let aiOpen = false;
 
+// Builds the welcome bubble based on who is *actually* logged in, instead
+// of a hardcoded "who are you" greeting that ignored real Firebase Auth.
+function _aiGreetingHTML() {
+  const email = window.currentUser?.email || '';
+  let body;
+  if (email === 'ducor.admin@ducorpharmacy.com') {
+    body = `Welcome, Dr. Marshall! I'm Lucas Paye, your website developer. I'm always here to support you.<br><br><strong>How can I help you today, Doctor?</strong>`;
+  } else if (email === 'lucaspaye02@gmail.com') {
+    body = `Welcome back, Lucas! Good to see you. Everything is running smoothly.<br><br><strong>What are we working on today?</strong>`;
+  } else {
+    body = `Good day and welcome to the Ducor International Pharmacy admin panel.<br><br>My name is Lucas — I'm the website developer always present here to assist with running the pharmacy smoothly.<br><br><strong>How can I help you today?</strong>`;
+  }
+  return `<div class="ai-msg bot">
+    <div class="ai-msg-avatar">LP</div>
+    <div class="ai-msg-bubble">${body}</div>
+  </div>`;
+}
+window._aiGreetingHTML = _aiGreetingHTML; // explicit — the auth-guard module script calls this across script scopes
+
 window.clearAIHistory = function() {
   if (!confirm('Clear all conversation history? This cannot be undone.')) return;
   aiMessages = [];
   aiDisplayHistory = [];
   localStorage.removeItem(_AI_HIST_KEY);
   const msgs = document.getElementById('ai-messages');
-  if (msgs) msgs.innerHTML = `<div class="ai-msg bot">
-    <div class="ai-msg-avatar">LP</div>
-    <div class="ai-msg-bubble">
-      Good day and welcome to the Ducor International Pharmacy admin panel.<br><br>
-      My name is Lucas — I'm the website developer always present here to assist with running the pharmacy smoothly. Before we get started, I'd like to make sure I know who I'm speaking with today.<br><br>
-      <strong>Could you please tell me your name?</strong>
-    </div>
-  </div>`;
+  if (msgs) msgs.innerHTML = _aiGreetingHTML();
   if (typeof addNotif === 'function') addNotif('info', 'History Cleared', 'Conversation history has been wiped.');
 };
 
