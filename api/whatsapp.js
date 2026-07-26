@@ -7,7 +7,7 @@
 //   GREEN_API_TOKEN = <apiTokenInstance from your Green API dashboard>
 
 const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp in international format
-const DEV_CHAT_ID = '16309366050@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never the boss's
+const DEV_CHAT_ID = '0888916127@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never the boss's
 
 async function sendWhatsApp(apiUrl, id, token, message, chatId = BOSS_CHAT_ID) {
   const response = await fetch(
