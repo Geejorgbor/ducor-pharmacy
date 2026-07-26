@@ -100,7 +100,20 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+  const app = initializeApp({
+    apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
+    authDomain: "ducor-pharmacy.firebaseapp.com",
+    projectId: "ducor-pharmacy",
+    storageBucket: "ducor-pharmacy.firebasestorage.app",
+    messagingSenderId: "952933384266",
+    appId: "1:952933384266:web:55b906e903d96940d426b3"
+  });
+  const auth = getAuth(app);
+
   var _failedAttempts = 0;
   var MAX_ATTEMPTS = 5;
   var _lockedOut = false;
@@ -122,7 +135,7 @@
     fill.style.width = pct + '%';
   }
 
-  window.handleLogin = function(e) {
+  window.handleLogin = async function(e) {
     e.preventDefault();
     if (_lockedOut) return;
 
@@ -130,15 +143,17 @@
     var password = document.getElementById('password').value;
     var btn = document.getElementById('login-btn');
 
-    if (email === 'ducor.admin@ducorpharmacy.com' && password === 'Ducor@2025') {
-      sessionStorage.setItem('ducor-admin', '1');
-      sessionStorage.setItem('ducor-admin-email', email);
-      sessionStorage.setItem('ducor-admin-login', Date.now());
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    _hideError();
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       btn.textContent = '✓ Redirecting…';
-      btn.disabled = true;
-      _hideError();
       window.location.href = '/dashboard.html';
-    } else {
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Sign In to Dashboard';
       _failedAttempts++;
       _updateAttemptBar();
 

@@ -1206,31 +1206,25 @@ function saveNotifs() { localStorage.setItem('ducor-notifs', JSON.stringify(NOTI
 function saveLog() { localStorage.setItem('ducor-security-log', JSON.stringify(SECURITY_LOG.slice(0,200))); }
 
 // ── AUTH GUARD ──
-const _adminSession = sessionStorage.getItem('ducor-admin') === '1';
-const _adminEmail   = sessionStorage.getItem('ducor-admin-email') || '';
-
-if (_adminSession) {
-  document.getElementById('admin-initials').textContent = _adminEmail.substring(0,2).toUpperCase() || 'DA';
-  document.getElementById('admin-name').textContent = _adminEmail.split('@')[0] || 'Admin';
-  document.getElementById('admin-email-display').textContent = _adminEmail;
-  addLog('info', `Admin signed in: ${_adminEmail}`);
+// SECURITY: this must be the only gate. A prior version also accepted a
+// plain sessionStorage flag ('ducor-admin'==='1') set by a hardcoded
+// client-side password check in admin.html — anyone could set that flag
+// themselves via DevTools and skip login entirely. Real Firebase Auth is
+// now the sole check.
+onAuthStateChanged(auth, user => {
+  if (!user) { window.location.href = '/admin.html'; return; }
+  currentUser = user;
+  const email = user.email || '';
+  const initials = email.substring(0,2).toUpperCase();
+  document.getElementById('admin-initials').textContent = initials;
+  document.getElementById('admin-name').textContent = email.split('@')[0];
+  document.getElementById('admin-email-display').textContent = email;
+  addLog('info', `Admin signed in: ${email}`);
   init();
-} else {
-  onAuthStateChanged(auth, user => {
-    if (!user) { window.location.href = '/admin.html'; return; }
-    currentUser = user;
-    const email = user.email || '';
-    const initials = email.substring(0,2).toUpperCase();
-    document.getElementById('admin-initials').textContent = initials;
-    document.getElementById('admin-name').textContent = email.split('@')[0];
-    document.getElementById('admin-email-display').textContent = email;
-    addLog('info', `Admin signed in: ${email}`);
-    init();
-  });
-}
+});
 
 window.doLogout = async function() {
-  const logEmail = _adminEmail || currentUser?.email || 'Admin';
+  const logEmail = currentUser?.email || 'Admin';
   addLog('warning', `Admin signed out: ${logEmail}`);
   try { await signOut(auth); } catch(e) {}
   sessionStorage.clear();
@@ -1462,7 +1456,7 @@ window.showSection = function(name, btn) {
   if (name === 'notifications') renderNotifications();
   if (name === 'security') renderSecurityLog();
   if (name === 'analytics') { renderOrderAnalytics(); loadAnalytics(); }
-  if (name === 'settings') { document.getElementById('acc-email').textContent = _adminEmail || currentUser?.email || '—'; }
+  if (name === 'settings') { document.getElementById('acc-email').textContent = currentUser?.email || '—'; }
   if (name === 'team') renderTeamSlots();
   if (name === 'hero-photos') renderHeroSlots();
   if (name === 'product-photos') renderPhotoGrid();
