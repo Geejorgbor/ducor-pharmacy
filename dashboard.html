@@ -1283,6 +1283,21 @@ function startDeliveryListener() {
     const ordersCol = collection(db, 'orders');
     onSnapshot(ordersCol, (snapshot) => {
       let changed = false;
+      const wasFirstSnapshot = !_firestoreReady;
+
+      // On the very first snapshot, drop any locally-cached order that no
+      // longer exists in Firestore at all (e.g. deleted while this browser
+      // was closed — onSnapshot only fires 'removed' for deletions that
+      // happen while actively connected, so stale local/localStorage
+      // entries from before that would otherwise never get cleared).
+      if (wasFirstSnapshot) {
+        const liveIds = new Set(snapshot.docs.map(d => d.id));
+        const liveRefs = new Set(snapshot.docs.map(d => d.data().ref).filter(Boolean));
+        const before = ORDERS.length;
+        ORDERS = ORDERS.filter(o => liveIds.has(o.id) || (o.ref && liveRefs.has(o.ref)));
+        if (ORDERS.length !== before) changed = true;
+      }
+
       snapshot.docChanges().forEach(change => {
         const data = change.doc.data();
         const docId = change.doc.id;
@@ -1349,6 +1364,14 @@ function startDeliveryListener() {
             if (data.adminNote && data.adminNote !== prevNote) {
               _aiEventAlert('note_added', local, docId, { name, note: data.adminNote });
             }
+          }
+
+        } else if (change.type === 'removed') {
+          // Order deleted from Firestore — remove it from the dashboard too
+          const idx = ORDERS.findIndex(o => o.id === docId || (data.ref && o.ref === data.ref));
+          if (idx !== -1) {
+            ORDERS.splice(idx, 1);
+            changed = true;
           }
         }
       });
