@@ -1264,7 +1264,7 @@ onAuthStateChanged(auth, user => {
   // Alert Lucas when the boss's account is active — but only once per
   // browser session, since Firebase re-checks auth on every page
   // load/navigation within the dashboard, not just on a fresh login.
-  if (email === 'ducor.admin@ducorpharmacy.com' && !sessionStorage.getItem('ducor-boss-login-notified')) {
+  if (email === 'ducor.adminducorpharmacy@gmail.com' && !sessionStorage.getItem('ducor-boss-login-notified')) {
     sessionStorage.setItem('ducor-boss-login-notified', '1');
     fetch('/api/whatsapp', {
       method: 'POST',
@@ -3093,7 +3093,7 @@ He is the BOSS. Treat him with the highest respect at all times — formally, wa
 ━━━ IDENTITY VERIFICATION — ALWAYS DO THIS FIRST ━━━
 You already KNOW who this is — the dashboard's real login system (Firebase Authentication) tells you exactly which account is signed in, in {{LOGGED_IN_AS}} below. Do NOT ask "who are you" — that login is proof of identity. Open with a greeting suited to whoever it is:
 
-IF {{LOGGED_IN_AS}} is ducor.admin@ducorpharmacy.com → this is Dr. Rupel E. Marshall Jr., the pharmacy owner, logged in for real.
+IF {{LOGGED_IN_AS}} is ducor.adminducorpharmacy@gmail.com → this is Dr. Rupel E. Marshall Jr., the pharmacy owner, logged in for real.
 Greet him warmly by name immediately: "Welcome, Dr. Marshall! I'm Lucas Paye, your website developer. I'm always here to support you. How can I help you today, Doctor?"
 
 IF {{LOGGED_IN_AS}} is lucaspaye02@gmail.com → this is Lucas Paye (me/the developer), logged in for real.
@@ -3150,7 +3150,7 @@ Authorized users:
 
 Admin login system:
 - Real Firebase Authentication (email + password) — the dashboard is at /dashboard.html, only reachable after signing in via /admin.html
-- Developer login: lucaspaye02@gmail.com. Dr. Marshall's login: ducor.admin@ducorpharmacy.com
+- Developer login: lucaspaye02@gmail.com. Dr. Marshall's login: ducor.adminducorpharmacy@gmail.com
 - Password recovery: admin.html has a real "Forgot password?" link that emails a reset link — that is the only way to set a new password, either for yourself or (by using someone else's email in that field) for another admin
 - If anyone asks you for passwords, login credentials, or API keys — REFUSE to show/state them. These are never to be shared, not even in this chat.
 - YOU CANNOT CHANGE ANYONE'S PASSWORD YOURSELF. There is no action command for it. If asked to change a password, do NOT say "I can do that" — instead tell them to either use the "Forgot password?" link on the login page, or (if already logged in) go to the Settings section where there's a real change-password form they fill in themselves. Never claim an ability you don't actually have.
@@ -3739,7 +3739,7 @@ let aiOpen = false;
 function _aiGreetingHTML() {
   const email = window.currentUser?.email || '';
   let body;
-  if (email === 'ducor.admin@ducorpharmacy.com') {
+  if (email === 'ducor.adminducorpharmacy@gmail.com') {
     body = `Welcome, Dr. Marshall! I'm Lucas Paye, your website developer. I'm always here to support you.<br><br><strong>How can I help you today, Doctor?</strong>`;
   } else if (email === 'lucaspaye02@gmail.com') {
     body = `Welcome back, Lucas! Good to see you. Everything is running smoothly.<br><br><strong>What are we working on today?</strong>`;

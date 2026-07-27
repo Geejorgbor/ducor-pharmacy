@@ -41,7 +41,7 @@ service cloud.firestore {
     // shouldn't be able to read business analytics.
     function isAdmin() {
       return request.auth != null &&
-        request.auth.token.email in ['lucaspaye02@gmail.com', 'ducor.admin@ducorpharmacy.com'];
+        request.auth.token.email in ['lucaspaye02@gmail.com', 'ducor.adminducorpharmacy@gmail.com'];
     }
     match /analytics_visits/{id} {
       allow create: if true;
