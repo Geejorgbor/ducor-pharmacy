@@ -1254,6 +1254,9 @@ onAuthStateChanged(auth, user => {
   // restore instead (checked via localStorage directly since the AI
   // chat's own variables live in a separate script scope from this one).
   try {
+    if (typeof window._resetAIHistoryIfNewUser === 'function') {
+      window._resetAIHistoryIfNewUser(email);
+    }
     const hasHistory = JSON.parse(localStorage.getItem('ducor-ai-history') || 'null')?.display?.length;
     if (!hasHistory && typeof window._aiGreetingHTML === 'function') {
       const msgs = document.getElementById('ai-messages');
@@ -3752,6 +3755,22 @@ function _aiGreetingHTML() {
   </div>`;
 }
 window._aiGreetingHTML = _aiGreetingHTML; // explicit — the auth-guard module script calls this across script scopes
+
+// If a different admin logs in on this same browser than last time, the
+// saved conversation (and the LLM's message context) belongs to the wrong
+// person — reset it so the new person gets a fresh, correctly-identified
+// chat instead of continuing someone else's conversation.
+window._resetAIHistoryIfNewUser = function(email) {
+  if (!email) return;
+  const lastEmailKey = 'ducor-ai-last-email';
+  const lastEmail = localStorage.getItem(lastEmailKey);
+  if (lastEmail && lastEmail !== email) {
+    aiMessages = [];
+    aiDisplayHistory = [];
+    localStorage.removeItem(_AI_HIST_KEY);
+  }
+  localStorage.setItem(lastEmailKey, email);
+};
 
 window.clearAIHistory = function() {
   if (!confirm('Clear all conversation history? This cannot be undone.')) return;
