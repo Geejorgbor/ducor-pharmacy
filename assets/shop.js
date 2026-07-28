@@ -947,6 +947,22 @@ async function _fetchWikiImage(wikiTitle) {
   return null;
 }
 
+// Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
+// it around the cursor position so customers can read labels/dosage clearly.
+function _attachZoom(wrapEl, imgEl, scale) {
+  scale = scale || 2.2;
+  wrapEl.style.cursor = 'zoom-in';
+  imgEl.style.transition = 'transform .12s ease-out';
+  wrapEl.addEventListener('mousemove', (e) => {
+    const rect = wrapEl.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    imgEl.style.transformOrigin = x + '% ' + y + '%';
+  });
+  wrapEl.addEventListener('mouseenter', () => { imgEl.style.transform = 'scale(' + scale + ')'; });
+  wrapEl.addEventListener('mouseleave', () => { imgEl.style.transform = 'none'; imgEl.style.transformOrigin = '50% 50%'; });
+}
+
 function _applyImage(productId, imageUrl, svgFallback) {
   const el = document.getElementById('pimg-' + productId);
   if (!el) return;
@@ -1145,8 +1161,9 @@ const ProductModal = {
         imgSide.style.background = '#fff';
         img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;';
         frame.innerHTML = '';
-        frame.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px;box-sizing:border-box;';
+        frame.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px;box-sizing:border-box;overflow:hidden;';
         frame.appendChild(img);
+        _attachZoom(frame, img);
       }
     })();
 
