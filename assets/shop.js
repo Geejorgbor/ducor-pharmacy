@@ -373,10 +373,8 @@ const Cart = {
         <button class="cart-remove" onclick="Cart.remove('${item.id}')" title="Remove">×</button>
       </div>`).join('');
     const sub = this.subtotal();
-    const shipping = sub >= 50 ? 0 : 5.99;
     document.getElementById('cart-subtotal-val').textContent = '$' + sub.toFixed(2);
-    document.getElementById('cart-shipping-val').textContent = shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2);
-    document.getElementById('cart-total-val').textContent = '$' + (sub + shipping).toFixed(2);
+    document.getElementById('cart-total-val').textContent = '$' + sub.toFixed(2);
   },
 
   open() {
@@ -1101,13 +1099,13 @@ const ProductModal = {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
               </svg>
-              Buy Now — Card / Mobile Money
+              Buy Now — Mobile Money / Bank / Cash
             </button>
             <p class="pm-pay-icons">
-              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#1A1F71"/><text x="24" y="20" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="sans-serif">VISA</text></svg>
-              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#eb001b"/><circle cx="19" cy="15" r="10" fill="#eb001b"/><circle cx="29" cy="15" r="10" fill="#f79e1b"/><path d="M24 8.5a10 10 0 0 1 0 13A10 10 0 0 1 24 8.5z" fill="#ff5f00"/></svg>
               <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#FFD700"/><text x="24" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="#333" font-family="sans-serif">MTN</text></svg>
-              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#FF7900"/><text x="24" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="sans-serif">Orange</text></svg>
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#00B2A9"/><text x="24" y="19" text-anchor="middle" font-size="6.5" font-weight="bold" fill="white" font-family="sans-serif">Sendwave</text></svg>
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#0A2558"/><text x="24" y="19" text-anchor="middle" font-size="7" font-weight="bold" fill="white" font-family="sans-serif">BANK</text></svg>
+              <svg width="32" height="20" viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#16A34A"/><text x="24" y="19" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="sans-serif">CASH</text></svg>
             </p>
           </div>
         </div>
