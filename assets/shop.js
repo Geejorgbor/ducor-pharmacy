@@ -293,6 +293,9 @@ const Cart = {
   load() {
     try { this.items = JSON.parse(localStorage.getItem(this.key) || '[]'); }
     catch { this.items = []; }
+    // Self-heal carts saved before the 'prescription'/'rx' category mismatch
+    // fix — checkout.html's RX pricing/questionnaire logic all keys off 'rx'.
+    this.items.forEach(i => { if (i.category === 'prescription') i.category = 'rx'; });
   },
 
   save() {
@@ -301,11 +304,12 @@ const Cart = {
 
   add(product, category) {
     this.load();
+    const cat = category === 'prescription' ? 'rx' : category;
     const existing = this.items.find(i => i.id === product.id);
     if (existing) {
       existing.qty += 1;
     } else {
-      this.items.push({ ...product, category, qty: 1 });
+      this.items.push({ ...product, category: cat, qty: 1 });
     }
     this.save();
     this.updateBadge();
