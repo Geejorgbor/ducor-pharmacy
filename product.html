@@ -460,27 +460,80 @@ function attachZoom(wrapEl, imgEl) {
   };
   probe.src = '/assets/products/' + pid + '.jpg';
 
-  // Detect medication form from the product name
+  // Medication form, verified against each product's real photo/label —
+  // most product names are just "Drug 50mg" with no form word at all, so
+  // this can't be reliably guessed from the name. Checked by hand so each
+  // one shows its actual real form (Tablet vs Capsule), not a combined guess.
+  const _FORM_BY_ID = {
+    // ── RX — Tablet ──
+    rx001:'Tablet',rx002:'Tablet',rx005:'Tablet',rx006:'Tablet',rx007:'Tablet',rx008:'Tablet',
+    rx009:'Tablet',rx010:'Tablet',rx011:'Tablet',rx016:'Tablet',rx017:'Tablet',rx018:'Tablet',
+    rx019:'Tablet',rx020:'Tablet',rx024:'Tablet',rx025:'Tablet',rx027:'Tablet',rx028:'Tablet',
+    rx029:'Tablet',rx032:'Tablet',rx033:'Tablet',rx034:'Tablet',rx035:'Tablet',rx036:'Tablet',
+    rx037:'Tablet',rx038:'Tablet',rx041:'Tablet',rx044:'Tablet',rx045:'Tablet',rx046:'Tablet',
+    rx048:'Tablet',rx049:'Tablet',rx050:'Tablet',rx051:'Tablet',rx055:'Tablet',rx057:'Tablet',
+    rx058:'Tablet',rx059:'Tablet',rx062:'Tablet',rx063:'Tablet',rx064:'Tablet',rx067:'Tablet',
+    rx068:'Tablet',rx069:'Tablet',rx070:'Tablet',rx072:'Tablet',rx075:'Tablet',rx077:'Tablet',
+    rx078:'Tablet',rx082:'Tablet',rx083:'Tablet',rx084:'Tablet',rx085:'Tablet',rx086:'Tablet',
+    rx087:'Tablet',rx088:'Tablet',rx089:'Tablet',rx090:'Tablet',rx091:'Tablet',rx092:'Tablet',
+    rx092b:'Tablet',rx093:'Tablet',rx094:'Tablet',rx095:'Tablet',rx096:'Tablet',rx097:'Tablet',
+    rx098:'Tablet',rx099:'Tablet',rx100:'Tablet',rx101:'Tablet',rx103:'Tablet',rx104:'Tablet',
+    rx105:'Tablet',rx106:'Tablet',rx110:'Tablet',rx111:'Tablet',rx112:'Tablet',rx114:'Tablet',
+    rx120:'Tablet',rx121:'Tablet',rx122:'Tablet',rx123:'Tablet',rx124:'Tablet',rx126:'Tablet',
+    rx127:'Tablet',rx128:'Tablet',rx129:'Tablet',rx130:'Tablet',rx133:'Tablet',rx136:'Tablet',
+    rx137:'Tablet',rx138:'Tablet',rx139:'Tablet',rx140:'Tablet',rx141:'Tablet',rx142:'Tablet',
+    rx144:'Tablet',rx145:'Tablet',rx147:'Tablet',rx152:'Tablet',
+    // ── RX — Capsule ──
+    rx013:'Capsule',rx015:'Capsule',rx021:'Capsule',rx022:'Capsule',rx023:'Capsule',rx039:'Capsule',
+    rx040:'Capsule',rx042:'Capsule',rx043:'Capsule',rx053:'Capsule',rx054:'Capsule',rx056:'Capsule',
+    rx061:'Capsule',rx065:'Capsule',rx066:'Capsule',rx071:'Capsule',rx076:'Capsule',rx081:'Capsule',
+    rx118:'Capsule',rx131:'Capsule',rx132:'Capsule',rx134:'Capsule',rx135:'Capsule',rx143:'Capsule',
+    rx148:'Capsule',rx149:'Capsule',rx151:'Capsule',
+    // ── RX — other real forms ──
+    rx012:'Oral Suspension',
+    // ── OTC — Tablet ──
+    otc002:'Tablet',otc003:'Tablet',otc004:'Tablet',otc005:'Tablet',otc018:'Tablet',otc022:'Tablet',
+    otc033:'Tablet',otc034:'Tablet',otc036:'Tablet',otc037:'Tablet',otc039:'Tablet',otc040:'Tablet',
+    otc041:'Tablet',otc045:'Tablet',otc048:'Tablet',otc054:'Tablet',otc055:'Tablet',otc056:'Tablet',
+    // ── OTC — Capsule ──
+    otc013:'Capsule',otc051:'Capsule',
+    // ── Vitamins — Tablet ──
+    vit001:'Tablet',vit002:'Tablet',vit003:'Tablet',vit004:'Tablet',vit005:'Tablet',vit012:'Tablet',
+    vit013:'Tablet',vit017:'Tablet',vit018:'Tablet',vit020:'Tablet',vit025:'Tablet',vit028:'Tablet',
+    vit029:'Tablet',vit031:'Tablet',vit032:'Tablet',vit037:'Tablet',
+    // ── Vitamins — Capsule ──
+    vit006:'Capsule',vit007:'Capsule',vit008:'Capsule',vit009:'Capsule',vit015:'Capsule',vit016:'Capsule',
+    vit019:'Capsule',vit027:'Capsule',vit030:'Capsule',vit034:'Capsule',
+  };
+
+  // Medication form: use the verified table above when we have it; only
+  // fall back to guessing from the name for anything not yet in the table
+  // (e.g. a new product added later).
   const nameLower = product.name.toLowerCase();
-  let form = 'Tablet / Capsule';
-  if      (/\binhaler\b/.test(nameLower))               form = 'Inhaler';
-  else if (/\binjection\b/.test(nameLower))              form = 'Injection';
-  else if (/\bointment\b/.test(nameLower))               form = 'Topical Ointment';
-  else if (/\bcream\b/.test(nameLower))                  form = 'Topical Cream';
-  else if (/\bgel\b/.test(nameLower))                    form = 'Gel';
-  else if (/\bpatch\b/.test(nameLower))                  form = 'Transdermal Patch';
-  else if (/\bdrops?\b/.test(nameLower))                 form = 'Eye / Ear Drops';
-  else if (/\/5ml\b|\bsyrup\b/.test(nameLower))         form = 'Oral Liquid / Syrup';
-  else if (/\bsusp(ension)?\b/.test(nameLower))         form = 'Oral Suspension';
-  else if (/\bsolution\b/.test(nameLower))               form = 'Solution';
-  else if (/\bchewable\b/.test(nameLower))               form = 'Chewable Tablet';
-  else if (/\bodt\b/.test(nameLower))                    form = 'Orally Disintegrating Tablet';
-  else if (/\bsoftgel\b/.test(nameLower))                form = 'Softgel Capsule';
-  else if (/\bpowder\b/.test(nameLower))                 form = 'Powder';
-  else if (/\bxl\b|\bxr\b|\ber\b/.test(nameLower))     form = 'Extended-Release Tablet';
-  else if (/\bir\b/.test(nameLower))                     form = 'Immediate-Release Tablet';
-  else if (/vaginal\b/.test(nameLower))                  form = 'Vaginal Preparation';
-  else if (/ophthalmic\b/.test(nameLower))               form = 'Ophthalmic Solution';
+  let form = _FORM_BY_ID[pid];
+  if (!form) {
+    form = 'See product label';
+    if      (/\binhaler\b/.test(nameLower))               form = 'Inhaler';
+    else if (/\binjection\b/.test(nameLower))              form = 'Injection';
+    else if (/\bointment\b/.test(nameLower))               form = 'Topical Ointment';
+    else if (/\bcream\b/.test(nameLower))                  form = 'Topical Cream';
+    else if (/\bgel\b/.test(nameLower))                    form = 'Gel';
+    else if (/\bpatch\b/.test(nameLower))                  form = 'Transdermal Patch';
+    else if (/\bdrops?\b/.test(nameLower))                 form = 'Eye / Ear Drops';
+    else if (/\/5ml\b|\bsyrup\b/.test(nameLower))         form = 'Oral Liquid / Syrup';
+    else if (/\bsusp(ension)?\b/.test(nameLower))         form = 'Oral Suspension';
+    else if (/\bsolution\b/.test(nameLower))               form = 'Solution';
+    else if (/\bchewable\b/.test(nameLower))               form = 'Chewable Tablet';
+    else if (/\bodt\b/.test(nameLower))                    form = 'Orally Disintegrating Tablet';
+    else if (/\bsoftgel\b/.test(nameLower))                form = 'Softgel Capsule';
+    else if (/\bpowder\b/.test(nameLower))                 form = 'Powder';
+    else if (/\bxl\b|\bxr\b|\ber\b/.test(nameLower))     form = 'Extended-Release Tablet';
+    else if (/\bir\b/.test(nameLower))                     form = 'Immediate-Release Tablet';
+    else if (/vaginal\b/.test(nameLower))                  form = 'Vaginal Preparation';
+    else if (/ophthalmic\b/.test(nameLower))               form = 'Ophthalmic Solution';
+    else if (/\bcapsules?\b/.test(nameLower))              form = 'Capsule';
+    else if (/\btablets?\b/.test(nameLower))               form = 'Tablet';
+  }
 
   // Extract strength / dosage from name
   const strengthMatch = product.name.match(/(\d[\d.,]*\s*(?:mcg|mg|g|%|iu|IU|ml|\/\S+)(?:\s*\/\s*[\d.,]+\s*\S+)?)/i);
