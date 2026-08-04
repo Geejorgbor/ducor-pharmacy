@@ -98,6 +98,17 @@
         rgba(10,37,88,0.10) 100%
       );
     }
+    /* Caption so a photo's real subject is obvious at a glance */
+    .hero-slide-caption{
+      position:absolute;z-index:2;bottom:70px;right:6%;max-width:340px;
+      background:rgba(10,37,88,0.85);color:#fff;
+      padding:12px 20px;border-radius:10px;border-left:3px solid var(--gold);
+      font-size:0.95rem;font-weight:600;line-height:1.4;
+      box-shadow:0 8px 24px rgba(0,0,0,0.25);
+    }
+    @media(max-width:768px){
+      .hero-slide-caption{right:5%;left:5%;max-width:none;bottom:40px;font-size:0.82rem;padding:10px 16px}
+    }
 
     /* Content: left-aligned so right side of video shows clearly */
     .hero-content{
@@ -394,6 +405,7 @@
     </div>
     <div class="hero-slide" id="hs-1">
       <img src="/assets/dip-shipment.jpg" alt="Ducor International Pharmacy — medication shipment arriving">
+      <div class="hero-slide-caption">📦 Real Medication Shipments — Delivered Fresh to Our Pharmacy in Monrovia</div>
     </div>
   </div>
 
