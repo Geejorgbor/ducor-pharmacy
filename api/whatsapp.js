@@ -45,6 +45,19 @@ export default async function handler(req, res) {
   const { order, type, delivery, admin } = req.body || {};
 
   try {
+    // TEMPORARY diagnostic — checks whether the WhatsApp instance itself is
+    // actually connected/authorized, not just whether the API accepted the
+    // request (Green API can return a message ID even if the underlying
+    // phone session is disconnected). Remove once the delivery issue is
+    // diagnosed.
+    if (type === 'check_status') {
+      const stateResp = await fetch(`${API_URL}/waInstance${ID}/getStateInstance/${TOKEN}`);
+      const state = await stateResp.json();
+      const settingsResp = await fetch(`${API_URL}/waInstance${ID}/getSettings/${TOKEN}`);
+      const settings = await settingsResp.json();
+      return res.status(200).json({ state, settings });
+    }
+
     // ── Boss logged into the admin dashboard — alert Lucas, never the boss ──
     if (type === 'admin_login' && admin) {
       const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
