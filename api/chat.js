@@ -57,7 +57,6 @@ IMPORTANT CORRECTION: The prescription Vitamin D product (high-dose, 50,000 IU) 
 - /vitamins.html — Vitamins & supplements shop
 - /checkout.html — Place your order (cart, personal info, collector info, payment, RX questionnaire)
 - /track-order.html — Track your order LIVE using your reference number (e.g. DUCOR-12345678). Updates automatically — no refresh needed. Status shows: Order Placed → Processing → Ready for Delivery → Delivered
-- /confirm-delivery.html — When your order is ready, you receive a link on WhatsApp to tap and confirm delivery
 - /billing.html — Billing & payment information
 - /auth.html — Customer account login/signup
 - /account.html — Customer account page
@@ -82,17 +81,14 @@ IMPORTANT CORRECTION: The prescription Vitamin D product (high-dose, 50,000 IU) 
 ━━━ FULL ORDER & DELIVERY FLOW ━━━
 1. Customer places order → gets reference number + confirmation email → our team notified on WhatsApp instantly
 2. Team reviews and starts processing → status changes to "Processing" on tracking page
-3. Order is packed and ready → status changes to "Ready for Delivery"
-4. Customer automatically receives a WhatsApp message AND email — both include a delivery confirmation link
-5. The collector in Liberia also receives a WhatsApp message with the confirmation link
-6. When the order is physically received, the customer or collector taps the confirmation link
-7. Order automatically moves to "Delivered" on the tracking page — no calls needed
+3. Order is packed and delivered to the customer/collector in Liberia
+4. Customer and collector automatically receive a WhatsApp message AND the customer gets an email letting them know they've received their order — no link or click needed, it's just a notice
+5. Order shows as "Delivered" on the tracking page
 
 ━━━ EMAIL NOTIFICATIONS ━━━
 Customers receive automatic emails at every key step:
 - Order Confirmed — sent immediately when order is placed (includes reference number, items, tracking link)
-- Ready for Delivery — sent when order is packed (includes delivery confirmation button)
-- Delivery Confirmed — sent after successful delivery confirmation
+- Order Delivered — sent once the order has been delivered, letting them know they've received it
 
 ━━━ PAYMENT & CONFIRMATION ━━━
 - MTN Mobile Money: number is given after order — pay and send receipt to +231 887 221 275 on WhatsApp

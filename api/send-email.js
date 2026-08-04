@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       emailPayload = {
         from: 'Ducor International Pharmacy <orders@ducor-international-pharmacy.com>',
         to: [data.buyerEmail],
-        subject: `📦 Your order ${data.ref} is ready for delivery — Ducor International Pharmacy`,
+        subject: `🎉 Your order ${data.ref} has been delivered — Ducor International Pharmacy`,
         html: readyEmailHtml(data),
       };
     }
@@ -120,12 +120,10 @@ function itemsTable(items) {
 
 function readyEmailHtml(d) {
   return baseLayout(`
-    <div class="badge">📦 Ready for Delivery</div>
-    <h2>Your order is ready!</h2>
+    <div class="badge">🎉 Order Delivered</div>
+    <h2>You have received your order!</h2>
     <p>Hello <strong>${d.buyerName || 'Valued Customer'}</strong>,</p>
-    <p>Great news — your order from <strong>Ducor International Pharmacy</strong> is packed and <strong>ready for delivery</strong>. Your collector in Liberia will receive it shortly.</p>
-    <p>When the order is physically received, please click the button below to confirm delivery:</p>
-    <a href="${d.confirmUrl}" class="cta">✅ Confirm I Received My Order</a>
+    <p>Great news — your order from <strong>Ducor International Pharmacy</strong> has been delivered. We hope everything is perfect!</p>
     <div class="order-box">
       <div class="row"><span>Order Ref</span><strong>${d.ref}</strong></div>
       <div class="row"><span>Collector</span><strong>${d.collectorName || '—'} (${d.collectorPhone || '—'})</strong></div>

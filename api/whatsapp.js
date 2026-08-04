@@ -97,36 +97,26 @@ export default async function handler(req, res) {
         return raw ? raw + '@c.us' : null;
       }
 
-      // Message to COLLECTOR in Liberia — they physically receive it and tap to confirm
+      // Message to COLLECTOR in Liberia — plain notice, no confirmation click needed
       const collectorMsg = [
         `Hello ${co.collectorName || 'Collector'}! 👋`,
         ``,
-        `The order for *${co.customerName || 'the customer'}* from *Ducor International Pharmacy* is *ready for delivery*! 📦`,
+        `The order for *${co.customerName || 'the customer'}* from *Ducor International Pharmacy* has been delivered! 📦`,
         ``,
         `📋 Order Ref: ${co.ref}`,
         `📦 Items: ${co.items || '—'}`,
-        ``,
-        `When you *physically receive* the package, please tap the link below to confirm:`,
-        ``,
-        co.confirmUrl,
         ``,
         `Thank you! — Ducor International Pharmacy, Monrovia, Liberia 🇱🇷`,
       ].join('\n');
 
-      // Message to BUYER — they placed the order and want to know status
+      // Message to BUYER — plain notice, no confirmation click needed
       const buyerMsg = [
         `Hello ${co.customerName || 'Valued Customer'}! 👋`,
         ``,
-        `Great news! Your order from *Ducor International Pharmacy* is *ready and on its way*! 🎉`,
+        `Great news! You have received your order from *Ducor International Pharmacy*! 🎉`,
         ``,
         `📋 Order Ref: ${co.ref}`,
         `📦 Items: ${co.items || '—'}`,
-        ``,
-        `Your collector in Liberia (*${co.collectorName || 'the collector'}*) has been notified to confirm receipt.`,
-        ``,
-        `You can also tap the link below to confirm delivery yourself:`,
-        ``,
-        co.confirmUrl,
         ``,
         `Track your order anytime: https://ducor-international-pharmacy.com/track-order.html?ref=${encodeURIComponent(co.ref)}`,
         ``,

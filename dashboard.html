@@ -3208,7 +3208,7 @@ PAGES ON THE WEBSITE:
 - /product.html — Single product detail page
 - /checkout.html — Order checkout (cart, customer info, payment, RX questionnaire)
 - /track-order.html — Customer order tracking by reference number (live Firestore)
-- /confirm-delivery.html — Customer taps link to confirm they received their order
+- /confirm-delivery.html — no longer used; customers just get a plain "you received your order" notice instead of a link to tap
 - /confirm-payment.html — Boss taps link from WhatsApp to confirm payment received
 - /billing.html — Billing & payment info page
 - /auth.html — Customer login/signup
@@ -3236,9 +3236,8 @@ KEY DATA FIELDS ON EVERY ORDER:
 - paymentConfirmed — true when boss confirms payment
 - paymentConfirmedAt — timestamp of payment confirmation
 - rxPricesPending — true if order has RX items (prices not yet confirmed)
-- confirmToken — unique token for delivery confirmation link
-- confirmedByCustomer — true when customer taps delivery link
-- deliveredAt — timestamp of delivery confirmation
+- confirmToken, confirmedByCustomer — legacy fields from the old tap-to-confirm link flow, no longer used
+- deliveredAt — timestamp the order was marked delivered
 - adminNote — internal note added by admin or AI
 - healthQuestionnaire — {condition, doctor, currentMeds, allergies} for RX orders
 - orderingFor — 'self' or 'other' (ordering for someone else)
