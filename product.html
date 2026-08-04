@@ -280,6 +280,18 @@
       <p class="pd-notice-body" id="pd-notice-body"></p>
     </div>
 
+    <!-- BUY INDIVIDUAL TABLETS/CAPSULES — like at the pharmacy counter -->
+    <div id="pd-unit-buy" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:14px;padding:16px 18px;margin-bottom:20px">
+      <p style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#166534;margin-bottom:6px">Prefer Just a Few?</p>
+      <p style="font-size:13px;color:#166534;margin-bottom:12px;line-height:1.5">Buy the exact number of <span id="pd-unit-form-label">tablets</span> you need, just like at the pharmacy counter — no need to buy the whole bottle.</p>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <input type="number" id="pd-unit-qty" min="1" value="1" style="width:76px;padding:10px 12px;border:1.5px solid #86efac;border-radius:9px;font-size:14px;font-family:inherit;color:#1e293b"/>
+        <span id="pd-unit-form-label2" style="font-size:14px;color:#166534">tablets</span>
+        <span id="pd-unit-price" style="font-weight:700;color:#166534;font-size:15px">= $0.00</span>
+        <button id="pd-btn-unit-cart" style="padding:10px 20px;border:none;border-radius:9px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">Add to Cart</button>
+      </div>
+    </div>
+
     <hr class="pd-divider">
 
     <!-- ACTIONS -->
@@ -471,7 +483,7 @@ function attachZoom(wrapEl, imgEl) {
     rx019:'Tablet',rx020:'Tablet',rx024:'Tablet',rx025:'Tablet',rx027:'Tablet',rx028:'Tablet',
     rx029:'Tablet',rx032:'Tablet',rx033:'Tablet',rx034:'Tablet',rx035:'Tablet',rx036:'Tablet',
     rx037:'Tablet',rx038:'Tablet',rx041:'Tablet',rx044:'Tablet',rx045:'Tablet',rx046:'Tablet',
-    rx048:'Tablet',rx049:'Tablet',rx050:'Tablet',rx051:'Tablet',rx055:'Tablet',rx057:'Tablet',
+    rx048:'Tablet',rx049:'Tablet',rx015:'Tablet',rx051:'Tablet',rx055:'Tablet',rx057:'Tablet',
     rx058:'Tablet',rx059:'Tablet',rx062:'Tablet',rx063:'Tablet',rx064:'Tablet',rx067:'Tablet',
     rx068:'Tablet',rx069:'Tablet',rx070:'Tablet',rx072:'Tablet',rx075:'Tablet',rx077:'Tablet',
     rx078:'Tablet',rx082:'Tablet',rx083:'Tablet',rx084:'Tablet',rx085:'Tablet',rx086:'Tablet',
@@ -484,7 +496,7 @@ function attachZoom(wrapEl, imgEl) {
     rx137:'Tablet',rx138:'Tablet',rx139:'Tablet',rx140:'Tablet',rx141:'Tablet',rx142:'Tablet',
     rx144:'Tablet',rx145:'Tablet',rx147:'Tablet',rx152:'Tablet',
     // ── RX — Capsule ──
-    rx013:'Capsule',rx015:'Capsule',rx021:'Capsule',rx022:'Capsule',rx023:'Capsule',rx039:'Capsule',
+    rx013:'Capsule',rx050:'Capsule',rx021:'Capsule',rx022:'Capsule',rx023:'Capsule',rx039:'Capsule',
     rx040:'Capsule',rx042:'Capsule',rx043:'Capsule',rx053:'Capsule',rx054:'Capsule',rx056:'Capsule',
     rx061:'Capsule',rx065:'Capsule',rx066:'Capsule',rx071:'Capsule',rx076:'Capsule',rx081:'Capsule',
     rx118:'Capsule',rx131:'Capsule',rx132:'Capsule',rx134:'Capsule',rx135:'Capsule',rx143:'Capsule',
@@ -504,6 +516,24 @@ function attachZoom(wrapEl, imgEl) {
     // ── Vitamins — Capsule ──
     vit006:'Capsule',vit007:'Capsule',vit008:'Capsule',vit009:'Capsule',vit015:'Capsule',vit016:'Capsule',
     vit019:'Capsule',vit027:'Capsule',vit030:'Capsule',vit034:'Capsule',
+  };
+
+  // How many tablets/capsules are actually in the bottle priced above —
+  // read off each real label, so "buy individual units" can work out a
+  // fair per-tablet/per-capsule price (bottle price ÷ this count). Only
+  // OTC and Vitamins are covered — RX pricing already goes through a
+  // phone call with the pharmacist, where an exact quantity can be
+  // discussed directly, so it doesn't need a self-service per-unit price.
+  const _UNIT_COUNT_BY_ID = {
+    otc002:100, otc003:100, otc004:100, otc005:50, otc018:90, otc022:28,
+    otc033:100, otc034:100, otc036:24, otc037:30, otc039:100, otc040:90,
+    otc041:60, otc045:100, otc048:60, otc054:100, otc055:30, otc056:100,
+    otc013:100,
+    vit001:200, vit002:90, vit003:30, vit004:60, vit005:90, vit012:100,
+    vit013:100, vit017:60, vit018:90, vit020:120, vit025:100, vit028:110,
+    vit029:130, vit031:100, vit032:100, vit037:60,
+    vit006:30, vit007:30, vit008:30, vit009:100, vit015:60, vit016:100,
+    vit019:60, vit027:60, vit030:60, vit034:100,
   };
 
   // Medication form: use the verified table above when we have it; only
@@ -538,6 +568,50 @@ function attachZoom(wrapEl, imgEl) {
   // Extract strength / dosage from name
   const strengthMatch = product.name.match(/(\d[\d.,]*\s*(?:mcg|mg|g|%|iu|IU|ml|\/\S+)(?:\s*\/\s*[\d.,]+\s*\S+)?)/i);
   const strength = strengthMatch ? strengthMatch[0] : 'See product label';
+
+  // Buy individual tablets/capsules instead of the whole bottle — only for
+  // OTC/Vitamins where we know the real count and self-service buying
+  // already applies (RX goes through a phone call, where quantity is
+  // discussed directly with the pharmacist instead).
+  const unitCount = _UNIT_COUNT_BY_ID[pid];
+  if (unitCount && (form === 'Tablet' || form === 'Capsule') && dispCat !== 'rx') {
+    const perUnitPrice = product.price / unitCount;
+    const formWord = form === 'Tablet' ? 'tablets' : 'capsules';
+    document.getElementById('pd-unit-buy').style.display = 'block';
+    document.getElementById('pd-unit-form-label').textContent = formWord;
+    document.getElementById('pd-unit-form-label2').textContent = formWord;
+    const qtyInput = document.getElementById('pd-unit-qty');
+    const priceEl = document.getElementById('pd-unit-price');
+    function updateUnitPrice() {
+      const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+      priceEl.textContent = '= $' + (perUnitPrice * qty).toFixed(2);
+    }
+    qtyInput.addEventListener('input', updateUnitPrice);
+    updateUnitPrice();
+    document.getElementById('pd-btn-unit-cart').addEventListener('click', function () {
+      const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+      Cart.load();
+      const unitId = pid + '-unit';
+      const existing = Cart.items.find(i => i.id === unitId);
+      if (existing) { existing.qty += qty; }
+      else {
+        Cart.items.push({
+          id: unitId,
+          name: product.name + ' (Individual ' + formWord.charAt(0).toUpperCase() + formWord.slice(1) + ')',
+          price: perUnitPrice,
+          category: cat,
+          qty: qty,
+        });
+      }
+      Cart.save();
+      Cart.updateBadge();
+      Cart.renderDrawer();
+      const btn = this;
+      const original = btn.textContent;
+      btn.textContent = 'Added!';
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    });
+  }
 
   // About paragraph
   const aboutMap = {
