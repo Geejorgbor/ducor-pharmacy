@@ -3107,6 +3107,33 @@ window.saveTeam = function() {
 </div>
 
 <script>
+// ── AUTO-LOGOUT AFTER INACTIVITY ────────────────────────────────────────────
+// Security: if the dashboard is left open and untouched for 2 minutes (no
+// mouse, keyboard, or touch activity), sign out automatically — protects
+// against someone walking away from an open admin session on a shared or
+// public computer. Reuses the existing window.doLogout (defined in the
+// module script above, exposed on window for exactly this kind of
+// cross-script use). The call only ever fires after the delay, by which
+// time the module script has always finished loading, so load order
+// between the two <script> blocks doesn't matter here.
+(function () {
+  const INACTIVITY_LIMIT_MS = 2 * 60 * 1000; // 2 minutes
+  let inactivityTimer = null;
+
+  function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+      if (typeof window.doLogout === 'function') window.doLogout();
+    }, INACTIVITY_LIMIT_MS);
+  }
+
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach((evt) => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+
+  resetInactivityTimer();
+})();
+
 // ══════════════════════════════════════════════════════════════════════════════
 //  DUCOR ADMIN AI  — Full Website Control Engine
 // ══════════════════════════════════════════════════════════════════════════════
