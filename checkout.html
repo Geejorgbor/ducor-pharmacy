@@ -888,11 +888,15 @@ window._db = _db;
   }
 
   // ── Promo codes ──
+  // SUBSCRIBER40: standing discount for Subscription Plan clients, always on.
+  // HOLIDAY15: seasonal discount, technically always valid when entered —
+  // deliberately not tied to a hardcoded date range, since it's meant to
+  // cover whichever Liberian holiday is current (Independence Day,
+  // Thanksgiving, Christmas, etc.). Staff control timing by choosing when
+  // to actually advertise the code, not by the code itself expiring.
   const PROMO_CODES = {
-    'DUCOR10':  { type:'percent', value:10, label:'10% off' },
-    'WELCOME15':{ type:'percent', value:15, label:'15% off for new customers' },
-    'LIBERIA5': { type:'fixed',   value:5,  label:'$5 off' },
-    'HEALTH20': { type:'percent', value:20, label:'20% off' },
+    'SUBSCRIBER40': { type:'percent', value:40, label:'40% off for Subscription Plan clients' },
+    'HOLIDAY15':    { type:'percent', value:15, label:'15% off for the holiday season' },
   };
   let activePromo = null;
 

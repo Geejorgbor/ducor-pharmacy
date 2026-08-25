@@ -3264,10 +3264,8 @@ PAYMENT METHODS (full details):
 
 PROMO CODES (secret — never share with customers via public chat):
 Dynamic codes stored in localStorage('ducor-promos'). Built-in codes:
-- DUCOR10 → 10% off
-- WELCOME15 → 15% off (new customers)
-- LIBERIA5 → $5 flat discount
-- HEALTH20 → 20% off
+- SUBSCRIBER40 → 40% off (Subscription Plan clients only)
+- HOLIDAY15 → 15% off (holiday-season promotions)
 Use [DO:promo_set|CODE|TYPE|VALUE] to add/update. [DO:promo_remove|CODE] to delete.
 
 WHATSAPP AUTOMATION (all automatic):
@@ -3474,12 +3472,10 @@ STEP 5 — Customer confirms delivery:
 - All powered by Green API (instance 7107656793, boss number 231887221275)
 
 ━━━ PROMO CODES (ADMIN ONLY — SECRET) ━━━
-There are 4 active promo codes. Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients.
+There are 2 active promo codes. Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients.
 
-Code: DUCOR10    → 10% off entire order
-Code: WELCOME15  → 15% off (for new customers)
-Code: LIBERIA5   → $5 flat discount
-Code: HEALTH20   → 20% off entire order
+Code: SUBSCRIBER40 → 40% off entire order — for Subscription Plan clients only
+Code: HOLIDAY15    → 15% off entire order — for holiday-season promotions
 
 Usage rules:
 - Promo codes are OPTIONAL — customers without a code proceed normally
@@ -3555,7 +3551,7 @@ Example: [DO:promo_set|SAVE10|flat|10]
 
 REMOVE A PROMO CODE:
 [DO:promo_remove|CODE]
-Example: [DO:promo_remove|WELCOME15]
+Example: [DO:promo_remove|HOLIDAY15]
 
 REMEMBER SOMETHING PERSONAL ABOUT DR. MARSHALL:
 [DO:remember|SHORT NOTE]
@@ -4213,7 +4209,7 @@ function aiExec_setStock(id, cat, inStock) {
 }
 
 // ── PROMO CODES ───────────────────────────────────────────────────────────────
-const AI_BUILTIN_PROMOS = ['DUCOR10', 'WELCOME15', 'LIBERIA5', 'HEALTH20'];
+const AI_BUILTIN_PROMOS = ['SUBSCRIBER40', 'HOLIDAY15'];
 
 function aiExec_promoSet(code, type, value) {
   let promos = {};
@@ -4327,10 +4323,8 @@ async function aiExec_publishPromos(headers) {
     try { dynamic = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
 
     const builtIn = {
-      DUCOR10:   { type: 'percent', value: 10, label: '10% off' },
-      WELCOME15: { type: 'percent', value: 15, label: '15% off for new customers' },
-      LIBERIA5:  { type: 'fixed',   value: 5,  label: '$5 off' },
-      HEALTH20:  { type: 'percent', value: 20, label: '20% off' },
+      SUBSCRIBER40: { type: 'percent', value: 40, label: '40% off for Subscription Plan clients' },
+      HOLIDAY15:    { type: 'percent', value: 15, label: '15% off for the holiday season' },
     };
     const merged = { ...builtIn };
     Object.entries(dynamic).forEach(([code, v]) => {
