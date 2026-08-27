@@ -58,6 +58,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ state, settings });
     }
 
+    // TEMPORARY diagnostic — lists every chat (including groups) this
+    // WhatsApp account is part of, so the right group's chatId can be
+    // identified for scheduled group posting. Remove once that ID is found.
+    if (type === 'list_groups') {
+      const chatsResp = await fetch(`${API_URL}/waInstance${ID}/getChats/${TOKEN}`);
+      const chats = await chatsResp.json();
+      const groups = (chats || []).filter((c) => (c.id || '').endsWith('@g.us'));
+      return res.status(200).json({ groups });
+    }
+
     // ── Boss logged into the admin dashboard — alert Lucas, never the boss ──
     if (type === 'admin_login' && admin) {
       const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
