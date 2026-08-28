@@ -1353,3 +1353,11 @@ function initShop(category) {
 
   document.getElementById('cart-overlay').addEventListener('click', () => Cart.close());
 }
+
+// ── SERVER EXPORT ────────────────────────────────────────────────────────────
+// Lets api/cron/post-group-update.js reuse this same real product catalog
+// server-side (Node). No-op in the browser — `module` doesn't exist there,
+// so this block never runs when shop.js is loaded via <script src="...">.
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { PRODUCTS };
+}

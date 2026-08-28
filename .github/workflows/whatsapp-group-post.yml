@@ -1,0 +1,47 @@
+name: WhatsApp group post
+
+# Vercel's Hobby plan only allows a Cron Job to run once a day, but Lucas
+# wants 3 posts a day (morning/afternoon/evening) to the real client WhatsApp
+# group, so GitHub Actions' free scheduler triggers it instead.
+#
+# Monrovia, Liberia has no daylight saving and is UTC+0, so these UTC times
+# are also the real local times: 8:00 AM, 1:00 PM, 6:00 PM.
+#
+# SETUP — add this repo secret (Settings → Secrets and variables → Actions):
+#   GROUP_POST_SECRET = <same value as GROUP_POST_SECRET in Vercel>
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # 08:00 Monrovia — morning
+    - cron: '0 13 * * *'  # 13:00 Monrovia — afternoon
+    - cron: '0 18 * * *'  # 18:00 Monrovia — evening
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'Which slot to post (morning/afternoon/evening)'
+        required: true
+        default: 'morning'
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine slot
+        id: slot
+        run: |
+          if [ -n "${{ github.event.inputs.slot }}" ]; then
+            echo "slot=${{ github.event.inputs.slot }}" >> "$GITHUB_OUTPUT"
+          else
+            case "${{ github.event.schedule }}" in
+              '0 8 * * *')  echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
+              '0 13 * * *') echo "slot=afternoon" >> "$GITHUB_OUTPUT" ;;
+              '0 18 * * *') echo "slot=evening" >> "$GITHUB_OUTPUT" ;;
+            esac
+          fi
+
+      - name: Call post-group-update endpoint
+        run: |
+          curl -sf -X POST "https://www.ducor-international-pharmacy.com/api/cron/post-group-update" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.GROUP_POST_SECRET }}" \
+            -d "{\"slot\":\"${{ steps.slot.outputs.slot }}\"}"
