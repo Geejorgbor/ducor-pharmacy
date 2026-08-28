@@ -68,6 +68,30 @@ export default async function handler(req, res) {
       return res.status(200).json({ groups });
     }
 
+    // ONE-TIME — the "we're back" announcement to the PharMed Consultant
+    // Liberia wholesale group, approved word-for-word by Lucas in chat on
+    // 2026-08-28. Remove this block after it's been sent once.
+    if (type === 'pharmed_welcome_back_announcement') {
+      const WHOLESALE_GROUP_CHAT_ID = '120363425756994007@g.us';
+      const message = [
+        "🎉📢 WE'RE BACK — PharMed Consultant Liberia! 📢🎉",
+        '',
+        'Hello to our whole family of pharmacy, medicine store, and clinic partners!',
+        '',
+        "It's been about a week since our last update here, and we're sorry for the quiet — we were setting up something better behind the scenes. 🙏",
+        '',
+        "Starting today, this group will get real stock updates straight from our warehouse — every morning, midday, and evening. No more long gaps. We're back, and we're here to stay. 💪",
+        '',
+        'Reminder: this is *PharMed Consultant Liberia*, your trusted wholesale partner — real stock, real prices, always ready to serve your business.',
+        '',
+        '📞 Call or WhatsApp *Lucas Paye* anytime to order: wa.me/231888916127 (+231 88 891 6127)',
+        '',
+        "Thank you for staying with us — let's grow together! 🚀",
+      ].join('\n');
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, WHOLESALE_GROUP_CHAT_ID);
+      return res.status(200).json(result);
+    }
+
     // ── Boss logged into the admin dashboard — alert Lucas, never the boss ──
     if (type === 'admin_login' && admin) {
       const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
