@@ -29,7 +29,9 @@
 // Prices" — the real client group, found via the list_groups diagnostic.
 const CLIENT_GROUP_CHAT_ID = '120363425756994007@g.us';
 
-const SHOP_URL = 'https://ducor-international-pharmacy.com';
+// Real number Lucas asked orders to go through — a tap-to-chat WhatsApp
+// link is far less friction for a group member than typing a website URL.
+const ORDER_LINE = '📞 Call or WhatsApp to order: wa.me/231888916127 (+231 88 891 6127)';
 
 async function sendWhatsApp(apiUrl, id, token, message, chatId) {
   const response = await fetch(`${apiUrl}/waInstance${id}/sendMessage/${token}`, {
@@ -74,52 +76,53 @@ function formatItems(items) {
   return items.map((name) => `  ✅ ${name}`).join('\n');
 }
 
+// Several real options per slot so the message doesn't read like the same
+// copy-pasted bot text every day — rotates deterministically with the day,
+// same as the item picks.
+const OPENERS = {
+  morning: [
+    '🌅 Good morning, Ducor PharMed family!',
+    '🌅 Rise and restock, Ducor PharMed family!',
+    '🌅 Another day, fresh stock — good morning, partners!',
+  ],
+  midday: [
+    '🕐 Midday Restock Alert — Ducor PharMed',
+    '🕐 Halfway through the day — here’s what’s ready for you:',
+    '🕐 Quick midday check-in from Ducor PharMed:',
+  ],
+  closing: [
+    '🌇 Before We Close — Ducor PharMed Update',
+    '🌇 Last call before we close today:',
+    '🌇 Closing time check — don’t miss out before tomorrow:',
+  ],
+};
+
+const URGENCY_LINES = [
+  '🔥 Once it’s gone, it’s gone until our next delivery — don’t wait.',
+  '💪 Stock up today and keep your shelves ready for your customers.',
+  '🚀 Your customers are asking — be the one who has it in stock.',
+  '⚡ Fast-moving stock — reach out now before someone else does.',
+];
+
 function buildMessage(slot) {
   const seed = dayOfYear();
   const stock = getStockList();
   const third = Math.ceil(stock.length / 3); // spreads the 3 daily slots across different items
+  const slotSeeds = { morning: seed, midday: seed + third, closing: seed + third * 2 };
 
-  if (slot === 'morning') {
-    const items = pickItems(stock, 6, seed);
-    return [
-      '🌅 Good morning, Ducor PharMed family!',
-      '',
-      'Fresh stock check — these are moving fast, available NOW for your pharmacy, store, or clinic:',
-      '',
-      formatItems(items),
-      '',
-      '💪 Stock up today and keep your shelves ready for your customers.',
-      `📲 Order here: ${SHOP_URL}`,
-      '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
-    ].join('\n');
-  }
+  const items = pickItems(stock, 6, slotSeeds[slot]);
+  const opener = OPENERS[slot][seed % OPENERS[slot].length];
+  const urgency = URGENCY_LINES[(seed + slotSeeds[slot]) % URGENCY_LINES.length];
 
-  if (slot === 'midday') {
-    const items = pickItems(stock, 6, seed + third);
-    return [
-      '🕐 Midday Restock Alert — Ducor PharMed',
-      '',
-      'More of what your customers are asking for, available right now:',
-      '',
-      formatItems(items),
-      '',
-      '🚀 Reach out and place your order before it moves.',
-      `📲 Order here: ${SHOP_URL}`,
-      '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
-    ].join('\n');
-  }
-
-  // closing (5PM) — different slice of the same real stock list
-  const items = pickItems(stock, 6, seed + third * 2);
   return [
-    '🌇 Before We Close — Ducor PharMed Update',
+    opener,
     '',
-    'Still available and ready to go for our valued partners:',
+    'Available NOW for your pharmacy, store, or clinic:',
     '',
     formatItems(items),
     '',
-    '🔥 Don’t let your customers wait — order now while it’s in stock.',
-    `📲 Order here: ${SHOP_URL}`,
+    urgency,
+    ORDER_LINE,
     '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
   ].join('\n');
 }
