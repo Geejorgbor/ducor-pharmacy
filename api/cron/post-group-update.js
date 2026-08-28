@@ -1,22 +1,29 @@
 // Vercel serverless function — posts an automatic update to Lucas's real
-// WhatsApp client group, 3 times a day (morning / afternoon / evening).
-// Content is built from the pharmacy's real product catalog (assets/shop.js)
-// and the real live promo codes — nothing here is made up.
+// wholesale WhatsApp group (pharmacy/medicine store/clinic owners), morning
+// and afternoon, from the pharmacy's real current stock — nothing made up.
+//
+// Content comes from WHOLESALE_STOCK_JSON, a plain JSON array of medication
+// names that ARE currently in stock (In-Stock + Nimba Stock + Over Stock >
+// 0), built once from a real inventory sheet Lucas shared. Per Lucas: only
+// ever say an item IS in stock — never the exact quantity, never expiry
+// dates. That's why this env var only ever holds names, no numbers.
+// To refresh it when stock changes, replace WHOLESALE_STOCK_JSON in Vercel
+// (Settings → Environment Variables) with a new JSON array of names.
 //
 // Triggered by an external scheduler, not Vercel Cron: this project is on
 // Vercel's Hobby plan, which only allows a Cron Job to run once a day.
 // See .github/workflows/whatsapp-group-post.yml — it calls this endpoint
-// 3x/day at fixed Monrovia times.
+// 2x/day at fixed Monrovia times (morning + afternoon only — Lucas said a
+// 3rd, retail-promo-code message doesn't fit this wholesale group).
 //
-// SETUP — add this env var in Vercel dashboard → Settings → Environment Variables:
-//   GROUP_POST_SECRET = <any random string — must match the same secret
-//                         stored as GROUP_POST_SECRET in the GitHub repo's
-//                         Actions secrets>
+// SETUP — add these env vars in Vercel dashboard → Settings → Environment Variables:
+//   GROUP_POST_SECRET   = <any random string — must match the same secret
+//                          stored as GROUP_POST_SECRET in the GitHub repo's
+//                          Actions secrets>
+//   WHOLESALE_STOCK_JSON = <JSON array of in-stock medication names>
 //
 // Reuses the same GREEN_API_URL / GREEN_API_ID / GREEN_API_TOKEN env vars
 // already set up for api/whatsapp.js.
-
-const { PRODUCTS } = require('../../assets/shop.js');
 
 // "Lucas PharMed Consultant whole sell in international medication with Good
 // Prices" — the real client group, found via the list_groups diagnostic.
@@ -34,16 +41,25 @@ async function sendWhatsApp(apiUrl, id, token, message, chatId) {
   return { ok: response.ok && !!data.idMessage, data };
 }
 
-// Picks real items from a real category, deterministically rotating by day
-// so the same slot doesn't repeat the same items two days running, without
-// needing to store any state between calls.
+function getStockList() {
+  try {
+    const parsed = JSON.parse(process.env.WHOLESALE_STOCK_JSON || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// Picks real in-stock items, deterministically rotating by day so the same
+// slot doesn't repeat the same items two days running, without needing to
+// store any state between calls.
 function pickItems(list, count, seed) {
-  const usable = list.filter((p) => !p.adminOnly);
+  if (list.length === 0) return [];
   const picked = [];
-  let i = ((seed % usable.length) + usable.length) % usable.length;
-  for (let n = 0; n < count && n < usable.length; n++) {
-    picked.push(usable[i]);
-    i = (i + 7) % usable.length; // step spreads picks across the whole list
+  let i = ((seed % list.length) + list.length) % list.length;
+  for (let n = 0; n < count && n < list.length; n++) {
+    picked.push(list[i]);
+    i = (i + 11) % list.length; // step spreads picks across the whole list
   }
   return picked;
 }
@@ -55,49 +71,41 @@ function dayOfYear() {
 }
 
 function formatItems(items) {
-  return items.map((p) => `  • ${p.name} — $${p.price.toFixed(2)}`).join('\n');
+  return items.map((name) => `  ✅ ${name}`).join('\n');
 }
 
 function buildMessage(slot) {
   const seed = dayOfYear();
+  const stock = getStockList();
 
   if (slot === 'morning') {
-    const items = pickItems(PRODUCTS.otc, 4, seed);
+    const items = pickItems(stock, 6, seed);
     return [
-      '🌅 Good morning from Ducor International Pharmacy!',
+      '🌅 Good morning, Ducor PharMed family!',
       '',
-      'Some of our everyday health essentials:',
-      formatItems(items),
-      '',
-      `🛒 Order online: ${SHOP_URL}/otc.html`,
-      '📍 Monrovia, Liberia 🇱🇷',
-    ].join('\n');
-  }
-
-  if (slot === 'afternoon') {
-    const items = pickItems(PRODUCTS.vitamins, 4, seed + 3);
-    return [
-      '☀️ Ducor Pharmacy — Vitamins & Supplements',
+      'Fresh stock check — these are moving fast, available NOW for your pharmacy, store, or clinic:',
       '',
       formatItems(items),
       '',
-      `🌿 Order online: ${SHOP_URL}/vitamins.html`,
-      '📍 Monrovia, Liberia 🇱🇷',
+      '💪 Stock up today and keep your shelves ready for your customers.',
+      `📲 Order here: ${SHOP_URL}`,
+      '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
     ].join('\n');
   }
 
-  // evening — refill reminder + the two real promo codes
+  // afternoon — different slice of the same real stock list (offset so it
+  // doesn't repeat the morning picks), same strong wholesale tone
+  const items = pickItems(stock, 6, seed + Math.ceil(stock.length / 2));
   return [
-    '🌆 Ducor International Pharmacy — Evening Update',
+    '☀️ Ducor PharMed Afternoon Update',
     '',
-    'Need a prescription refill or new medication? We deliver.',
-    `💊 Order online: ${SHOP_URL}/prescription.html`,
+    'Still available and ready to go for our valued partners:',
     '',
-    '🏷️ Current promo codes:',
-    '  • SUBSCRIBER40 — 40% off for Subscription Plan clients',
-    '  • HOLIDAY15 — 15% off, holiday season',
+    formatItems(items),
     '',
-    '📍 Monrovia, Liberia 🇱🇷',
+    '🔥 Don’t let your customers wait — order now while it’s in stock.',
+    `📲 Order here: ${SHOP_URL}`,
+    '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
   ].join('\n');
 }
 
@@ -112,8 +120,8 @@ module.exports = async function handler(req, res) {
   }
 
   const slot = (req.body && req.body.slot) || '';
-  if (!['morning', 'afternoon', 'evening'].includes(slot)) {
-    return res.status(400).json({ ok: false, error: 'slot must be morning, afternoon, or evening' });
+  if (!['morning', 'afternoon'].includes(slot)) {
+    return res.status(400).json({ ok: false, error: 'slot must be morning or afternoon' });
   }
 
   const API_URL = process.env.GREEN_API_URL;
