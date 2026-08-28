@@ -1,0 +1,25 @@
+name: WhatsApp welcome new members
+
+# Checks the wholesale WhatsApp group every 3 hours for anyone new who
+# joined, and posts a strong welcome message naming them. Green API has no
+# real-time "member joined" notification, so this polls instead — see
+# api/cron/welcome-new-members.js for how it avoids welcoming existing
+# members on its very first run.
+#
+# SETUP — uses the same repo secret as the stock-post workflow:
+#   GROUP_POST_SECRET = <same value as GROUP_POST_SECRET in Vercel>
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # every 3 hours
+  workflow_dispatch: {}
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call welcome-new-members endpoint
+        run: |
+          curl -sf -X POST "https://www.ducor-international-pharmacy.com/api/cron/welcome-new-members" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.GROUP_POST_SECRET }}"
