@@ -1,6 +1,10 @@
 // Vercel serverless function — welcomes new members who join Lucas's real
 // wholesale WhatsApp group, with a strong, special greeting.
 //
+// Branding note: this group is PharMed Consultant Liberia, the WHOLESALE
+// business — separate from Ducor International Pharmacy (the retail
+// website). Per Lucas, never brand these messages as "Ducor".
+//
 // There's no real-time "member joined" webhook in Green API, so this polls:
 // it reads the group's current participant list, compares it against the
 // last-known list (stored in a small private GitHub repo, auto-created on
@@ -95,13 +99,13 @@ function displayNameFor(participant) {
 function buildWelcomeMessage(newParticipants) {
   const names = newParticipants.map(displayNameFor).join(', ');
   return [
-    '🎉🔥 A WARM DUCOR PHARMED WELCOME! 🔥🎉',
+    '🎉🔥 A WARM PHARMED CONSULTANT LIBERIA WELCOME! 🔥🎉',
     '',
     `Everyone please join us in welcoming our newest member(s): ${names}! 👏`,
     '',
     'You are now part of a trusted family of pharmacies, medicine stores, and clinics across Liberia — real stock, real prices, real partnership. We are proud to have you with us. 🙌',
     '',
-    'Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
+    'PharMed Consultant Liberia — Monrovia, Liberia 🇱🇷',
   ].join('\n');
 }
 

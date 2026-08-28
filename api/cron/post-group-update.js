@@ -2,6 +2,11 @@
 // wholesale WhatsApp group (pharmacy/medicine store/clinic owners), 3x/day,
 // from the pharmacy's real current stock — nothing made up.
 //
+// Branding note: this group is PharMed Consultant Liberia, the WHOLESALE
+// business — separate from Ducor International Pharmacy (the retail
+// website). Per Lucas, never brand these messages as "Ducor" — the two are
+// unrelated businesses that just happen to share this codebase/phone.
+//
 // Content comes from WHOLESALE_STOCK_JSON, a plain JSON array of medication
 // names that ARE currently in stock (In-Stock + Nimba Stock + Over Stock >
 // 0), built once from a real inventory sheet Lucas shared. Per Lucas: only
@@ -81,17 +86,17 @@ function formatItems(items) {
 // same as the item picks.
 const OPENERS = {
   morning: [
-    '🌅 Good morning, Ducor PharMed family!',
-    '🌅 Rise and restock, Ducor PharMed family!',
+    '🌅 Good morning, PharMed Consultant Liberia family!',
+    '🌅 Rise and restock, PharMed family!',
     '🌅 Another day, fresh stock — good morning, partners!',
   ],
   midday: [
-    '🕐 Midday Restock Alert — Ducor PharMed',
+    '🕐 Midday Restock Alert — PharMed Consultant Liberia',
     '🕐 Halfway through the day — here’s what’s ready for you:',
-    '🕐 Quick midday check-in from Ducor PharMed:',
+    '🕐 Quick midday check-in from PharMed Consultant Liberia:',
   ],
   closing: [
-    '🌇 Before We Close — Ducor PharMed Update',
+    '🌇 Before We Close — PharMed Consultant Liberia Update',
     '🌇 Last call before we close today:',
     '🌇 Closing time check — don’t miss out before tomorrow:',
   ],
@@ -123,7 +128,7 @@ function buildMessage(slot) {
     '',
     urgency,
     ORDER_LINE,
-    '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
+    '📍 PharMed Consultant Liberia — Monrovia, Liberia 🇱🇷',
   ].join('\n');
 }
 
