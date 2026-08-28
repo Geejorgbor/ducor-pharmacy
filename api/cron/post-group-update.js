@@ -93,11 +93,11 @@ function buildMessage(slot) {
     ].join('\n');
   }
 
-  // afternoon — different slice of the same real stock list (offset so it
-  // doesn't repeat the morning picks), same strong wholesale tone
+  // afternoon (posted near closing time) — different slice of the same
+  // real stock list (offset so it doesn't repeat the morning picks)
   const items = pickItems(stock, 6, seed + Math.ceil(stock.length / 2));
   return [
-    '☀️ Ducor PharMed Afternoon Update',
+    '🌇 Before We Close — Ducor PharMed Update',
     '',
     'Still available and ready to go for our valued partners:',
     '',

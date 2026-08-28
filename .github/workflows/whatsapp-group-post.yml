@@ -4,20 +4,21 @@ name: WhatsApp group post
 # Actions' free scheduler triggers it instead.
 #
 # This posts to Lucas's wholesale group (pharmacy/medicine store/clinic
-# owners) — morning (stock) and afternoon (vitamins) only. The evening
+# owners) — one post at opening time, one near closing time. The evening
 # message (retail promo codes) doesn't apply to this group, so it's not
 # scheduled here — the endpoint still supports it for a future retail group.
 #
 # Monrovia, Liberia has no daylight saving and is UTC+0, so these UTC times
-# are also the real local times: 8:00 AM, 1:00 PM.
+# are also the real local times: 9:00 AM (pharmacy opens) and 5:00 PM
+# (pharmacy closes), per Lucas.
 #
 # SETUP — add this repo secret (Settings → Secrets and variables → Actions):
 #   GROUP_POST_SECRET = <same value as GROUP_POST_SECRET in Vercel>
 
 on:
   schedule:
-    - cron: '0 8 * * *'   # 08:00 Monrovia — morning
-    - cron: '0 13 * * *'  # 13:00 Monrovia — afternoon
+    - cron: '0 9 * * *'   # 09:00 Monrovia — morning (opening)
+    - cron: '0 17 * * *'  # 17:00 Monrovia — afternoon (closing)
   workflow_dispatch:
     inputs:
       slot:
@@ -36,8 +37,8 @@ jobs:
             echo "slot=${{ github.event.inputs.slot }}" >> "$GITHUB_OUTPUT"
           else
             case "${{ github.event.schedule }}" in
-              '0 8 * * *')  echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
-              '0 13 * * *') echo "slot=afternoon" >> "$GITHUB_OUTPUT" ;;
+              '0 9 * * *')  echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
+              '0 17 * * *') echo "slot=afternoon" >> "$GITHUB_OUTPUT" ;;
             esac
           fi
 
