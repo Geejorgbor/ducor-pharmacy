@@ -1,6 +1,6 @@
 // Vercel serverless function — posts an automatic update to Lucas's real
-// wholesale WhatsApp group (pharmacy/medicine store/clinic owners), morning
-// and afternoon, from the pharmacy's real current stock — nothing made up.
+// wholesale WhatsApp group (pharmacy/medicine store/clinic owners), 3x/day,
+// from the pharmacy's real current stock — nothing made up.
 //
 // Content comes from WHOLESALE_STOCK_JSON, a plain JSON array of medication
 // names that ARE currently in stock (In-Stock + Nimba Stock + Over Stock >
@@ -13,8 +13,8 @@
 // Triggered by an external scheduler, not Vercel Cron: this project is on
 // Vercel's Hobby plan, which only allows a Cron Job to run once a day.
 // See .github/workflows/whatsapp-group-post.yml — it calls this endpoint
-// 2x/day at fixed Monrovia times (morning + afternoon only — Lucas said a
-// 3rd, retail-promo-code message doesn't fit this wholesale group).
+// 3x/day at fixed Monrovia times: 9AM (opening), 1PM (midday), 5PM
+// (closing), per Lucas's real store hours.
 //
 // SETUP — add these env vars in Vercel dashboard → Settings → Environment Variables:
 //   GROUP_POST_SECRET   = <any random string — must match the same secret
@@ -77,6 +77,7 @@ function formatItems(items) {
 function buildMessage(slot) {
   const seed = dayOfYear();
   const stock = getStockList();
+  const third = Math.ceil(stock.length / 3); // spreads the 3 daily slots across different items
 
   if (slot === 'morning') {
     const items = pickItems(stock, 6, seed);
@@ -93,9 +94,23 @@ function buildMessage(slot) {
     ].join('\n');
   }
 
-  // afternoon (posted near closing time) — different slice of the same
-  // real stock list (offset so it doesn't repeat the morning picks)
-  const items = pickItems(stock, 6, seed + Math.ceil(stock.length / 2));
+  if (slot === 'midday') {
+    const items = pickItems(stock, 6, seed + third);
+    return [
+      '🕐 Midday Restock Alert — Ducor PharMed',
+      '',
+      'More of what your customers are asking for, available right now:',
+      '',
+      formatItems(items),
+      '',
+      '🚀 Reach out and place your order before it moves.',
+      `📲 Order here: ${SHOP_URL}`,
+      '📍 Ducor International Pharmacy — Monrovia, Liberia 🇱🇷',
+    ].join('\n');
+  }
+
+  // closing (5PM) — different slice of the same real stock list
+  const items = pickItems(stock, 6, seed + third * 2);
   return [
     '🌇 Before We Close — Ducor PharMed Update',
     '',
@@ -120,8 +135,8 @@ module.exports = async function handler(req, res) {
   }
 
   const slot = (req.body && req.body.slot) || '';
-  if (!['morning', 'afternoon'].includes(slot)) {
-    return res.status(400).json({ ok: false, error: 'slot must be morning or afternoon' });
+  if (!['morning', 'midday', 'closing'].includes(slot)) {
+    return res.status(400).json({ ok: false, error: 'slot must be morning, midday, or closing' });
   }
 
   const API_URL = process.env.GREEN_API_URL;
