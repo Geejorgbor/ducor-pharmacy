@@ -8,16 +8,20 @@ name: WhatsApp group post
 #
 # Monrovia, Liberia has no daylight saving and is UTC+0, so these UTC times
 # are also the real local times: 9:00 AM (pharmacy opens), 1:00 PM (midday),
-# 5:00 PM (pharmacy closes), per Lucas.
+# 5:00 PM (pharmacy closes), per Lucas. Monday-Saturday only — closed Sunday.
+#
+# Times are set 5 minutes past the hour, not exactly on it: GitHub's free
+# scheduler gets overloaded at the top of every hour (everyone schedules
+# there), which was causing multi-hour delays. Off the hour avoids that.
 #
 # SETUP — add this repo secret (Settings → Secrets and variables → Actions):
 #   GROUP_POST_SECRET = <same value as GROUP_POST_SECRET in Vercel>
 
 on:
   schedule:
-    - cron: '0 9 * * *'   # 09:00 Monrovia — morning (opening)
-    - cron: '0 13 * * *'  # 13:00 Monrovia — midday
-    - cron: '0 17 * * *'  # 17:00 Monrovia — closing
+    - cron: '5 9 * * 1-6'   # 09:05 Monrovia, Mon-Sat — morning (opening)
+    - cron: '5 13 * * 1-6'  # 13:05 Monrovia, Mon-Sat — midday
+    - cron: '5 17 * * 1-6'  # 17:05 Monrovia, Mon-Sat — closing
   workflow_dispatch:
     inputs:
       slot:
@@ -36,9 +40,9 @@ jobs:
             echo "slot=${{ github.event.inputs.slot }}" >> "$GITHUB_OUTPUT"
           else
             case "${{ github.event.schedule }}" in
-              '0 9 * * *')  echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
-              '0 13 * * *') echo "slot=midday" >> "$GITHUB_OUTPUT" ;;
-              '0 17 * * *') echo "slot=closing" >> "$GITHUB_OUTPUT" ;;
+              '5 9 * * 1-6')  echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
+              '5 13 * * 1-6') echo "slot=midday" >> "$GITHUB_OUTPUT" ;;
+              '5 17 * * 1-6') echo "slot=closing" >> "$GITHUB_OUTPUT" ;;
             esac
           fi
 
