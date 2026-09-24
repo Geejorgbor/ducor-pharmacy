@@ -4,7 +4,7 @@
 const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
 const PHONE_RE = /^\+?[\d\s\-\(\)]{7,20}$/;
 
-import { requireApiAuth } from './_lib/requireApiAuth.js';
+import { requireAuth } from './_lib/auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
@@ -16,8 +16,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  const auth = await requireApiAuth(req, res);
-  if (!auth.ok) return;
+  if (!await requireAuth(req, res, { cronOk: true })) return;
 
   const { phone, code, name } = req.body || {};
 

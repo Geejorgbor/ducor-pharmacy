@@ -24,7 +24,7 @@ async function sendWhatsApp(apiUrl, id, token, message, chatId = BOSS_CHAT_ID) {
 
 const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
 
-import { requireApiAuth } from './_lib/requireApiAuth.js';
+import { requireAuth } from './_lib/auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
@@ -36,8 +36,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  const auth = await requireApiAuth(req, res);
-  if (!auth.ok) return;
+  if (!await requireAuth(req, res, { cronOk: true })) return;
 
   const API_URL = process.env.GREEN_API_URL;
   const ID      = process.env.GREEN_API_ID;
