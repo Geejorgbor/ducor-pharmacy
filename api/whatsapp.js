@@ -45,51 +45,14 @@ export default async function handler(req, res) {
   const { order, type, delivery, admin } = req.body || {};
 
   try {
-    // TEMPORARY diagnostic — checks whether the WhatsApp instance itself is
-    // actually connected/authorized, not just whether the API accepted the
-    // request (Green API can return a message ID even if the underlying
-    // phone session is disconnected). Remove once the delivery issue is
-    // diagnosed.
-    if (type === 'check_status') {
-      const stateResp = await fetch(`${API_URL}/waInstance${ID}/getStateInstance/${TOKEN}`);
-      const state = await stateResp.json();
-      const settingsResp = await fetch(`${API_URL}/waInstance${ID}/getSettings/${TOKEN}`);
-      const settings = await settingsResp.json();
-      return res.status(200).json({ state, settings });
-    }
-
-    // TEMPORARY diagnostic — lists every chat (including groups) this
-    // WhatsApp account is part of, so the right group's chatId can be
-    // identified for scheduled group posting. Remove once that ID is found.
-    if (type === 'list_groups') {
-      const chatsResp = await fetch(`${API_URL}/waInstance${ID}/getChats/${TOKEN}`);
-      const chats = await chatsResp.json();
-      const groups = (chats || []).filter((c) => (c.id || '').endsWith('@g.us'));
-      return res.status(200).json({ groups });
-    }
-
-    // ONE-TIME — the "we're back" announcement to the PharMed Consultant
-    // Liberia wholesale group, approved word-for-word by Lucas in chat on
-    // 2026-08-28. Remove this block after it's been sent once.
-    if (type === 'pharmed_welcome_back_announcement') {
-      const WHOLESALE_GROUP_CHAT_ID = '120363425756994007@g.us';
-      const message = [
-        "🎉📢 WE'RE BACK — PharMed Consultant Liberia! 📢🎉",
-        '',
-        'Hello to our whole family of pharmacy, medicine store, and clinic partners!',
-        '',
-        "It's been about a week since our last update here, and we're sorry for the quiet — we were setting up something better behind the scenes. 🙏",
-        '',
-        "Starting today, this group will get real stock updates straight from our warehouse — every morning, midday, and evening. No more long gaps. We're back, and we're here to stay. 💪",
-        '',
-        'Reminder: this is *PharMed Consultant Liberia*, your trusted wholesale partner — real stock, real prices, always ready to serve your business.',
-        '',
-        '📞 Call or WhatsApp *Lucas Paye* anytime to order: wa.me/231888916127 (+231 88 891 6127)',
-        '',
-        "Thank you for staying with us — let's grow together! 🚀",
-      ].join('\n');
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, WHOLESALE_GROUP_CHAT_ID);
-      return res.status(200).json(result);
+    // Diagnostic / one-shot announce types hard-disabled (AppSec).
+    // Do not call Green API for these — they were unauthenticated remoting.
+    if (
+      type === 'check_status' ||
+      type === 'list_groups' ||
+      type === 'pharmed_welcome_back_announcement'
+    ) {
+      return res.status(403).json({ ok: false, error: 'disabled' });
     }
 
     // ── Boss logged into the admin dashboard — alert Lucas, never the boss ──
