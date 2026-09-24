@@ -375,17 +375,20 @@ const Cart = {
   renderDrawer() {
     const el = document.getElementById('cart-items-list');
     if (!el) return;
+    const totalLine = document.getElementById('cart-total-line');
+    const subtotalVal = document.getElementById('cart-subtotal-val');
+    const totalVal = document.getElementById('cart-total-val');
     if (this.items.length === 0) {
       el.innerHTML = `<div class="cart-empty">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         <p>Your cart is empty</p>
       </div>`;
-      document.getElementById('cart-total-line').style.display = 'none';
+      if (totalLine) totalLine.style.display = 'none';
       return;
     }
-    document.getElementById('cart-total-line').style.display = '';
-    const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
-    const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+    if (totalLine) totalLine.style.display = '';
+    const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg', plan: 'otc-bg' };
+    const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit, plan: ICONS.otc };
     el.innerHTML = this.items.map(item => `
       <div class="cart-item">
         <div class="cart-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
@@ -401,8 +404,8 @@ const Cart = {
         <button class="cart-remove" onclick="Cart.remove('${item.id}')" title="Remove">×</button>
       </div>`).join('');
     const sub = this.subtotal();
-    document.getElementById('cart-subtotal-val').textContent = '$' + sub.toFixed(2);
-    document.getElementById('cart-total-val').textContent = '$' + sub.toFixed(2);
+    if (subtotalVal) subtotalVal.textContent = '$' + sub.toFixed(2);
+    if (totalVal) totalVal.textContent = '$' + sub.toFixed(2);
   },
 
   open() {
@@ -423,6 +426,7 @@ const Cart = {
 
 function showToast(msg) {
   const container = document.getElementById('toast-container');
+  if (!container) return;
   const t = document.createElement('div');
   t.className = 'toast';
   t.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>${msg}`;

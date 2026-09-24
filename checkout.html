@@ -152,16 +152,25 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 <script>
-// Session guard — redirect to login if not authenticated
+// Session guard — redirect to login if not authenticated (once; avoid auth↔checkout loop)
 (function(){
   var SESSION_KEY='ducor_sess_v2';
+  var LOOP_KEY='ducor_checkout_auth_bounce';
   try{
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     if(!raw){throw new Error('no session');}
     var s=JSON.parse(raw);
     if(!s||!s.userId||!s.token||Date.now()>s.expiry){throw new Error('expired');}
+    try{ sessionStorage.removeItem(LOOP_KEY); }catch(x){}
   }catch(e){
-    window.location.replace('/auth.html?next='+encodeURIComponent('/checkout.html'+window.location.search));
+    var bounced=false;
+    try{ bounced=sessionStorage.getItem(LOOP_KEY)==='1'; sessionStorage.setItem(LOOP_KEY,'1'); }catch(x){}
+    var next='/checkout.html'+window.location.search;
+    if(bounced){
+      // Already bounced once — clear stale session and go to auth cleanly (no sticky gate loop)
+      try{ sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(LOOP_KEY); }catch(x){}
+    }
+    window.location.replace('/auth.html?next='+encodeURIComponent(next));
   }
 })();
 </script>
@@ -630,6 +639,7 @@
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _fbCfg = {
   apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -641,6 +651,14 @@ const _fbCfg = {
 };
 const _fbApp = getApps().length ? getApps()[0] : initializeApp(_fbCfg);
 const _db = getFirestore(_fbApp);
+const _auth = getAuth(_fbApp);
+function _waitForAuthUser(){
+  if (_auth.currentUser) return Promise.resolve(_auth.currentUser);
+  return new Promise(resolve => {
+    const unsub = onAuthStateChanged(_auth, u => { unsub(); resolve(u || null); });
+    setTimeout(() => { try{unsub()}catch(e){}; resolve(_auth.currentUser||null); }, 4000);
+  });
+}
 
 async function _saveOrderToFirestore(orderData) {
   try {
@@ -651,6 +669,8 @@ async function _saveOrderToFirestore(orderData) {
 async function _markCustomerSubscriptionPending(email) {
   if (!email) return;
   try {
+    const user = await _waitForAuthUser();
+    if (!user) return; // rules require request.auth — do not attempt unauthenticated customer writes
     const snap = await getDocs(query(collection(_db, 'customers'), where('email', '==', email.toLowerCase())));
     if (snap.empty) return;
     await updateDoc(snap.docs[0].ref, {
@@ -1172,6 +1192,7 @@ window._db = _db;
   function renderSummary() {
     Cart.load();
     const body = document.getElementById('order-summary-body');
+    if (!body) return;
     if (Cart.items.length === 0) return;
     const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg', plan: 'otc-bg' };
     const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit, plan: ICONS.otc };
@@ -1203,11 +1224,11 @@ window._db = _db;
           </div>`).join('')}
       </div>
       <hr class="order-divider"/>
-      ${otcItems.length > 0 ? `<div class="order-line"><span>Subtotal (OTC &amp; Vitamins)</span><span>$${sub.toFixed(2)}</span></div>` : ''}
+      ${(otcItems.length > 0 || planItems.length > 0) ? `<div class="order-line"><span>Subtotal${planItems.length > 0 && otcItems.length === 0 ? ' (Subscription)' : ' (OTC &amp; Vitamins)'}</span><span>$${sub.toFixed(2)}</span></div>` : ''}
       ${rxItems.length > 0 ? `<div class="order-line"><span>Prescription Items (${rxItems.length})</span><span style="color:#0891b2;font-size:12px;font-weight:600">Price to be confirmed</span></div>` : ''}
       ${discountRow}
       <div class="order-line"><span>Delivery Fee</span><span style="${deliveryFee > 0 ? '' : 'color:#16a34a;font-weight:600'}">${deliveryFee > 0 ? '$' + deliveryFee.toFixed(2) : (deliveryMethod === 'delivery' ? 'Free (order over $' + FREE_DELIVERY_THRESHOLD + ')' : 'Free (pickup)')}</span></div>
-      ${otcItems.length > 0 ? `<div class="order-line total"><span>Total${rxItems.length > 0 ? ' (excl. RX)' : ''}</span><span>$${total.toFixed(2)}</span></div>` : `<div class="order-line total" style="font-size:13px"><span>Total</span><span style="color:#0891b2">Confirmed by pharmacist</span></div>`}`;
+      ${(otcItems.length > 0 || planItems.length > 0) ? `<div class="order-line total"><span>Total${rxItems.length > 0 ? ' (excl. RX)' : ''}</span><span>$${total.toFixed(2)}</span></div>` : `<div class="order-line total" style="font-size:13px"><span>Total</span><span style="color:#0891b2">Confirmed by pharmacist</span></div>`}`;
     if (hasRxItems()) document.getElementById('rx-health-section').style.display = 'block';
   }
 
