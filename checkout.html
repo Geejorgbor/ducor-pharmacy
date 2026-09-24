@@ -152,16 +152,25 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 <script>
-// Session guard — redirect to login if not authenticated
+// Session guard — redirect to login if not authenticated (once; avoid auth↔checkout loop)
 (function(){
   var SESSION_KEY='ducor_sess_v2';
+  var LOOP_KEY='ducor_checkout_auth_bounce';
   try{
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     if(!raw){throw new Error('no session');}
     var s=JSON.parse(raw);
     if(!s||!s.userId||!s.token||Date.now()>s.expiry){throw new Error('expired');}
+    try{ sessionStorage.removeItem(LOOP_KEY); }catch(x){}
   }catch(e){
-    window.location.replace('/auth.html?next='+encodeURIComponent('/checkout.html'+window.location.search));
+    var bounced=false;
+    try{ bounced=sessionStorage.getItem(LOOP_KEY)==='1'; sessionStorage.setItem(LOOP_KEY,'1'); }catch(x){}
+    var next='/checkout.html'+window.location.search;
+    if(bounced){
+      // Already bounced once — clear stale session and go to auth cleanly (no sticky gate loop)
+      try{ sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(LOOP_KEY); }catch(x){}
+    }
+    window.location.replace('/auth.html?next='+encodeURIComponent(next));
   }
 })();
 </script>
@@ -1203,11 +1212,11 @@ window._db = _db;
           </div>`).join('')}
       </div>
       <hr class="order-divider"/>
-      ${otcItems.length > 0 ? `<div class="order-line"><span>Subtotal (OTC &amp; Vitamins)</span><span>$${sub.toFixed(2)}</span></div>` : ''}
+      ${(otcItems.length > 0 || planItems.length > 0) ? `<div class="order-line"><span>Subtotal${planItems.length > 0 && otcItems.length === 0 ? ' (Subscription)' : ' (OTC &amp; Vitamins)'}</span><span>$${sub.toFixed(2)}</span></div>` : ''}
       ${rxItems.length > 0 ? `<div class="order-line"><span>Prescription Items (${rxItems.length})</span><span style="color:#0891b2;font-size:12px;font-weight:600">Price to be confirmed</span></div>` : ''}
       ${discountRow}
       <div class="order-line"><span>Delivery Fee</span><span style="${deliveryFee > 0 ? '' : 'color:#16a34a;font-weight:600'}">${deliveryFee > 0 ? '$' + deliveryFee.toFixed(2) : (deliveryMethod === 'delivery' ? 'Free (order over $' + FREE_DELIVERY_THRESHOLD + ')' : 'Free (pickup)')}</span></div>
-      ${otcItems.length > 0 ? `<div class="order-line total"><span>Total${rxItems.length > 0 ? ' (excl. RX)' : ''}</span><span>$${total.toFixed(2)}</span></div>` : `<div class="order-line total" style="font-size:13px"><span>Total</span><span style="color:#0891b2">Confirmed by pharmacist</span></div>`}`;
+      ${(otcItems.length > 0 || planItems.length > 0) ? `<div class="order-line total"><span>Total${rxItems.length > 0 ? ' (excl. RX)' : ''}</span><span>$${total.toFixed(2)}</span></div>` : `<div class="order-line total" style="font-size:13px"><span>Total</span><span style="color:#0891b2">Confirmed by pharmacist</span></div>`}`;
     if (hasRxItems()) document.getElementById('rx-health-section').style.display = 'block';
   }
 

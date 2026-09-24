@@ -813,7 +813,7 @@ window.signInWithGoogle = async function(btnId) {
     const result = await signInWithPopup(_auth, _gProvider);
     btn.innerHTML = _SPINNER + ' Signing you in…';
     await processGoogleUser(result.user);
-    window.location.href = _nextUrl;
+    _persistDipAndGo(_nextUrl);
 
   } catch(err) {
     // User just closed the popup — no error, just restore
@@ -837,7 +837,33 @@ window.signInWithGoogle = async function(btnId) {
 
 /* ── REDIRECT / SESSION ── */
 const _nextUrl=(()=>{const p=new URLSearchParams(window.location.search).get('next');return(p&&p.startsWith('/')&&!p.startsWith('///'))?p:'/account.html';})();
-(()=>{if(_nextUrl==='/checkout.html')document.getElementById('checkout-note').classList.add('show');})();
+(()=>{
+  const goingCheckout=_nextUrl==='/checkout.html'||_nextUrl.startsWith('/checkout.html');
+  if(goingCheckout){
+    const note=document.getElementById('checkout-note');
+    if(note) note.classList.add('show');
+  }
+  // Persist DIP plan intent even if ?plan= is dropped from next after auth
+  try{
+    if(goingCheckout && /[?&]plan=dip(?:&|$)/.test(_nextUrl)){
+      localStorage.setItem('dipSubscribe','1');
+    }
+  }catch(e){}
+})();
+function _persistDipAndGo(url){
+  try{
+    const u=url||_nextUrl;
+    if((u==='/checkout.html'||u.startsWith('/checkout.html')) && /[?&]plan=dip(?:&|$)/.test(u)){
+      localStorage.setItem('dipSubscribe','1');
+    }
+  }catch(e){}
+  // Clear auth-gate so a failed/looping redirect does not leave a blank dark Loading screen
+  try{
+    const gate=document.getElementById('auth-gate');
+    if(gate) gate.style.display='none';
+  }catch(e){}
+  window.location.href = url||_nextUrl;
+}
 
 function _showLoginCard() {
   const gate = document.getElementById('auth-gate');
@@ -860,7 +886,7 @@ const _gateTimeout = setTimeout(() => _showLoginCard(), 3000);
   if (getSession()) {
     clearTimeout(_gateTimeout);
     _gateMsg('Loading your account…');
-    window.location.href = _nextUrl;
+    _persistDipAndGo(_nextUrl);
     return;
   }
 
@@ -874,7 +900,7 @@ const _gateTimeout = setTimeout(() => _showLoginCard(), 3000);
     if (result) {
       _gateMsg('Signing you in…');
       await processGoogleUser(result.user);
-      window.location.href = _nextUrl;
+      _persistDipAndGo(_nextUrl);
       return;
     }
   } catch(err) {
@@ -927,7 +953,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
     } catch(ex) {}
 
     createSession(uid, remember);
-    window.location.href = _nextUrl;
+    _persistDipAndGo(_nextUrl);
   } catch(firebaseErr) {
     // Fallback for legacy accounts (created before Firebase Auth upgrade)
     if (firebaseErr.code === 'auth/user-not-found' || firebaseErr.code === 'auth/invalid-credential' || firebaseErr.code === 'auth/wrong-password') {
@@ -937,7 +963,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
         if (user && user.pwHash === hash) {
           saveLocalUser(user);
           createSession(user.id||user.userId, remember);
-          window.location.href = _nextUrl;
+          _persistDipAndGo(_nextUrl);
           return;
         }
       } catch(ex) {}
@@ -1013,7 +1039,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
 
     createSession(userId, false);
     document.getElementById('signup-ok').classList.add('show');
-    setTimeout(() => window.location.href = _nextUrl, 1600);
+    setTimeout(() => _persistDipAndGo(_nextUrl), 1600);
   } catch(err) {
     if (err.code === 'auth/email-already-in-use') {
       setErr('su-email-err','An account with this email already exists. Try signing in.');
