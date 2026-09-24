@@ -1170,7 +1170,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, where, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -1190,7 +1190,7 @@ const db = getFirestore(app);
 // Expose everything that code needs directly on window instead of relying
 // on scope leakage.
 window.db = db;
-window._fs = { collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, limit, serverTimestamp };
+window._fs = { collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, where, limit, serverTimestamp };
 
 // ── DEFAULT PRODUCT DATA (from shop.js) ──
 const DEFAULT_PRODUCTS = {
@@ -4210,10 +4210,34 @@ async function aiExec_confirmPayment(orderId) {
   if (!order) return `⚠ Order not found: ${orderId}`;
   order.paymentConfirmed = true;
   order.paymentConfirmedAt = new Date().toISOString();
+  if (order.isSubscription) {
+    order.subscriptionStatus = 'active';
+    order.subscriptionActivatedAt = order.paymentConfirmedAt;
+  }
   window._saveOrdersCache(window.ORDERS);
   try {
     if (window.db && window._fs) {
-      await window._fs.updateDoc(window._fs.doc(window.db, 'orders', order.id), { paymentConfirmed: true, paymentConfirmedAt: order.paymentConfirmedAt });
+      const patch = { paymentConfirmed: true, paymentConfirmedAt: order.paymentConfirmedAt };
+      if (order.isSubscription) {
+        patch.subscriptionStatus = 'active';
+        patch.subscriptionActivatedAt = order.paymentConfirmedAt;
+      }
+      await window._fs.updateDoc(window._fs.doc(window.db, 'orders', order.id), patch);
+      if (order.isSubscription && order.buyerEmail) {
+        const email = String(order.buyerEmail).toLowerCase();
+        const start = new Date();
+        const end = new Date(start); end.setFullYear(end.getFullYear() + 1);
+        const fields = {
+          subscriber: true,
+          subscriptionStatus: 'active',
+          subscriptionPlan: order.subscriptionPlan || 'dip',
+          planStart: start.toISOString(),
+          planEnd: end.toISOString(),
+          planActivatedAt: start.toISOString()
+        };
+        const snap = await window._fs.getDocs(window._fs.query(window._fs.collection(window.db, 'customers'), window._fs.where('email', '==', email)));
+        if (!snap.empty) await window._fs.updateDoc(snap.docs[0].ref, fields);
+      }
     }
   } catch(e) {}
   if (typeof renderAllTables === 'function') renderAllTables();

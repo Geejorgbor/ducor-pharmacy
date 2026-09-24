@@ -129,7 +129,12 @@
 </div>
 
 <script>
-const GITHUB_TOKEN = atob('Z2hwX3NTcFJkZmV6Z1V2RnpVTUhzc1pubmJLWWdCaGlrUDJzUkxYNQ==');
+const GITHUB_TOKEN = (function(){
+  try { return sessionStorage.getItem('ducor_gh_token') || ''; } catch(e) { return ''; }
+})();
+if (!GITHUB_TOKEN) {
+  console.warn('GitHub upload token not set — paste via dashboard or set sessionStorage ducor_gh_token');
+}
 const REPO         = 'Geejorgbor/ducor-pharmacy';
 const PASS         = 'DucorAdmin2025!';
 

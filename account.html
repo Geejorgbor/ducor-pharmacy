@@ -259,6 +259,16 @@
         <span class="wb-badge">Verified Client</span>
       </div>
 
+      
+      <div id="dip-sub-card" class="stat-card" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 22px;border:1px solid rgba(201,160,85,0.35);background:linear-gradient(135deg,rgba(10,37,88,0.03),rgba(201,160,85,0.08))">
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#c9a055;margin-bottom:4px">DIP Subscription Plan</div>
+          <div id="dip-sub-status" style="font-size:1.05rem;font-weight:700;color:#0a2558">Not subscribed</div>
+          <div id="dip-sub-detail" style="font-size:0.85rem;color:#64748b;margin-top:4px">Subscribe for $120/year to unlock SUBSCRIBER40 on medication orders.</div>
+        </div>
+        <a id="dip-sub-cta" href="/checkout.html?plan=dip" class="btn-gold" style="padding:10px 22px;font-size:0.88rem;text-decoration:none;white-space:nowrap">Subscribe — $120/yr</a>
+      </div>
+
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-icon ic-gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a055" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
@@ -645,7 +655,74 @@ window.logout = async function() {
 };
 
 /* ── Load UI ── */
-function loadUI(user) {
+
+function renderDipSubscription(user) {
+  const statusEl = document.getElementById('dip-sub-status');
+  const detailEl = document.getElementById('dip-sub-detail');
+  const cta = document.getElementById('dip-sub-cta');
+  if (!statusEl) return;
+  const end = user.planEnd ? new Date(user.planEnd) : null;
+  const active = !!user.subscriber && (!end || end.getTime() > Date.now());
+  if (active) {
+    statusEl.textContent = 'Active';
+    statusEl.style.color = '#15803d';
+    detailEl.textContent = end
+      ? ('Plan active until ' + end.toLocaleDateString() + '. SUBSCRIBER40 applies automatically at checkout.')
+      : 'Plan active. SUBSCRIBER40 applies automatically at checkout.';
+    if (cta) { cta.textContent = 'View plan benefits'; cta.href = '/index.html#dip-plan'; }
+  } else if (user.subscriptionStatus === 'pending') {
+    statusEl.textContent = 'Pending activation';
+    statusEl.style.color = '#b45309';
+    detailEl.textContent = 'We received your subscription order. It activates when payment is confirmed.';
+    if (cta) { cta.textContent = 'View orders'; cta.href = '#'; cta.onclick = (e)=>{e.preventDefault(); showPage("orders");}; }
+  } else {
+    statusEl.textContent = 'Not subscribed';
+    statusEl.style.color = '#0a2558';
+    detailEl.textContent = 'Subscribe for $120/year to unlock SUBSCRIBER40 on medication orders.';
+    if (cta) { cta.textContent = 'Subscribe — $120/yr'; cta.href = '/checkout.html?plan=dip'; cta.onclick = null; }
+  }
+}
+
+async function syncSubscriptionFromPaidOrders(user) {
+  if (!user || !user.email) return user;
+  try {
+    const email = user.email.toLowerCase();
+    const snap = await getDocs(query(collection(_fdb, 'orders'), where('buyerEmail', '==', email)));
+    let best = null;
+    snap.forEach(doc => {
+      const o = doc.data();
+      if (!o.isSubscription) return;
+      if (!(o.paymentConfirmed || o.subscriptionStatus === 'active')) return;
+      const start = new Date(o.subscriptionActivatedAt || o.paymentConfirmedAt || o.createdAt || Date.now());
+      const end = new Date(start.getTime()); end.setFullYear(end.getFullYear() + 1);
+      if (!best || end > best.planEnd) best = { planStart: start, planEnd: end, plan: o.subscriptionPlan || 'dip' };
+    });
+    if (!best) return user;
+    if (user.subscriber && user.planEnd && new Date(user.planEnd) >= best.planEnd) return user;
+    const fields = {
+      subscriber: true,
+      subscriptionStatus: 'active',
+      subscriptionPlan: best.plan,
+      planStart: best.planStart.toISOString(),
+      planEnd: best.planEnd.toISOString(),
+      planActivatedAt: new Date().toISOString()
+    };
+    Object.assign(user, fields);
+    try { await updateFirestoreUser(user.id, user.email, fields); } catch(e) {}
+    // mirror local
+    try {
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+      const i = users.findIndex(u => u.id === user.id || (u.email||'').toLowerCase() === email);
+      if (i >= 0) { Object.assign(users[i], fields); localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+    } catch(e) {}
+  } catch(e) {}
+  return user;
+}
+
+async function loadUI(user) {
+  user = await syncSubscriptionFromPaidOrders(user) || user;
+  renderDipSubscription(user);
+
   const initials = ((user.fname || '?')[0] + ((user.lname || ' ')[0])).toUpperCase();
   const fullName = (user.fname + ' ' + (user.lname || '')).trim();
 

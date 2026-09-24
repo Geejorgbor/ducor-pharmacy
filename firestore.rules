@@ -3,6 +3,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in ['lucaspaye02@gmail.com', 'ducor.adminducorpharmacy@gmail.com'];
+    }
+
+
     // Orders — checkout creates orders without requiring an account.
     // Tracking (by ref), delivery confirmation, and payment confirmation
     // are all public "secret link" flows for guest checkout, so reads
@@ -17,7 +24,8 @@ service cloud.firestore {
                       .hasOnly([
                         'status', 'statusUpdatedAt', 'confirmToken',
                         'deliveredAt', 'confirmedByCustomer',
-                        'paymentConfirmed', 'paymentConfirmedAt', 'adminNote'
+                        'paymentConfirmed', 'paymentConfirmedAt', 'adminNote',
+                        'subscriptionStatus', 'subscriptionActivatedAt'
                       ]);
       allow delete: if false;
     }
@@ -28,8 +36,10 @@ service cloud.firestore {
     match /customers/{docId} {
       allow create: if request.auth != null
                       && request.resource.data.email == request.auth.token.email;
-      allow read, update: if request.auth != null
-                      && resource.data.email == request.auth.token.email;
+      allow read: if request.auth != null
+                      && (resource.data.email == request.auth.token.email || isAdmin());
+      allow update: if request.auth != null
+                      && (resource.data.email == request.auth.token.email || isAdmin());
       allow delete: if false;
     }
 
@@ -39,10 +49,6 @@ service cloud.firestore {
     // real admin accounts rather than "any authenticated user", since
     // customers can also create Firebase Auth accounts via auth.html and
     // shouldn't be able to read business analytics.
-    function isAdmin() {
-      return request.auth != null &&
-        request.auth.token.email in ['lucaspaye02@gmail.com', 'ducor.adminducorpharmacy@gmail.com'];
-    }
     match /analytics_visits/{id} {
       allow create: if true;
       allow read: if isAdmin();

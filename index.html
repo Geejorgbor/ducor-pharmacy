@@ -1065,7 +1065,7 @@ document.addEventListener('keydown',function(e){
       <p style="color:var(--gold);font-size:0.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px">Cost Sharing Example</p>
       <p style="color:rgba(255,255,255,0.82);font-size:0.9rem;line-height:1.65">Pay just <strong style="color:#fff">$9 copay</strong> for a generic drug instead of the full retail price of <strong style="color:#fff">$40 or more</strong> — real savings every time.</p>
     </div>
-    <a href="/checkout.html" class="btn-gold" style="display:inline-block;padding:16px 52px;font-size:1rem;letter-spacing:0.5px">Subscribe Now — $120 / Year</a>
+    <a href="/checkout.html?plan=dip" class="btn-gold" style="display:inline-block;padding:16px 52px;font-size:1rem;letter-spacing:0.5px" onclick="try{localStorage.setItem('dipSubscribe','1')}catch(e){}">Subscribe Now — $120 / Year</a>
   </div>
 
   <!-- 5 plan benefits grid -->
