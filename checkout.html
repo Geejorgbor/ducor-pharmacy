@@ -639,6 +639,7 @@
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _fbCfg = {
   apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -650,6 +651,14 @@ const _fbCfg = {
 };
 const _fbApp = getApps().length ? getApps()[0] : initializeApp(_fbCfg);
 const _db = getFirestore(_fbApp);
+const _auth = getAuth(_fbApp);
+function _waitForAuthUser(){
+  if (_auth.currentUser) return Promise.resolve(_auth.currentUser);
+  return new Promise(resolve => {
+    const unsub = onAuthStateChanged(_auth, u => { unsub(); resolve(u || null); });
+    setTimeout(() => { try{unsub()}catch(e){}; resolve(_auth.currentUser||null); }, 4000);
+  });
+}
 
 async function _saveOrderToFirestore(orderData) {
   try {
@@ -660,6 +669,8 @@ async function _saveOrderToFirestore(orderData) {
 async function _markCustomerSubscriptionPending(email) {
   if (!email) return;
   try {
+    const user = await _waitForAuthUser();
+    if (!user) return; // rules require request.auth — do not attempt unauthenticated customer writes
     const snap = await getDocs(query(collection(_db, 'customers'), where('email', '==', email.toLowerCase())));
     if (snap.empty) return;
     await updateDoc(snap.docs[0].ref, {
@@ -1181,6 +1192,7 @@ window._db = _db;
   function renderSummary() {
     Cart.load();
     const body = document.getElementById('order-summary-body');
+    if (!body) return;
     if (Cart.items.length === 0) return;
     const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg', plan: 'otc-bg' };
     const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit, plan: ICONS.otc };
