@@ -153,10 +153,22 @@
   </style>
 <script>
 // Session guard — redirect to login if not authenticated (once; avoid auth↔checkout loop)
+// DIP share/subscribe (?plan=dip or dipSubscribe=1): allow guest checkout — skip auth wall
 (function(){
   var SESSION_KEY='ducor_sess_v2';
   var LOOP_KEY='ducor_checkout_auth_bounce';
   try{
+    // Guest DIP path: form-first checkout with $120 plan (Boss share / Subscribe Now)
+    var allowGuestDip=false;
+    try{
+      var _dipParams=new URLSearchParams(window.location.search);
+      allowGuestDip=_dipParams.get('plan')==='dip'||localStorage.getItem('dipSubscribe')==='1';
+      if(_dipParams.get('plan')==='dip'){ try{ localStorage.setItem('dipSubscribe','1'); }catch(x){} }
+    }catch(x){}
+    if(allowGuestDip){
+      try{ sessionStorage.removeItem(LOOP_KEY); }catch(x){}
+      return;
+    }
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     if(!raw){throw new Error('no session');}
     var s=JSON.parse(raw);
@@ -1239,6 +1251,7 @@ window._db = _db;
       const params = new URLSearchParams(window.location.search);
       const wants = params.get('plan') === 'dip' || localStorage.getItem('dipSubscribe') === '1';
       if (!wants) return;
+      try { localStorage.setItem('dipSubscribe', '1'); } catch(e) {}
       if (typeof Cart.addSubscriptionPlan === 'function') Cart.addSubscriptionPlan();
       if (params.get('plan') === 'dip') {
         params.delete('plan');
