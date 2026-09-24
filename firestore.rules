@@ -4,9 +4,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
 
+    // Phase A: single operator email — must match assets/admin-auth.js ADMIN_EMAILS.
     function isAdmin() {
       return request.auth != null &&
-        request.auth.token.email in ['lucaspaye02@gmail.com', 'ducor.adminducorpharmacy@gmail.com'];
+        request.auth.token.email in ['lucaspaye02@gmail.com'];
     }
 
 
