@@ -1,13 +1,18 @@
 // Ducor International Pharmacy — AI Chat API
 // Powered by Claude via OpenRouter
 
+import { requireApiAuth } from './_lib/requireApiAuth.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://ducor-international-pharmacy.com');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-cron-secret');
   res.setHeader('Vary', 'Origin');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const auth = await requireApiAuth(req, res);
+  if (!auth.ok) return;
 
   // Discard client-supplied system / isAdmin — never honor prompt overrides from the browser
   const { messages = [], system: _clientSystem, customSystem: _customSystem, isAdmin: _isAdmin } = req.body || {};

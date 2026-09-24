@@ -4,15 +4,20 @@
 const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
 const PHONE_RE = /^\+?[\d\s\-\(\)]{7,20}$/;
 
+import { requireApiAuth } from './_lib/requireApiAuth.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-cron-secret');
   res.setHeader('Vary', 'Origin');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
+
+  const auth = await requireApiAuth(req, res);
+  if (!auth.ok) return;
 
   const { phone, code, name } = req.body || {};
 
