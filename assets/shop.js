@@ -361,7 +361,16 @@ const Cart = {
   },
 
   subtotal() {
-    return this.items.reduce((s, i) => s + i.price * i.qty, 0);
+    // Rx lines are quote-pending ("Contact for pricing") — never fold their
+    // catalog/list prices into the visible cart subtotal or checkout total.
+    return this.items.reduce((s, i) => {
+      if (i.category === 'rx' || i.category === 'prescription') return s;
+      return s + (Number(i.price) || 0) * (Number(i.qty) || 0);
+    }, 0);
+  },
+
+  hasQuotePendingRx() {
+    return this.items.some(i => i.category === 'rx' || i.category === 'prescription');
   },
 
   updateBadge() {
@@ -401,8 +410,19 @@ const Cart = {
         <button class="cart-remove" onclick="Cart.remove('${item.id}')" title="Remove">×</button>
       </div>`).join('');
     const sub = this.subtotal();
-    document.getElementById('cart-subtotal-val').textContent = '$' + sub.toFixed(2);
-    document.getElementById('cart-total-val').textContent = '$' + sub.toFixed(2);
+    const rxPending = this.hasQuotePendingRx();
+    const subEl = document.getElementById('cart-subtotal-val');
+    const totEl = document.getElementById('cart-total-val');
+    if (subEl) {
+      if (rxPending && sub === 0) subEl.textContent = 'Quote pending';
+      else if (rxPending) subEl.textContent = '$' + sub.toFixed(2) + ' + Rx quote';
+      else subEl.textContent = '$' + sub.toFixed(2);
+    }
+    if (totEl) {
+      if (rxPending && sub === 0) totEl.textContent = 'Quote pending';
+      else if (rxPending) totEl.textContent = '$' + sub.toFixed(2) + ' + Rx quote';
+      else totEl.textContent = '$' + sub.toFixed(2);
+    }
   },
 
   open() {
