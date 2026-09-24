@@ -56,15 +56,14 @@
 </head>
 <body>
 
-<!-- Lock screen -->
+<!-- Lock screen — no client password; sessionStorage gate (same spirit as ducor_gh_token) -->
 <div id="lock-screen">
   <div class="lock-card">
     <div style="font-size:48px">🔐</div>
     <h2>Photo Upload</h2>
-    <p>Enter the admin password to upload product photos</p>
-    <input type="password" id="lock-pw" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()"/>
-    <div class="lock-err" id="lock-err">Wrong password. Try again.</div>
-    <button class="btn btn-upload" onclick="unlock()">Enter</button>
+    <p id="lock-msg">Photo upload requires an operator session. Set <code>sessionStorage.ducor_gh_token</code> from the admin dashboard (same session as GitHub uploads), or wait for the Auth + <code>admin</code> claim flow. No shared password is accepted here.</p>
+    <div class="lock-err" id="lock-err" style="display:none">Operator session not found. Open the admin dashboard first, or set sessionStorage <code>ducor_gh_token</code> in this browser tab — do not paste secrets into the page source.</div>
+    <button class="btn btn-upload" type="button" onclick="tryUnlock()">Check operator session</button>
   </div>
 </div>
 
@@ -136,23 +135,35 @@ if (!GITHUB_TOKEN) {
   console.warn('GitHub upload token not set — paste via dashboard or set sessionStorage ducor_gh_token');
 }
 const REPO         = 'Geejorgbor/ducor-pharmacy';
-const PASS         = 'DucorAdmin2025!';
 
-// ── Auth ─────────────────────────────────────────────────────────────
-function unlock() {
-  const pw = document.getElementById('lock-pw').value;
-  if (pw === PASS) {
-    document.getElementById('lock-screen').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    loadProducts();
-  } else {
-    document.getElementById('lock-err').style.display = 'block';
-    document.getElementById('lock-pw').value = '';
+// ── Auth (no client password / no embedded PAT) ──────────────────────
+// Unlock when this tab already has sessionStorage ducor_gh_token (set via
+// dashboard). Future: Firebase Auth + admin claim. Never hardcode secrets.
+function hasOperatorSession() {
+  try {
+    return !!(sessionStorage.getItem('ducor_gh_token') || '').trim();
+  } catch (e) {
+    return false;
   }
 }
-document.getElementById('lock-pw').addEventListener('keydown', e => {
-  if (e.key === 'Enter') unlock();
-});
+
+function openMain() {
+  document.getElementById('lock-screen').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  loadProducts();
+}
+
+function tryUnlock() {
+  if (hasOperatorSession()) {
+    openMain();
+  } else {
+    document.getElementById('lock-err').style.display = 'block';
+  }
+}
+
+if (hasOperatorSession()) {
+  openMain();
+}
 
 // ── Products ─────────────────────────────────────────────────────────
 let allProducts = [];
