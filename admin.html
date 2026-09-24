@@ -104,7 +104,8 @@
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { isOperatorEmail } from './assets/admin-auth.js';
 
   const app = initializeApp({
     apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -131,6 +132,18 @@
     document.getElementById('error-msg').classList.remove('show');
   }
 
+  // Calm message when dashboard bounced a non-operator session.
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('denied') === '1') {
+      _showError('This account is not an operator account. Sign in with an authorized operator email.');
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  } catch (_e) {}
+
+
   function _updateAttemptBar() {
     var fill = document.getElementById('attempt-fill');
     var pct = Math.min((_failedAttempts / MAX_ATTEMPTS) * 100, 100);
@@ -150,7 +163,15 @@
     _hideError();
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      var cred = await signInWithEmailAndPassword(auth, email, password);
+      var signedEmail = (cred && cred.user && cred.user.email) || email;
+      if (!isOperatorEmail(signedEmail)) {
+        try { await signOut(auth); } catch (_e) {}
+        btn.disabled = false;
+        btn.textContent = 'Sign In to Dashboard';
+        _showError('This account is not an operator account. Sign in with an authorized operator email.');
+        return;
+      }
       btn.textContent = '✓ Redirecting…';
       window.location.href = '/dashboard.html';
     } catch (err) {

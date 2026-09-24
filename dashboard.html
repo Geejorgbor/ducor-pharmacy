@@ -1170,6 +1170,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { isOperatorEmail } from './assets/admin-auth.js';
 import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, where, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
@@ -1252,15 +1253,26 @@ function saveLog() { SECURITY_LOG = SECURITY_LOG.slice(0,200); localStorage.setI
 // client-side password check in admin.html — anyone could set that flag
 // themselves via DevTools and skip login entirely. Real Firebase Auth is
 // now the sole check.
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (!user) { window.location.href = '/admin.html'; return; }
+
+  // Phase A: operator allowlist BEFORE any UI init / addLog / Firestore listeners.
+  // Must match firestore.rules isAdmin() (assets/admin-auth.js). UI is interim;
+  // rules are the real gate. No claims-first here (Phase B).
+  const email = user.email || '';
+  if (!isOperatorEmail(email)) {
+    try { await signOut(auth); } catch (e) {}
+    window.location.href = '/admin.html?denied=1';
+    return;
+  }
+
   currentUser = user;
   // This script runs as a module (its own isolated scope) but the AI chat
   // code lives in a separate classic <script> later in the page — modules
   // don't share top-level variables with classic scripts, so currentUser
   // must be exposed on window to be readable from there.
   window.currentUser = user;
-  const email = user.email || '';
+  window._ducorOperatorOk = true;
   const initials = email.substring(0,2).toUpperCase();
   document.getElementById('admin-initials').textContent = initials;
   document.getElementById('admin-name').textContent = email.split('@')[0];
@@ -1281,18 +1293,6 @@ onAuthStateChanged(auth, user => {
       if (msgs) msgs.innerHTML = window._aiGreetingHTML();
     }
   } catch(e) {}
-
-  // Alert Lucas when the boss's account is active — but only once per
-  // browser session, since Firebase re-checks auth on every page
-  // load/navigation within the dashboard, not just on a fresh login.
-  if (email === 'ducor.adminducorpharmacy@gmail.com' && !sessionStorage.getItem('ducor-boss-login-notified')) {
-    sessionStorage.setItem('ducor-boss-login-notified', '1');
-    fetch('/api/whatsapp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'admin_login', admin: { email } })
-    }).catch(() => {});
-  }
 
   init();
 });
@@ -1468,6 +1468,7 @@ function startDeliveryListener() {
 
 // ── INIT ──
 function init() {
+  // Only reached after operator allowlist in onAuthStateChanged.
   loadOrders();
   renderAllTables();
   renderNotifications();
@@ -1481,6 +1482,7 @@ function init() {
   setInterval(loadOrders, 30000);
   startDeliveryListener();
   startSharedStateSync();
+  if (typeof window._startAISharedWatchers === 'function') window._startAISharedWatchers();
 }
 
 // Subscribes to the shared (Firestore-backed) copies of products,
@@ -4166,8 +4168,17 @@ function _watchSharedStateHere(docId, onChange) {
 }
 // Keep the AI's promo codes and boss-memory synced live from Firestore too,
 // so a change made from any device/account is reflected everywhere.
-_watchSharedStateHere('promos', value => { if (value) localStorage.setItem('ducor-promos', JSON.stringify(value)); });
-_watchSharedStateHere('boss_memory', value => { if (value) localStorage.setItem('ducor-ai-boss-memory', JSON.stringify(value)); });
+// MUST NOT start until operator allowlist passes (module sets window._ducorOperatorOk
+// and calls this from init). Starting at parse-time raced auth and leaked admin_state reads.
+window._startAISharedWatchers = function() {
+  if (!window._ducorOperatorOk) return;
+  if (window._aiSharedWatchersStarted) return;
+  window._aiSharedWatchersStarted = true;
+  _watchSharedStateHere('promos', value => { if (value) localStorage.setItem('ducor-promos', JSON.stringify(value)); });
+  _watchSharedStateHere('boss_memory', value => { if (value) localStorage.setItem('ducor-ai-boss-memory', JSON.stringify(value)); });
+};
+// If module auth already passed before this classic script parsed, start now.
+if (window._ducorOperatorOk) window._startAISharedWatchers();
 
 // ── RELATIONSHIP MEMORY ───────────────────────────────────────────────────────
 // Lets the AI actually remember things Dr. Marshall shares about himself
