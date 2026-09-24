@@ -316,7 +316,31 @@ const Cart = {
     this.renderDrawer();
   },
 
-  remove(id) {
+  addSubscriptionPlan() {
+    this.load();
+    const plan = {
+      id: 'dip-plan',
+      name: 'DIP Subscription Plan',
+      price: 120,
+      category: 'plan',
+      qty: 1,
+      image: ''
+    };
+    // Exactly one plan line — replace if present
+    this.items = this.items.filter(i => i.id !== 'dip-plan');
+    this.items.push(plan);
+    this.save();
+    this.updateBadge();
+    this.renderDrawer();
+    return plan;
+  },
+
+  hasSubscriptionPlan() {
+    this.load();
+    return this.items.some(i => i.id === 'dip-plan' || i.category === 'plan');
+  },
+
+    remove(id) {
     this.items = this.items.filter(i => i.id !== id);
     this.save();
     this.updateBadge();

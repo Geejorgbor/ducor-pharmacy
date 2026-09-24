@@ -161,7 +161,7 @@
     var s=JSON.parse(raw);
     if(!s||!s.userId||!s.token||Date.now()>s.expiry){throw new Error('expired');}
   }catch(e){
-    window.location.replace('/auth.html?next=/checkout.html');
+    window.location.replace('/auth.html?next='+encodeURIComponent('/checkout.html'+window.location.search));
   }
 })();
 </script>
@@ -467,7 +467,12 @@
         <p id="pay-details-note" style="font-size:11px;color:#a16207;margin-top:8px">After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.</p>
       </div>
 
-      <!-- Promo Code -->
+      
+      <div id="dip-plan-banner" style="display:none;background:linear-gradient(135deg,rgba(10,37,88,0.08),rgba(200,168,75,0.12));border:1px solid rgba(200,168,75,0.4);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:0.88rem;line-height:1.55;color:#0a2558">
+        <strong style="color:#0a2558">DIP Subscription Plan — $120 / year</strong><br>
+        This checkout includes your annual plan. After payment is confirmed, your account becomes <strong>Active</strong> for 1 year and <strong>SUBSCRIBER40</strong> applies automatically on medication orders.
+      </div>
+<!-- Promo Code -->
       <div style="margin-bottom:16px">
         <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Have a Promo Code?</p>
         <div style="display:flex;gap:8px">
@@ -624,7 +629,7 @@
 <script src="/assets/shop.js"></script>
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const _fbCfg = {
   apiKey:"AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -643,7 +648,34 @@ async function _saveOrderToFirestore(orderData) {
   } catch(e) {}
 }
 
+async function _markCustomerSubscriptionPending(email) {
+  if (!email) return;
+  try {
+    const snap = await getDocs(query(collection(_db, 'customers'), where('email', '==', email.toLowerCase())));
+    if (snap.empty) return;
+    await updateDoc(snap.docs[0].ref, {
+      subscriptionStatus: 'pending',
+      subscriptionPlan: 'dip',
+      subscriber: false,
+      planPendingAt: new Date().toISOString()
+    });
+    // Mirror into local session user cache if present
+    try {
+      const raw = localStorage.getItem('ducor_users_v2');
+      if (raw) {
+        const users = JSON.parse(raw);
+        const u = users.find(x => (x.email || '').toLowerCase() === email.toLowerCase());
+        if (u) {
+          Object.assign(u, { subscriptionStatus:'pending', subscriptionPlan:'dip', subscriber:false, planPendingAt: new Date().toISOString() });
+          localStorage.setItem('ducor_users_v2', JSON.stringify(users));
+        }
+      }
+    } catch(e) {}
+  } catch(e) {}
+}
+
 window._saveOrderToFirestore = _saveOrderToFirestore;
+window._markCustomerSubscriptionPending = _markCustomerSubscriptionPending;
 window._db = _db;
 </script>
 <script>
@@ -900,6 +932,19 @@ window._db = _db;
   };
   let activePromo = null;
 
+    function isActiveSubscriber() {
+    try {
+      const sessRaw = sessionStorage.getItem('ducor_sess_v2') || localStorage.getItem('ducor_sess_v2');
+      const sess = JSON.parse(sessRaw || 'null');
+      if (!sess || !sess.userId) return false;
+      const users = JSON.parse(localStorage.getItem('ducor_users_v2') || '[]');
+      const u = users.find(x => x.id === sess.userId);
+      if (!u || !u.subscriber) return false;
+      if (u.planEnd && new Date(u.planEnd).getTime() < Date.now()) return false;
+      return true;
+    } catch(e) { return false; }
+  }
+
   function applyPromo() {
     const code = document.getElementById('promo-input').value.trim().toUpperCase();
     const msg  = document.getElementById('promo-msg');
@@ -907,11 +952,19 @@ window._db = _db;
     msg.style.display = 'block';
     const promo = PROMO_CODES[code];
     if (!promo) { msg.style.color='#dc2626'; msg.textContent='Invalid promo code. Please check and try again.'; activePromo=null; renderSummary(); return; }
+    // Buying the DIP plan itself never gets SUBSCRIBER40
+    if (code === 'SUBSCRIBER40' && Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) {
+      msg.style.color='#dc2626'; msg.textContent='SUBSCRIBER40 cannot be used on the subscription plan purchase.'; activePromo=null; renderSummary(); return;
+    }
+    if (code === 'SUBSCRIBER40' && !isActiveSubscriber()) {
+      msg.style.color='#dc2626'; msg.textContent='SUBSCRIBER40 is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return;
+    }
     activePromo = { code, ...promo };
     msg.style.color='#16a34a';
     msg.textContent='Promo applied: ' + promo.label + '!';
     renderSummary();
   }
+
 
   function getDiscount(sub) {
     if (!activePromo) return 0;
@@ -1004,7 +1057,8 @@ window._db = _db;
     const last   = document.getElementById('last-name').value.trim();
     const email  = document.getElementById('email').value.trim();
     const phone  = document.getElementById('phone').value.trim();
-    const otcSub = Cart.items.filter(i => i.category !== 'rx').reduce((s, i) => s + i.price * i.qty, 0);
+    const otcSub = Cart.items.filter(i => i.category !== 'rx' && i.category !== 'plan').reduce((s, i) => s + i.price * i.qty, 0);
+    const planSub = Cart.items.filter(i => i.category === 'plan').reduce((s, i) => s + i.price * i.qty, 0);
     const discount = getDiscount(otcSub);
     const hasRx = Cart.items.some(i => i.category === 'rx');
     return {
@@ -1012,6 +1066,9 @@ window._db = _db;
       status: 'Pending',
       paymentMethod,
       paymentStatus,
+      isSubscription: !!(Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()),
+      subscriptionPlan: (Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) ? 'dip' : null,
+      subscriptionStatus: (Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) ? 'pending' : null,
       buyerName: first + ' ' + last,
       buyerEmail: email,
       buyerPhone: phone,
@@ -1020,13 +1077,13 @@ window._db = _db;
       pickupPhone: pickupWho === 'self' ? phone : document.getElementById('pickup-phone').value.trim(),
       notes: document.getElementById('notes').value.trim(),
       items: Cart.items.map(i => ({ id: i.id, name: i.name, category: i.category, price: i.category === 'rx' ? null : i.price, qty: i.qty })),
-      subtotal: otcSub,
+      subtotal: otcSub + planSub,
       discount,
       promoCode: activePromo ? activePromo.code : null,
       deliveryMethod,
       shipping: (deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0,
       rxPricesPending: hasRx,
-      total: parseFloat((otcSub - discount + ((deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0)).toFixed(2)),
+      total: parseFloat((otcSub + planSub - discount + ((deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0)).toFixed(2)),
       orderingFor,
       patientName: orderingFor === 'other' ? document.getElementById('patient-name').value.trim() : null,
       patientRelationship: orderingFor === 'other' ? document.getElementById('patient-relationship').value : null,
@@ -1061,6 +1118,10 @@ window._db = _db;
     const methodLabel = methodLabels[selectedPayment] || selectedPayment;
     const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment', prescriptionFileData);
     if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+    if (payload.isSubscription && window._markCustomerSubscriptionPending) {
+      window._markCustomerSubscriptionPending(payload.buyerEmail);
+    }
+    try { localStorage.removeItem('dipSubscribe'); } catch(e) {}
     _notifyAdminNewOrder(payload);
     // Send order confirmation email to buyer
     try {
@@ -1086,8 +1147,14 @@ window._db = _db;
       bank: 'Your order is confirmed! Please wire $' + payload.total.toFixed(2) + ' to Chase Bank — Account #958758598, Routing: 075000019, Account Name: Ducor International Pharmacy. Then WhatsApp your receipt to +231 887 221 275.',
       cash: 'Your order has been received! Our team will contact you to arrange delivery or pickup. Delivery fee (if applicable) will be confirmed based on your location.',
     };
-    document.getElementById('cod-overlay-title').textContent = selectedPayment === 'cash' ? 'Order Placed!' : 'Order Confirmed!';
-    document.getElementById('cod-overlay-msg').textContent = overlayMsg[selectedPayment] || overlayMsg.cash;
+    let _ovTitle = selectedPayment === 'cash' ? 'Order Placed!' : 'Order Confirmed!';
+    let _ovMsg = overlayMsg[selectedPayment] || overlayMsg.cash;
+    if (payload.isSubscription) {
+      _ovTitle = 'Subscription Order Received';
+      _ovMsg = 'Your DIP Subscription Plan ($120/year) is pending activation. Once payment is confirmed, your account will show Active for 1 year and SUBSCRIBER40 will apply automatically. ' + _ovMsg;
+    }
+    document.getElementById('cod-overlay-title').textContent = _ovTitle;
+    document.getElementById('cod-overlay-msg').textContent = _ovMsg;
     document.getElementById('cod-ref').textContent = ref;
     document.getElementById('track-order-btn').href = `/track-order.html?ref=${encodeURIComponent(ref)}`;
     document.getElementById('cod-overlay').classList.add('show');
@@ -1106,12 +1173,14 @@ window._db = _db;
     Cart.load();
     const body = document.getElementById('order-summary-body');
     if (Cart.items.length === 0) return;
-    const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
-    const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
-    const otcItems = Cart.items.filter(i => i.category !== 'rx');
+    const iconClass = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg', plan: 'otc-bg' };
+    const iconSvg = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit, plan: ICONS.otc };
+    const otcItems = Cart.items.filter(i => i.category !== 'rx' && i.category !== 'plan');
+    const planItems = Cart.items.filter(i => i.category === 'plan');
     const rxItems  = Cart.items.filter(i => i.category === 'rx');
-    const sub = otcItems.reduce((s, i) => s + i.price * i.qty, 0);
-    const discount = getDiscount(sub);
+    const sub = otcItems.reduce((s, i) => s + i.price * i.qty, 0) + planItems.reduce((s, i) => s + i.price * i.qty, 0);
+    const discountable = otcItems.reduce((s, i) => s + i.price * i.qty, 0);
+    const discount = getDiscount(discountable);
     const deliveryFee = (deliveryMethod === 'delivery' && sub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0;
     const total = parseFloat((sub - discount + deliveryFee).toFixed(2));
     const discountRow = discount > 0 ? `<div class="order-line" style="color:#16a34a;font-weight:600"><span>Discount (${activePromo.code})</span><span>-$${discount.toFixed(2)}</span></div>` : '';
@@ -1143,8 +1212,31 @@ window._db = _db;
   }
 
   Cart.load();
+  // Preload DIP Subscription Plan from homepage CTA (?plan=dip or localStorage)
+  (function preloadDipPlan(){
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const wants = params.get('plan') === 'dip' || localStorage.getItem('dipSubscribe') === '1';
+      if (!wants) return;
+      if (typeof Cart.addSubscriptionPlan === 'function') Cart.addSubscriptionPlan();
+      if (params.get('plan') === 'dip') {
+        params.delete('plan');
+        const q = params.toString();
+        history.replaceState({}, '', window.location.pathname + (q ? '?' + q : '') + window.location.hash);
+      }
+      const banner = document.getElementById('dip-plan-banner');
+      if (banner) banner.style.display = 'block';
+    } catch(e) {}
+  })();
   Cart.updateBadge();
   renderSummary();
+  // Auto-apply SUBSCRIBER40 for active members on ordinary (non-plan) carts
+  try {
+    if (isActiveSubscriber() && !(Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan())) {
+      const input = document.getElementById('promo-input');
+      if (input) { input.value = 'SUBSCRIBER40'; applyPromo(); }
+    }
+  } catch(e) {}
   document.getElementById('cart-overlay').addEventListener('click', () => Cart.close());
 </script>
 <script>

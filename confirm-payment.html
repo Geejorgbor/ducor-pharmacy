@@ -177,6 +177,48 @@ async function init() {
   }
 }
 
+
+async function _activateDipSubscriberFromOrder(orderData, orderRef) {
+  if (!orderData || !orderData.isSubscription) return;
+  const email = (orderData.buyerEmail || '').toLowerCase().trim();
+  const start = new Date();
+  const end = new Date(start.getTime());
+  end.setFullYear(end.getFullYear() + 1);
+  const stamp = {
+    subscriptionStatus: 'active',
+    subscriptionActivatedAt: start.toISOString()
+  };
+  try {
+    if (orderRef) await updateDoc(orderRef, stamp);
+  } catch(e) {}
+  if (!email) return;
+  const fields = {
+    subscriber: true,
+    subscriptionStatus: 'active',
+    subscriptionPlan: orderData.subscriptionPlan || 'dip',
+    planStart: start.toISOString(),
+    planEnd: end.toISOString(),
+    planActivatedAt: start.toISOString()
+  };
+  try {
+    const snap = await getDocs(query(collection(db, 'customers'), where('email', '==', email)));
+    if (!snap.empty) await updateDoc(snap.docs[0].ref, fields);
+  } catch(e) {}
+  try {
+    const raw = localStorage.getItem('ducor_users_v2');
+    if (raw) {
+      const users = JSON.parse(raw);
+      let hit = false;
+      for (const u of users) {
+        if ((u.email || '').toLowerCase() === email) {
+          Object.assign(u, fields); hit = true;
+        }
+      }
+      if (hit) localStorage.setItem('ducor_users_v2', JSON.stringify(users));
+    }
+  } catch(e) {}
+}
+
 window.doConfirm = async function() {
   document.querySelector('.btn-green').disabled = true;
   document.querySelector('.btn-green').textContent = 'Confirming…';
@@ -186,6 +228,8 @@ window.doConfirm = async function() {
       paymentConfirmedAt: new Date().toISOString(),
       status: orderData.status === 'new' || orderData.status === 'Pending' ? 'processing' : orderData.status
     });
+    orderData.paymentConfirmed = true;
+    await _activateDipSubscriberFromOrder(orderData, orderDocRef);
     // Notify via WhatsApp (boss gets confirmation of their own action)
     try {
       await fetch('/api/whatsapp', {
