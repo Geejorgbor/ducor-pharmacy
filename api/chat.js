@@ -123,11 +123,11 @@ Customers receive automatic emails at every key step:
     return res.status(500).json({ error: 'AI service not configured', reply: null });
   }
 
-  // Sanitize messages - only keep role and content
+  // Sanitize: drop client role:system (and anything else); keep user/assistant only; cap count + length
   const safeMessages = messages
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
     .slice(-20)
-    .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
+    .map(m => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
 
   if (safeMessages.length === 0 || safeMessages[safeMessages.length - 1].role !== 'user') {
     return res.status(400).json({ error: 'Last message must be from user' });
