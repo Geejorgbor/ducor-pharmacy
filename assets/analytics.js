@@ -20,8 +20,26 @@ function getPageName() {
   if (path.includes('otc')) return 'OTC';
   if (path.includes('vitamins')) return 'Vitamins';
   if (path.includes('checkout')) return 'Checkout';
-  if (path.includes('index') || path === '/') return 'Homepage';
+  if (path.includes('auth')) return 'Login';
+  if (path.includes('account')) return 'Account';
+  if (path.includes('billing')) return 'Billing';
+  if (path.includes('index') || path === '/' || path === '') return 'Homepage';
   return 'Other';
+}
+
+function getPlanTag() {
+  try {
+    const plan = new URLSearchParams(location.search).get('plan');
+    if (plan) return plan;
+    // Checkout may strip ?plan=dip from the URL before this module runs;
+    // a one-shot session flag preserves DIP share attribution for admin analytics.
+    const hit = sessionStorage.getItem('dip_share_hit');
+    if (hit) {
+      sessionStorage.removeItem('dip_share_hit');
+      return hit;
+    }
+  } catch (e) {}
+  return null;
 }
 
 function getDevice() {
@@ -48,10 +66,11 @@ async function trackVisit() {
     const source = getReferrer();
     const todayKey = getTodayKey();
     const hour = new Date().getHours();
+    const plan = getPlanTag();
 
     // 1. Increment daily summary (cheap — one doc per day)
     const dayRef = doc(db, 'analytics_days', todayKey);
-    await setDoc(dayRef, {
+    const dayUpdate = {
       date: todayKey,
       total: increment(1),
       [`pages.${page}`]: increment(1),
@@ -59,16 +78,22 @@ async function trackVisit() {
       [`sources.${source}`]: increment(1),
       [`hours.h${hour}`]: increment(1),
       lastSeen: serverTimestamp()
-    }, { merge: true });
+    };
+    // DIP share / subscribe links (?plan=dip) — count so admin board can see campaign traffic
+    if (plan) dayUpdate[`plans.${plan}`] = increment(1);
+    await setDoc(dayRef, dayUpdate, { merge: true });
 
     // 2. Log individual visit (for live visitors feed)
-    await addDoc(collection(db, 'analytics_visits'), {
+    const visit = {
       page,
       device,
       source,
       ts: serverTimestamp(),
-      lang: navigator.language || 'unknown'
-    });
+      lang: navigator.language || 'unknown',
+      path: location.pathname + location.search
+    };
+    if (plan) visit.plan = plan;
+    await addDoc(collection(db, 'analytics_visits'), visit);
 
     // 3. Track time on page (fire on unload)
     const start = Date.now();

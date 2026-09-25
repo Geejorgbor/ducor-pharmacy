@@ -153,22 +153,20 @@
   </style>
 <script>
 // Session guard — redirect to login if not authenticated (once; avoid auth↔checkout loop)
-// DIP share/subscribe (?plan=dip or dipSubscribe=1): allow guest checkout — skip auth wall
+// DIP share (?plan=dip): still require login first; preserve plan via next= + dipSubscribe
 (function(){
   var SESSION_KEY='ducor_sess_v2';
   var LOOP_KEY='ducor_checkout_auth_bounce';
   try{
-    // Guest DIP path: form-first checkout with $120 plan (Boss share / Subscribe Now)
-    var allowGuestDip=false;
+    // Persist DIP subscribe intent before any redirect so login → checkout keeps the plan
     try{
       var _dipParams=new URLSearchParams(window.location.search);
-      allowGuestDip=_dipParams.get('plan')==='dip'||localStorage.getItem('dipSubscribe')==='1';
-      if(_dipParams.get('plan')==='dip'){ try{ localStorage.setItem('dipSubscribe','1'); }catch(x){} }
+      if(_dipParams.get('plan')==='dip'){
+        localStorage.setItem('dipSubscribe','1');
+        try{ sessionStorage.setItem('dip_share_hit','dip'); }catch(x){}
+        try{ if(typeof gtag==='function') gtag('event','dip_share_landing',{plan:'dip'}); }catch(x){}
+      }
     }catch(x){}
-    if(allowGuestDip){
-      try{ sessionStorage.removeItem(LOOP_KEY); }catch(x){}
-      return;
-    }
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     if(!raw){throw new Error('no session');}
     var s=JSON.parse(raw);
@@ -182,7 +180,10 @@
       // Already bounced once — clear stale session and go to auth cleanly (no sticky gate loop)
       try{ sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(LOOP_KEY); }catch(x){}
     }
-    window.location.replace('/auth.html?next='+encodeURIComponent(next));
+    // Pass plan=dip on auth URL so Login landing is tracked as DIP share traffic
+    var authUrl='/auth.html?next='+encodeURIComponent(next);
+    if(/[?&]plan=dip(?:&|$)/.test(next)){ authUrl+='&plan=dip'; }
+    window.location.replace(authUrl);
   }
 })();
 </script>
