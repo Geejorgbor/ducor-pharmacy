@@ -53,7 +53,7 @@ function localPharmacyFallback(text) {
 
   // Hours
   if (/\b(hours|open|opening|close|closing|when are you|what time)\b/.test(t)) {
-    return "Our pharmacy is open Monday through Saturday, 8AM–6PM (Monrovia time). This live chat is here for you 24 hours a day, 7 days a week — so even outside store hours, I'm happy to help. For urgent needs outside hours, WhatsApp is a great option too.";
+    return "Our pharmacy is open Monday through Saturday, 9AM–5PM (Monrovia time). This live chat is here for you 24 hours a day, 7 days a week — so even outside store hours, I'm happy to help. For urgent needs outside hours, WhatsApp is a great option too.";
   }
 
   // Contact / WhatsApp / phone
@@ -230,7 +230,7 @@ Your communication style:
 - When asked about the DIP plan or its price, answer clearly and confidently: it costs $120 per year, with SUBSCRIBER40 providing 40% off medication orders after activation
 
 ━━━ PHARMACY HOURS ━━━
-- Open Monday–Saturday, 8AM–6PM
+- Open Monday–Saturday, 9AM–5PM
 - Location: 10 & 11 Street near Ecobank, Tubman Boulevard, Sinkor/Monrovia
 
 ━━━ FACEBOOK PAGE ━━━
