@@ -314,6 +314,34 @@
     @media(max-width:480px){
       [style*="grid-template-columns:repeat(5,1fr)"]{grid-template-columns:1fr!important}
     }
+  
+    /* ── HOMEPAGE TUTORIAL VIDEO ── */
+    .tutorial-video-section{
+      background:linear-gradient(180deg,#071a3e 0%,#0a2558 55%,#0a2558 100%);
+      padding:72px 5% 80px;position:relative;overflow:hidden;
+    }
+    .tutorial-video-section::before{
+      content:'';position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(ellipse at 80% 20%,rgba(200,168,75,0.12),transparent 55%);
+    }
+    .tutorial-video-inner{max-width:980px;margin:0 auto;position:relative;z-index:1;text-align:center}
+    .tutorial-video-section .badge{
+      background:rgba(200,168,75,0.15);color:var(--gold);border:1px solid rgba(200,168,75,0.35);
+    }
+    .tutorial-video-section h2{color:#fff;font-size:clamp(1.7rem,3.5vw,2.5rem);font-weight:700;margin:12px 0 12px;line-height:1.2}
+    .tutorial-video-section .tv-lead{color:rgba(255,255,255,0.78);font-size:1.05rem;max-width:640px;margin:0 auto 28px;line-height:1.7}
+    .tv-frame{
+      position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,0.45),0 0 0 1px rgba(200,168,75,0.35);
+      background:#020b1c;
+    }
+    .tv-frame video{width:100%;height:100%;display:block;object-fit:cover;background:#020b1c}
+    .tv-cta{margin-top:26px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+    .tv-cta .btn-ghost{
+      border-color:rgba(200,168,75,0.55);color:var(--gold);
+    }
+    .tv-cta .btn-ghost:hover{background:rgba(200,168,75,0.12);border-color:var(--gold)}
+
   </style>
   <!-- Google Business / Search Structured Data -->
   <script type="application/ld+json">
@@ -458,6 +486,31 @@
   <!-- Dots (bottom left, visible when 2+ slides) -->
   <div class="hero-dots" id="hero-dots"></div>
 </section>
+
+<!-- SEE HOW DUCOR WORKS ONLINE — tutorial video (v3) -->
+<section class="tutorial-video-section" id="how-it-works" aria-label="Website tutorial video">
+  <div class="tutorial-video-inner">
+    <span class="badge">New · Watch in 5 minutes</span>
+    <h2>See how Ducor works online</h2>
+    <p class="tv-lead">A clear walkthrough of shopping, search, checkout, DIP savings, order tracking, and our 24/7 assistant — plus how to reach us on WhatsApp, Facebook, Instagram, and TikTok.</p>
+    <div class="tv-frame">
+      <video
+        controls
+        playsinline
+        preload="metadata"
+        poster="/assets/video/tutorial-v3-poster.jpg"
+        title="How Ducor International Pharmacy works online">
+        <source src="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4" type="video/mp4"/>
+        Your browser does not support the video tag. <a href="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4">Download the walkthrough</a>.
+      </video>
+    </div>
+    <div class="tv-cta">
+      <a class="btn-gold" href="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4">Watch the full walkthrough</a>
+      <a class="btn-ghost" href="/contact.html">Contact &amp; socials</a>
+    </div>
+  </div>
+</section>
+
 
 <!-- TRUST STATS STRIP -->
 <!-- OUR SERVICES -->
