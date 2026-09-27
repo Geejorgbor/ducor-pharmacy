@@ -14,4 +14,10 @@
   <url><loc>https://www.ducor-international-pharmacy.com/track-order.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://www.ducor-international-pharmacy.com/checkout.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://www.ducor-international-pharmacy.com/auth.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://www.ducor-international-pharmacy.com/contact.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.ducor-international-pharmacy.com/privacy.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.ducor-international-pharmacy.com/terms.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.ducor-international-pharmacy.com/faq.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.ducor-international-pharmacy.com/shipping.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://www.ducor-international-pharmacy.com/returns.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>
