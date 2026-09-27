@@ -6,13 +6,147 @@
 'use strict';
 
 // ══════════════════════════════════════════
-//  PRODUCT DATA (mirrored from shop.js)
+//  PRODUCT CATALOG (from shop.js → window.DUCOR_PRODUCTS)
 // ══════════════════════════════════════════
+const SEARCH_ALIASES = {
+  tylenol: 'acetaminophen',
+  paracetamol: 'acetaminophen',
+  advil: 'ibuprofen',
+  motrin: 'ibuprofen',
+  aleve: 'naproxen',
+  prilosec: 'omeprazole',
+  nexium: 'esomeprazole',
+  claritin: 'loratadine',
+  zyrtec: 'cetirizine',
+  allegra: 'fexofenadine',
+  benadryl: 'diphenhydramine',
+  'ascorbic acid': 'vitamin c',
+  ascorbic: 'vitamin c',
+  tums: 'calcium carbonate',
+  pepto: 'bismuth',
+  afrin: 'oxymetazoline',
+  'fish oil': 'omega',
+  prenatals: 'prenatal',
+  'vitamin c': 'vitamin c'
+};
+
+function flattenCatalog(catalog) {
+  if (!catalog) return [];
+  if (Array.isArray(catalog)) return catalog.filter(function (p) { return p && p.name && !p.adminOnly; });
+  return Object.entries(catalog).flatMap(function (entry) {
+    var category = entry[0];
+    var items = entry[1] || [];
+    return items.filter(function (p) { return p && !p.adminOnly; }).map(function (p) {
+      return { id: p.id, name: p.name, price: p.price, category: p.category || category };
+    });
+  });
+}
+
 function getProducts() {
-  if (window.DUCOR_PRODUCTS) return window.DUCOR_PRODUCTS;
-  // Try to get from shop.js catalog if loaded
-  if (window.products) return window.products;
+  if (Array.isArray(window.DUCOR_PRODUCTS) && window.DUCOR_PRODUCTS.length) {
+    return window.DUCOR_PRODUCTS;
+  }
+  if (window.PRODUCTS && typeof window.PRODUCTS === 'object') {
+    return flattenCatalog(window.PRODUCTS);
+  }
+  // Classic script top-level const PRODUCTS (shop.js) is lexical-global, not on window
+  try {
+    if (typeof PRODUCTS !== 'undefined' && PRODUCTS) {
+      return flattenCatalog(PRODUCTS);
+    }
+  } catch (e) { /* ignore */ }
   return [];
+}
+
+var _shopCatalogPromise = null;
+function ensureProductCatalog() {
+  var existing = getProducts();
+  if (existing.length) return Promise.resolve(existing);
+  if (_shopCatalogPromise) return _shopCatalogPromise;
+  _shopCatalogPromise = new Promise(function (resolve) {
+    // Avoid double-inserting if shop.js is already a script tag but not finished
+    var existingScript = document.querySelector('script[src*="shop.js"]');
+    function finish() {
+      resolve(getProducts());
+    }
+    if (existingScript) {
+      // shop.js may still be parsing; poll briefly
+      var tries = 0;
+      var t = setInterval(function () {
+        tries++;
+        if (getProducts().length || tries > 40) {
+          clearInterval(t);
+          finish();
+        }
+      }, 50);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = '/assets/shop.js';
+    s.async = true;
+    s.onload = finish;
+    s.onerror = function () { resolve([]); };
+    document.head.appendChild(s);
+  });
+  return _shopCatalogPromise;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function expandSearchTerms(q) {
+  var raw = q.toLowerCase().trim();
+  var terms = new Set([raw]);
+  Object.keys(SEARCH_ALIASES).forEach(function (alias) {
+    if (raw === alias || raw.includes(alias) || alias.includes(raw)) {
+      terms.add(SEARCH_ALIASES[alias]);
+      terms.add(alias);
+    }
+  });
+  return { raw: raw, terms: Array.from(terms), words: raw.split(/\s+/).filter(Boolean) };
+}
+
+function productMatchesQuery(p, expanded) {
+  var name = (p.name || '').toLowerCase();
+  var cat = (p.category || '').toLowerCase();
+  if (!name) return false;
+  // Full query substring (handles "vitamin c", "ibuprofen 200", etc.)
+  if (expanded.raw && (name.includes(expanded.raw) || cat.includes(expanded.raw))) return true;
+  // Multi-word: every significant token (≥2 chars) must appear
+  var significant = expanded.words.filter(function (w) { return w.length >= 2; });
+  if (significant.length > 1 && significant.every(function (w) { return name.includes(w); })) {
+    return true;
+  }
+  for (var i = 0; i < expanded.terms.length; i++) {
+    var t = expanded.terms[i];
+    if (t && t.length >= 2 && (name.includes(t) || cat.includes(t))) return true;
+  }
+  return false;
+}
+
+function scoreProduct(p, expanded) {
+  var name = (p.name || '').toLowerCase();
+  var score = 0;
+  if (name === expanded.raw) score += 100;
+  if (name.startsWith(expanded.raw)) score += 40;
+  if (name.includes(expanded.raw)) score += 20;
+  expanded.terms.forEach(function (t) {
+    if (t !== expanded.raw && name.includes(t)) score += 10;
+  });
+  // Prefer shorter / closer names
+  score -= Math.min(name.length, 40) * 0.05;
+  return score;
+}
+
+function productHref(p) {
+  var cat = p.category || 'otc';
+  return '/product.html?id=' + encodeURIComponent(p.id) + '&cat=' + encodeURIComponent(cat);
 }
 
 // ══════════════════════════════════════════
@@ -79,7 +213,8 @@ function initSearch() {
     overlay.classList.add('open');
     document.getElementById('ducor-search-q').focus();
     selectedIdx = -1;
-    renderResults('');
+    ensureProductCatalog(); // warm catalog (needed on homepage)
+    renderResults(document.getElementById('ducor-search-q').value || '');
   }
 
   function closeSearch() {
@@ -89,31 +224,47 @@ function initSearch() {
 
   function renderResults(q) {
     const container = document.getElementById('ducor-search-results');
-    const allProducts = getProducts();
     if (!q.trim()) {
-      container.innerHTML = `<div id="ducor-search-empty">Start typing to search all 248 medications…</div>`;
+      container.innerHTML = `<div id="ducor-search-empty">Start typing to search medications, vitamins &amp; supplements…</div>`;
       return;
     }
-    const term = q.toLowerCase();
-    const results = allProducts.filter(p =>
-      p.name.toLowerCase().includes(term) ||
-      (p.category || '').toLowerCase().includes(term) ||
-      (p.description || '').toLowerCase().includes(term) ||
-      (p.manufacturer || '').toLowerCase().includes(term)
-    ).slice(0, 12);
 
-    if (!results.length) {
-      container.innerHTML = `<div id="ducor-search-empty">No results for "<strong style="color:#fff">${q}</strong>". Try a different name or category.</div>`;
-      return;
+    function paint(allProducts) {
+      if (!allProducts.length) {
+        container.innerHTML = `<div id="ducor-search-empty">Catalog is still loading… try again in a moment.</div>`;
+        ensureProductCatalog().then(function (loaded) {
+          if (document.getElementById('ducor-search-q').value.trim() === q.trim()) {
+            paint(loaded);
+          }
+        });
+        return;
+      }
+      const expanded = expandSearchTerms(q);
+      const results = allProducts
+        .filter(function (p) { return productMatchesQuery(p, expanded); })
+        .sort(function (a, b) { return scoreProduct(b, expanded) - scoreProduct(a, expanded); })
+        .slice(0, 12);
+
+      if (!results.length) {
+        container.innerHTML = `<div id="ducor-search-empty">No results for "<strong style="color:#fff">${escapeHtml(q)}</strong>". Try a different name or category.</div>`;
+        return;
+      }
+      container.innerHTML = results.map(function (p, i) {
+        var badge = p.category === 'prescription' ? 'RX' : p.category === 'otc' ? 'OTC' : 'VIT';
+        var badgeClass = p.category === 'prescription' ? 'rx' : (p.category || 'otc');
+        var priceHtml = p.category === 'prescription'
+          ? ''
+          : `<span class="ducor-sr-price">$${(Number(p.price) || 0).toFixed(2)}</span>`;
+        return `<a class="ducor-sr-item" href="${productHref(p)}" data-idx="${i}">
+        <span class="ducor-sr-badge ${badgeClass}">${badge}</span>
+        <span class="ducor-sr-name">${escapeHtml(p.name)}</span>
+        ${priceHtml}
+      </a>`;
+      }).join('');
+      selectedIdx = -1;
     }
-    const catPage = { prescription: '/prescription.html', otc: '/otc.html', vitamins: '/vitamins.html' };
-    container.innerHTML = results.map((p, i) => `
-      <a class="ducor-sr-item" href="${catPage[p.category] || '/prescription.html'}#${p.id}" data-idx="${i}">
-        <span class="ducor-sr-badge ${p.category}">${p.category === 'prescription' ? 'RX' : p.category === 'otc' ? 'OTC' : 'VIT'}</span>
-        <span class="ducor-sr-name">${p.name}</span>
-        ${p.category === 'prescription' ? '' : `<span class="ducor-sr-price">$${p.price.toFixed(2)}</span>`}
-      </a>`).join('');
-    selectedIdx = -1;
+
+    paint(getProducts());
   }
 
   document.getElementById('ducor-search-q').addEventListener('input', e => renderResults(e.target.value));
@@ -121,7 +272,11 @@ function initSearch() {
     const items = document.querySelectorAll('.ducor-sr-item');
     if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx+1, items.length-1); items.forEach((el,i) => el.style.background = i===selectedIdx ? 'rgba(201,160,85,0.12)' : ''); }
     if (e.key === 'ArrowUp')   { e.preventDefault(); selectedIdx = Math.max(selectedIdx-1, -1); items.forEach((el,i) => el.style.background = i===selectedIdx ? 'rgba(201,160,85,0.12)' : ''); }
-    if (e.key === 'Enter' && selectedIdx >= 0 && items[selectedIdx]) { items[selectedIdx].click(); closeSearch(); }
+    if (e.key === 'Enter' && items.length) {
+      e.preventDefault();
+      const idx = selectedIdx >= 0 ? selectedIdx : 0;
+      if (items[idx]) { items[idx].click(); closeSearch(); }
+    }
     if (e.key === 'Escape') closeSearch();
   });
   overlay.addEventListener('click', e => { if (e.target === overlay) closeSearch(); });
@@ -298,12 +453,18 @@ if (document.readyState === 'loading') {
 }
 
 function boot() {
-  // Load products if available
-  if (!window.DUCOR_PRODUCTS && typeof products !== 'undefined') {
-    window.DUCOR_PRODUCTS = products;
+  // Prefer shop.js export; also accept category-keyed PRODUCTS if present
+  if (!window.DUCOR_PRODUCTS || !window.DUCOR_PRODUCTS.length) {
+    try {
+      if (typeof PRODUCTS !== 'undefined' && PRODUCTS) {
+        window.DUCOR_PRODUCTS = flattenCatalog(PRODUCTS);
+      }
+    } catch (e) { /* shop.js not on this page */ }
   }
   initSearch();
   initChat();
+  // Prefetch catalog on pages that don't include shop.js (e.g. homepage)
+  ensureProductCatalog();
 }
 
 })();

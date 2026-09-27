@@ -258,6 +258,17 @@ const PRODUCTS = {
   ]
 }
 
+// Flat catalog for global search (ducor-widgets.js). Exclude admin-only items.
+window.DUCOR_PRODUCTS = (function flattenDucorProducts(catalog) {
+  return Object.entries(catalog).flatMap(function (entry) {
+    var category = entry[0];
+    var items = entry[1] || [];
+    return items.filter(function (p) { return !p.adminOnly; }).map(function (p) {
+      return { id: p.id, name: p.name, price: p.price, category: category };
+    });
+  });
+})(PRODUCTS);
+
 // ── SVG ICONS ──────────────────────────────────────────────────────────────────
 
 const ICONS = {
@@ -1294,8 +1305,31 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
   let list = (PRODUCTS[category] || []).filter(p => !p.adminOnly);
 
   if (filterVal.trim()) {
-    const q = filterVal.toLowerCase();
-    list = list.filter(p => p.name.toLowerCase().includes(q));
+    const aliases = {
+      tylenol: 'acetaminophen', paracetamol: 'acetaminophen',
+      advil: 'ibuprofen', motrin: 'ibuprofen',
+      aleve: 'naproxen', prilosec: 'omeprazole', nexium: 'esomeprazole',
+      claritin: 'loratadine', zyrtec: 'cetirizine', benadryl: 'diphenhydramine',
+      'ascorbic acid': 'vitamin c', ascorbic: 'vitamin c',
+      'fish oil': 'omega', tums: 'calcium', pepto: 'bismuth'
+    };
+    const raw = filterVal.toLowerCase().trim();
+    const terms = new Set([raw]);
+    Object.keys(aliases).forEach(function (alias) {
+      if (raw === alias || raw.includes(alias) || alias.includes(raw)) {
+        terms.add(aliases[alias]);
+        terms.add(alias);
+      }
+    });
+    const words = raw.split(/\s+/).filter(Boolean);
+    const significant = words.filter(function (w) { return w.length >= 2; });
+    list = list.filter(function (p) {
+      const name = p.name.toLowerCase();
+      if (raw && name.includes(raw)) return true;
+      if (significant.length > 1 && significant.every(function (w) { return name.includes(w); })) return true;
+      for (const t of terms) { if (t && t.length >= 2 && name.includes(t)) return true; }
+      return false;
+    });
   }
 
   if (sortVal === 'price-asc') list = [...list].sort((a,b) => a.price - b.price);
