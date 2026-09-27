@@ -285,6 +285,11 @@
     .fc ul a:hover{color:var(--gold)}
     .fb-bottom{text-align:center;max-width:1100px;margin:0 auto}
     .fb-bottom p{color:rgba(255,255,255,0.35);font-size:0.82rem}
+    .fb-bottom .footer-legal{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 4px;margin:0 0 14px}
+    .fb-bottom .footer-legal a{color:rgba(255,255,255,0.55);text-decoration:none;font-size:0.82rem;font-weight:500;padding:4px 10px;border-radius:6px;transition:color .15s,background .15s}
+    .fb-bottom .footer-legal a:hover{color:var(--gold);background:rgba(200,168,75,0.12)}
+    .fb-bottom .footer-legal .sep{color:rgba(255,255,255,0.2);font-size:0.82rem}
+
     .footer-social-row{margin-top:20px}
     .footer-social-row .follow-label{display:block;color:var(--gold);font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
     .footer-social-row .footer-social{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
@@ -1201,11 +1206,15 @@ document.addEventListener('keydown',function(e){
         <li><a href="#core-strengths">Our Strengths</a></li>
         <li><a href="#gallery">Our Gallery</a></li>
         <li><a href="#dip-plan">Subscription Plan</a></li>
+        <li><a href="/faq.html">FAQ</a></li>
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
       </ul>
     </div>
     <div class="fc">
       <h4>Contact</h4>
       <ul>
+        <li><a href="/contact.html">Contact Page</a></li>
         <li><a href="mailto:dipmonrovia@gmail.com">dipmonrovia@gmail.com</a></li>
         <li><a href="tel:+16309366050">+1 (630) 936-6050</a></li>
         <li><a href="tel:+231880187490">+231 880 187 490</a></li>
@@ -1215,6 +1224,14 @@ document.addEventListener('keydown',function(e){
     </div>
   </div>
   <div class="fb-bottom" style="border-top:1px solid rgba(255,255,255,0.06);padding-top:22px">
+    <nav class="footer-legal" aria-label="Legal and help">
+      <a href="/contact.html">Contact</a><span class="sep" aria-hidden="true">·</span>
+      <a href="/privacy.html">Privacy</a><span class="sep" aria-hidden="true">·</span>
+      <a href="/terms.html">Terms</a><span class="sep" aria-hidden="true">·</span>
+      <a href="/faq.html">FAQ</a><span class="sep" aria-hidden="true">·</span>
+      <a href="/shipping.html">Shipping</a><span class="sep" aria-hidden="true">·</span>
+      <a href="/returns.html">Returns</a>
+    </nav>
     <p>© 2025 Ducor International Pharmacy · An Affiliate of PharMed Consultants Liberia, INC · Trusted Pharmaceutical &amp; Medication Supply in Liberia</p>
   </div>
 </footer>
