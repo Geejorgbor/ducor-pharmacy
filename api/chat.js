@@ -82,6 +82,33 @@ function localPharmacyFallback(text) {
     return "We carry three categories: Prescription (RX) medications, Over-the-Counter (OTC), and Vitamins & Supplements. RX prices aren't listed online — please call first for the current price (+1 630 936-6050 or +231 880 187 490), then add to cart; checkout includes a short health questionnaire our pharmacist reviews. OTC and vitamins can be ordered directly on the site. About 240 products are listed. What are you looking for?";
   }
 
+  // Safety redirects — emergencies / Rx / dosing (before generic search)
+  // Emergencies first — never suggest products
+  if (/\b(chest pain|can'?t breathe|cannot breathe|severe (shortness of )?breath|uncontrolled bleeding|suicid|kill myself|overdose|stroke|seizure|unconscious|passed out)\b/.test(t)
+      || /\b(emergency|911|ambulance)\b/.test(t)) {
+    return "This sounds like it may be an emergency. Please go to the nearest hospital or call emergency services right away — do not wait on chat or try to treat this with over-the-counter products. We're here for non-emergency pharmacy questions, but your safety comes first.";
+  }
+
+  // Rx / antibiotics / controlled — redirect, no product push
+  if (/\b(antibiotics?|amoxicillin|azithromycin|cipro|penicillin|flagyl|metronidazole)\b/.test(t)
+      || /\b(prescription|rx)\b/.test(t) && /\b(need|want|buy|get|for)\b/.test(t)
+      || /\b(blood pressure (medicine|medication|pill)|diabetes (medicine|medication|insulin)|controlled substance)\b/.test(t)) {
+    return "For antibiotics and other prescription medications, you'll need to see a licensed doctor or speak with our pharmacist — I can't recommend or sell Rx drugs over chat. Please call or WhatsApp us (+1 630 936-6050 · +231 880 187 490) so our pharmacist can guide you, or visit us at 10 & 11 Street near Ecobank, Tubman Boulevard. This chat is not a substitute for professional medical advice.";
+  }
+
+  // Child dosing uncertainty
+  if (/\b(baby|infant|toddler|child|kid|my (son|daughter))\b/.test(t)
+      && /\b(dose|dosing|how much|how many|give|age|weight|months? old|years? old)\b/.test(t)) {
+    return "For children's dosing, please speak with our pharmacist or a doctor so the dose matches the child's age and weight — I don't want to guess. Call or WhatsApp +1 630 936-6050 or +231 880 187 490, or visit us in Sinkor. You can browse Children's Acetaminophen and Children's Ibuprofen on our OTC page (otc.html) after a pharmacist confirms the right dose. This is not a substitute for professional medical advice.";
+  }
+
+  // Pregnancy-related risky
+  if (/\b(pregnan|expecting|breastfeed|nursing)\b/.test(t)
+      && /\b(medicine|medication|pill|take|safe|can i|what can)\b/.test(t)) {
+    return "When you're pregnant or breastfeeding, please check with a doctor or our pharmacist before taking any medicine — even common OTC products. Call or WhatsApp +1 630 936-6050 or +231 880 187 490 and we'll help safely. This chat is not a substitute for professional medical advice.";
+  }
+
+
   // Search / find product
   if (/\b(search|find|looking for|do you (have|sell|carry)|available)\b/.test(t)) {
     return "You can browse our full catalog on the website: Prescription (/prescription.html), Over-the-Counter (/otc.html), and Vitamins (/vitamins.html) — about 240 products with up-to-date images. If you're looking for something specific, tell me the name and I'll point you in the right direction, or message us on WhatsApp and our team can check stock for you.";
@@ -95,6 +122,59 @@ function localPharmacyFallback(text) {
   // Payment
   if (/\b(pay|payment|momo|mobile money|sendwave|chase|cod|cash on delivery|bank transfer|receipt)\b/.test(t)) {
     return "We accept several payment options: MTN Mobile Money (number given after order — then send your receipt to +231 887 221 275 on WhatsApp), Sendwave (details after order — send receipt on WhatsApp), Bank Transfer via Chase Bank USA (Account #958758598, Routing #075000019, Account Name: Ducor International Pharmacy — any bank worldwide can send; send receipt on WhatsApp), and Cash on Delivery when the order arrives or for walk-in pickup. Walk-in pickup delivery fee is FREE; home delivery fee depends on location and is confirmed before dispatch. After we confirm your receipt, tracking shows Payment Confirmed ✓.";
+  }
+
+
+  // --- OTC symptom guidance (offline fallback; careful, non-diagnostic) ---
+  // Headache / mild fever (pain + fever OTC)
+  if (/\b(headache|migraine|head (pain|ache))\b/.test(t)
+      || (/\b(fever|temperature|hot)\b/.test(t) && /\b(mild|slight|low|headache|body|ache|pain|feel)\b/.test(t))
+      || /\b(pain|ache).{0,40}\b(fever|temperature)\b/.test(t)
+      || /\b(fever|temperature).{0,40}\b(pain|ache|headache)\b/.test(t)) {
+    return "I'm sorry you're not feeling well. For a common headache with mild fever, many customers use Acetaminophen 500mg (extra strength) from our OTC shop — go to otc.html and search \"Acetaminophen 500mg\", or open product.html?id=otc003&cat=otc. Ibuprofen 200mg is another option if you prefer an anti-inflammatory (search \"Ibuprofen\" on otc.html). This is general wellness guidance, not a diagnosis — if fever is high, lasts more than a few days, or you feel much worse, please see a doctor or our pharmacist. Always follow the label.";
+  }
+
+  // Fever alone (mild framing)
+  if (/\b(fever|high temperature|running a temperature)\b/.test(t)
+      && !/\b(malaria|typhoid|severe|very high|104|40\s*c)\b/.test(t)) {
+    return "For a common mild fever, Acetaminophen 500mg is a popular OTC choice in our shop — visit otc.html and search \"Acetaminophen\", or open product.html?id=otc003&cat=otc. Children's Acetaminophen is also listed if this is for a child (confirm dose with our pharmacist first). If fever is very high, lasts long, or comes with severe symptoms, please see a doctor right away. This is not a substitute for professional medical advice.";
+  }
+
+  // Cold / flu
+  if (/\b(cold|flu|runny nose|stuffy|congestion|chills)\b/.test(t)
+      && !/\b(antibiotic|malaria)\b/.test(t)) {
+    return "Sounds like a common cold or flu-type discomfort. On our OTC page you can find Cold/Flu Capsules (search \"Cold/Flu\" on otc.html, or product.html?id=otc024&cat=otc), Daytime Cold/Flu Syrup, or Night Time Cold Relief Syrup. Acetaminophen 500mg helps with aches and fever too. This isn't a formal diagnosis — if breathing is hard, symptoms are severe, or it lasts a long time, please see a doctor or our pharmacist. Guidance only; follow the label.";
+  }
+
+  // Cough
+  if (/\b(cough|coughing)\b/.test(t) && !/\b(blood|severe|can'?t breathe)\b/.test(t)) {
+    return "For a common cough, we carry Guaifenesin DM Cough Liquid on the OTC shop — go to otc.html and search \"Guaifenesin\" or open product.html?id=otc029&cat=otc. Cold/Flu Capsules may also help if you have other cold symptoms. If the cough is severe, produces blood, or you struggle to breathe, seek medical care now. This is not a substitute for professional medical advice.";
+  }
+
+  // Allergy / hay fever / itchy eyes
+  if (/\b(allerg|hay fever|itchy (eyes|skin)|sneezing|hives)\b/.test(t)
+      && !/\b(anaphyla|throat (closing|swelling)|can'?t breathe)\b/.test(t)) {
+    return "For common allergy symptoms, Cetirizine 10mg and Loratadine 10mg are both on our OTC shelf — go to otc.html and search \"Cetirizine\" or \"Loratadine\" (product.html?id=otc018&cat=otc or otc037). Diphenhydramine 25mg (Benadryl) is another option. Severe swelling, trouble breathing, or anaphylaxis needs emergency care immediately — no OTC first. This guidance isn't a diagnosis; ask our pharmacist if you're unsure.";
+  }
+
+  // Heartburn / acid / burning stomach after meals
+  if (/\b(heartburn|acid reflux|indigestion)\b/.test(t)
+      || /\b(stomach|chest).{0,30}\b(burn|burning|fire)\b/.test(t)
+      || /\b(burn|burning).{0,30}\b(stomach|after meals|after eating)\b/.test(t)
+      || /\b(sour stomach|acid stomach)\b/.test(t)) {
+    return "I'm sorry your stomach is bothering you. For common heartburn or burning after meals, Omeprazole 20mg is in our OTC shop — visit otc.html and search \"Omeprazole\", or open product.html?id=otc051&cat=otc. Antacid 500mg Chewable Tabs or Maalox Antacid can also give quicker relief (search \"Antacid\" or \"Maalox\" on otc.html). This isn't a diagnosis — if pain is severe, you vomit blood, or it keeps coming back, please see a doctor. Always read the label; not a substitute for professional advice.";
+  }
+
+  // Diarrhea
+  if (/\b(diarrhea|diarrhoea|loose stool|runny stomach)\b/.test(t)
+      && !/\b(blood|severe|infant|baby|dehydrated)\b/.test(t)) {
+    return "For common diarrhea, Loperamide (Imodium) 2mg is available on our OTC page — go to otc.html and search \"Loperamide\" or open product.html?id=otc036&cat=otc. Drink plenty of fluids. If there's blood, high fever, signs of dehydration, or it lasts more than a couple of days — especially in a child — please see a doctor or our pharmacist. This is general guidance only, not a diagnosis.";
+  }
+
+  // Gas / bloating
+  if (/\b(gas|bloating|bloated|flatulence)\b/.test(t) && /\b(stomach|relief|help|medicine|medication|what can)\b/.test(t)
+      || /\b(gas relief|too much gas)\b/.test(t)) {
+    return "For everyday gas and bloating, Simethicone 80mg (Gas Relief) is on our OTC shop — search \"Simethicone\" on otc.html or open product.html?id=otc056&cat=otc. If pain is severe or lasting, please check with our pharmacist or a doctor. Not a substitute for professional medical advice.";
   }
 
   return null;
@@ -214,12 +294,51 @@ Customers receive automatic emails at every key step:
 - At checkout, prescription items require a short health questionnaire (what it's for, doctor's name, current medications, allergies)
 - Our pharmacist reviews the questionnaire and confirms pricing before dispatching
 
+━━━ SYMPTOM → OTC PRODUCT HELP (WHEN APPROPRIATE) ━━━
+When a visitor describes mild everyday symptoms and an over-the-counter product is reasonable:
+1. Show brief empathy first.
+2. Use careful language — you may name a likely common OTC issue (e.g. "sounds like a common headache" or "that often goes with heartburn") but NEVER give a formal medical diagnosis. Say this is general wellness guidance, not a substitute for professional medical advice.
+3. Name ONE primary product that EXISTS in Ducor's catalog below — use the exact shop name.
+4. Tell them exactly how to find it: Shop path (otc.html or vitamins.html), search tip (search "…"), and when helpful the product link pattern product.html?id=ID&cat=otc (or cat=vitamins).
+5. Optionally mention 1–2 similar catalog alternatives.
+6. Keep replies concise — under about 150 words unless the customer asks for more detail.
+7. Remind them to follow the label and ask our pharmacist if unsure.
+
+WHEN TO STOP AND REDIRECT (no product push):
+- Emergencies: chest pain, severe breathing trouble, uncontrolled bleeding, stroke signs, seizures, overdose, suicidal thoughts → tell them to call emergency services / go to hospital NOW. No product.
+- Prescription-sounding requests: antibiotics, blood-pressure Rx, diabetes Rx/insulin, controlled meds, anything clearly Rx-only → redirect to a licensed doctor or our pharmacist (WhatsApp/phone). Do NOT invent Rx drug names or push products.
+- Pregnancy / breastfeeding medication questions → pharmacist or doctor first.
+- Child / infant dosing uncertainty → pharmacist or doctor; do not guess doses.
+- Serious, worsening, unclear, or high-risk symptoms → pharmacist or doctor; no product push.
+- Never invent products that are not in the catalog list below. If unsure whether something is in stock, suggest searching the shop by name or WhatsApp the team.
+
+━━━ CURATED OTC & VITAMIN CATALOG (REAL SHOP NAMES) ━━━
+Shop pages: /otc.html (Over-the-Counter), /vitamins.html (Vitamins). Product page: /product.html?id=<id>&cat=otc or cat=vitamins. Prefer these exact names:
+
+PAIN / FEVER: Acetaminophen 325mg (otc002), Acetaminophen 500mg (otc003), Acetaminophen Arthritis 650mg (otc004), Acetaminophen PM (otc005), Children's Acetaminophen 160mg/5mL (otc020), Ibuprofen 200mg (otc033), Children's Ibuprofen 100mg/5mL (otc021), Naproxen 220mg (otc048), Aspirin 81mg EC Tablets (otc011), Migraine Relief (otc045), Menstrual Relief Tablets (otc042), Muscle Pain Rub (otc047)
+
+COLD / COUGH / FLU: Cold/Flu Capsules (otc024), Daytime Cold/Flu Syrup (otc025), Night Time Cold Relief Syrup (otc050), Guaifenesin DM Cough Liquid (otc029), Oxymetazoline Nasal Spray (Afrin) (otc049), Saline Nasal Drops (otc053), Fluticasone 50mcg Nasal Spray (otc027)
+
+ALLERGY: Cetirizine 10mg (otc018), Cetirizine 5mg/5ml Syrup (otc019), Loratadine 10mg (otc037), Diphenhydramine 25mg (Benadryl) (otc013), Chlorpheniramine 4mg (otc022), Diphenhydramine Cream (otc026)
+
+STOMACH / DIGESTIVE: Omeprazole 20mg (otc051), Antacid 500mg Chewable Tabs (otc008), Maalox Antacid (otc038), Stomach Relief Liquid (otc057), Loperamide (Imodium) 2mg (otc036), Simethicone 80mg (Gas Relief) (otc056), Milk of Magnesia (otc046), Senna-Plus 8.6mg/50mg (otc054), Meclizine 25mg (otc039)
+
+SKIN / TOPICAL: Hydrocortisone 1% Cream (otc031), Hydrocortisone 1% Ointment (otc032), Clotrimazole 1% Cream (otc023), Miconazole 2% Cream (otc043), Bacitracin Ointment (otc012), Triple Antibiotic Ointment (otc059), Calamine Lotion (otc017), A+D Ointment (otc001), Acne Medication 5% (otc006), Benzoyl Peroxide 5% Gel (otc014), Ketoconazole 2% Cream (otc035)
+
+EYES / OTHER OTC: Artificial Tears Eye Drops (otc009), Refresh Eye Drops (otc052), Melatonin 5mg (otc040), Melatonin 10mg (otc041), Ferrous Sulfate 325mg (Iron Supplement) (otc034), Glucose Tablets (otc028)
+
+VITAMINS (vitamins.html): Vitamin C 500mg (vit031), Vitamin D3 1000 IU (vit032), Vitamin D3 5,000 IU (vit033), Vitamin B12 1000mcg (vit029), B-Complex with B-12 (vit002), Daily-Vite Multivitamin (vit013), Children's Multivitamins Chewable (vit014), Prenatal Vitamins (vit025), Zinc Sulfate 50mg (vit037), Fish Oil 1000mg (vit015), Magnesium Glycinate (vit019), Probiotics Formula Capsules (vit026)
+
+If the customer needs something not listed, tell them to search the shop by name on otc.html / vitamins.html / prescription.html, or WhatsApp the team to check stock. About 240 products are listed on the site.
+
 ━━━ STRICT RULES — NEVER BREAK THESE ━━━
-- NEVER diagnose a medical condition or replace a doctor's advice — gently recommend consulting a licensed physician
+- NEVER give a formal medical diagnosis or replace a doctor's or pharmacist's advice — frame OTC tips as general guidance only and say so briefly
+- NEVER push or invent prescription antibiotics, Rx blood-pressure meds, diabetes Rx, controlled substances, or any product not in the catalog
 - NEVER share promo codes — these are given privately to special clients only
 - NEVER make up information you are not sure about — be honest and direct the customer to WhatsApp or a phone call
 - NEVER mention the admin dashboard, internal systems, Firebase, API keys, or anything technical
-- Always show empathy first when someone mentions health problems, before giving information`;
+- Always show empathy first when someone mentions health problems, before giving information
+- For emergencies, prioritize hospital/emergency care over any product suggestion`;
 
   // Admin AI can supply its own system prompt
   const activeSystem = customSystem || SYSTEM;
