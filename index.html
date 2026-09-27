@@ -495,19 +495,36 @@
     <p class="tv-lead">A clear walkthrough of shopping, search, checkout, DIP savings, order tracking, and our 24/7 assistant — plus how to reach us on WhatsApp, Facebook, Instagram, and TikTok.</p>
     <div class="tv-frame">
       <video
+        id="ducor-tutorial-video"
         controls
         playsinline
+        webkit-playsinline
         preload="metadata"
         poster="/assets/video/tutorial-v3-poster.jpg"
         title="How Ducor International Pharmacy works online">
-        <source src="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4" type="video/mp4"/>
-        Your browser does not support the video tag. <a href="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4">Download the walkthrough</a>.
+        <source src="/assets/video/tutorial-v3-web.mp4" type="video/mp4"/>
+        Your browser does not support the video tag. <a href="/assets/video/tutorial-v3-web.mp4">Open the walkthrough</a>.
       </video>
     </div>
     <div class="tv-cta">
-      <a class="btn-gold" href="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4">Watch the full walkthrough</a>
+      <a class="btn-gold" href="#how-it-works" id="play-tutorial-btn">Play the walkthrough</a>
       <a class="btn-ghost" href="/contact.html">Contact &amp; socials</a>
+      <a class="btn-ghost" href="https://github.com/Geejorgbor/ducor-pharmacy/releases/download/tutorial-video-v3/ducor-website-tutorial-v3-1080p.mp4" download>Download HD</a>
     </div>
+    <script>
+      (function () {
+        var btn = document.getElementById('play-tutorial-btn');
+        var vid = document.getElementById('ducor-tutorial-video');
+        if (!btn || !vid) return;
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          try { vid.focus({ preventScroll: false }); } catch (_) { vid.focus(); }
+          vid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          var p = vid.play();
+          if (p && typeof p.catch === 'function') p.catch(function () {});
+        });
+      })();
+    </script>
   </div>
 </section>
 
