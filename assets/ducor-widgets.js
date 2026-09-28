@@ -335,6 +335,10 @@ function initChat() {
 
   const CONTACT_HTML = '<a href="https://wa.me/16309366050" target="_blank" rel="noopener">WhatsApp +1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank" rel="noopener">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank" rel="noopener">+231 760 801 914</a>';
   const HOURS_MSG = 'Our pharmacists are available Monday–Saturday, 9AM–5PM (Monrovia time). Outside those hours I can keep helping as your online assistant, or you can reach the team anytime: ' + CONTACT_HTML + '.';
+  // WhatsApp bridge (Lucas Lonestar +231778174157): handoff is allowed ANYTIME so
+  // Lonestar can be notified and reply from WhatsApp even outside 9–5 for testing
+  // and urgent cases. We still show the hours note to the client.
+  const LONESTAR_BRIDGE_ENABLED = true;
   const FB_CONFIG = {
     apiKey: 'AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE',
     authDomain: 'ducor-pharmacy.firebaseapp.com',
@@ -561,6 +565,10 @@ function initChat() {
     return fb;
   }
 
+  function sessionCodeFromId(id) {
+    return String(id || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+  }
+
   async function ensureSessionDoc(status) {
     const F = await ensureFirebase();
     if (!sessionId) {
@@ -577,7 +585,10 @@ function initChat() {
       pageUrl: String(location.href || '').slice(0, 500),
       preview: String(((chatHistory.find(function (m) { return m.role === 'user'; }) || {}).content || 'Chat request')).slice(0, 200),
       unreadStaff: 0,
-      unreadClient: 0
+      unreadClient: 0,
+      sessionCode: sessionCodeFromId(sessionId),
+      waBridgeChatId: '231778174157@c.us',
+      waBridgeEnabled: true
     };
     try {
       const existing = await F.getDoc(ref);
@@ -586,7 +597,10 @@ function initChat() {
           status: payload.status,
           updatedAt: payload.updatedAt,
           pageUrl: payload.pageUrl,
-          preview: payload.preview
+          preview: payload.preview,
+          sessionCode: payload.sessionCode,
+          waBridgeChatId: payload.waBridgeChatId,
+          waBridgeEnabled: payload.waBridgeEnabled
         });
       } else {
         await F.setDoc(ref, Object.assign({ createdAt: F.serverTimestamp() }, payload));
@@ -675,32 +689,70 @@ function initChat() {
     }
   }
 
+  /** Notify Lucas Lonestar WhatsApp ONLY via server (Green API token never client-side). */
+  async function notifyLonestarWhatsApp(kind, lastMessage) {
+    if (!LONESTAR_BRIDGE_ENABLED || !sessionId) return;
+    try {
+      await fetch('/api/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: kind === 'followup' ? 'chat_handoff_followup' : 'chat_handoff',
+          handoff: {
+            sessionId: sessionId,
+            sessionCode: sessionCodeFromId(sessionId),
+            lastMessage: String(lastMessage || '').slice(0, 500),
+            preview: String(lastMessage || '').slice(0, 200),
+            pageUrl: String(location.href || '').slice(0, 500)
+          }
+        })
+      });
+    } catch (e) {
+      console.warn('Lonestar WhatsApp notify failed', e);
+    }
+  }
+
   async function requestHuman() {
     if (!chatOpen) openChat();
     if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
       appendMsg('You are already in the pharmacist queue. Please wait — a team member will reply here.', 'system');
       return;
     }
-    if (!isPharmacistHours()) {
+    // After-hours: still start handoff + WhatsApp-notify Lucas Lonestar so he can
+    // reply from WhatsApp (try-now / testing). Show hours note but do not block.
+    const afterHours = !isPharmacistHours();
+    if (afterHours) {
       appendMsg(HOURS_MSG, 'bot', { allowHtml: true });
-      return;
     }
     showTyping();
     try {
       await ensureSessionDoc('waiting');
-      // Update status explicitly to waiting (merge create may have left prior status)
+      const code = sessionCodeFromId(sessionId);
+      const lastUser = ((chatHistory.slice().reverse().find(function (m) { return m.role === 'user'; }) || {}).content) || '';
+      // Update status explicitly to waiting + mark WhatsApp bridge fields for Lonestar
       const F = await ensureFirebase();
       await F.updateDoc(F.doc(F.db, 'chat_sessions', sessionId), {
         status: 'waiting',
         updatedAt: F.serverTimestamp(),
-        pageUrl: String(location.href || '').slice(0, 500)
+        pageUrl: String(location.href || '').slice(0, 500),
+        sessionCode: code,
+        waBridgeChatId: '231778174157@c.us', // Lucas Lonestar ONLY
+        waBridgeEnabled: true
       });
       await seedTranscript();
-      await writeMessage('system', 'Customer requested a pharmacist.');
+      await writeMessage('system', afterHours
+        ? 'Customer requested a pharmacist outside desk hours — Lonestar notified on WhatsApp.'
+        : 'Customer requested a pharmacist.');
       await startListeners();
+      // Server-side Green API → Lonestar only (token never exposed here)
+      await notifyLonestarWhatsApp('handoff', lastUser || 'Customer tapped Talk to pharmacist');
       hideTyping();
       setHandoffUI('waiting');
-      appendMsg('Connecting you to a pharmacist. AI replies are paused for this chat — please wait here, or reach us on ' + CONTACT_HTML + ' if it is urgent.', 'system', { allowHtml: true });
+      if (afterHours) {
+        appendMsg('A team member was notified on WhatsApp. They may reply here shortly — AI replies are paused for this chat. Desk hours are Mon–Sat 9AM–5PM (Monrovia). For other lines: ' + CONTACT_HTML + '.', 'system', { allowHtml: true });
+      } else {
+        appendMsg('Connecting you to a pharmacist. A team member was also notified on WhatsApp. AI replies are paused for this chat — please wait here, or reach us on ' + CONTACT_HTML + ' if it is urgent.', 'system', { allowHtml: true });
+      }
     } catch (e) {
       hideTyping();
       console.error(e);
@@ -716,6 +768,8 @@ function initChat() {
       if (!sessionId) await ensureSessionDoc(sessionStatus === 'human' ? 'waiting' : 'waiting');
       await writeMessage('user', text);
       if (!unsubMessages) await startListeners();
+      // Forward follow-ups to Lonestar WhatsApp so the thread stays bidirectional
+      await notifyLonestarWhatsApp('followup', text);
     } catch (e) {
       console.error(e);
       appendMsg('Message could not be delivered. Please try again or use ' + CONTACT_HTML + '.', 'system', { allowHtml: true });
@@ -735,14 +789,10 @@ function initChat() {
       return;
     }
 
-    // Detect intent to talk to a human
+    // Detect intent to talk to a human (handoff + Lonestar WhatsApp anytime)
     if (HUMAN_INTENT.test(text)) {
       appendMsg(text, 'user');
       chatHistory.push({ role: 'user', content: text });
-      if (!isPharmacistHours()) {
-        appendMsg(HOURS_MSG, 'bot', { allowHtml: true });
-        return;
-      }
       await requestHuman();
       return;
     }
