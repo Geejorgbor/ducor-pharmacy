@@ -345,6 +345,26 @@ function initChat() {
     #ducor-chat-send{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#c9a055,#a87830);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .15s,box-shadow .15s;box-shadow:0 3px 10px rgba(201,160,85,0.3)}
     #ducor-chat-send:hover{opacity:0.92;transform:translateY(-1px)}
     #ducor-chat-send:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+
+    #ducor-chat-reason{display:none;padding:10px 12px 12px;background:linear-gradient(180deg,rgba(201,160,85,0.1),rgba(7,20,34,0));border-bottom:1px solid rgba(201,160,85,0.22);flex-shrink:0}
+    #ducor-chat-reason.show{display:block}
+    #ducor-chat-reason-prompt{margin:0 0 8px;color:rgba(255,255,255,0.82);font-size:0.78rem;font-weight:600;line-height:1.35}
+    #ducor-chat-reason-options{display:flex;flex-wrap:wrap;gap:6px}
+    .ducor-reason-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(201,160,85,0.32);color:rgba(240,217,168,0.95);font-size:0.72rem;font-weight:600;padding:7px 11px;border-radius:999px;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .12s;font-family:inherit;line-height:1.2}
+    .ducor-reason-btn:hover{background:rgba(201,160,85,0.18);border-color:rgba(201,160,85,0.5);color:#f5e6c8}
+    .ducor-reason-btn:focus-visible{outline:2px solid #c9a055;outline-offset:2px}
+    .ducor-reason-btn.selected{background:rgba(201,160,85,0.28);border-color:#c9a055;color:#fff}
+    #ducor-chat-reason-other{display:none;margin-top:8px}
+    #ducor-chat-reason-other.show{display:block}
+    #ducor-chat-reason-other-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;padding:9px 11px;font-size:0.8rem;color:#fff;font-family:inherit;outline:none;resize:none;min-height:38px;max-height:72px;line-height:1.35}
+    #ducor-chat-reason-other-input:focus{border-color:rgba(201,160,85,0.55);box-shadow:0 0 0 3px rgba(201,160,85,0.12)}
+    #ducor-chat-reason-other-input::placeholder{color:rgba(255,255,255,0.38)}
+    #ducor-chat-reason-actions{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+    #ducor-chat-reason-connect{display:none;flex:1;min-width:120px;padding:9px 12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;color:#071422;background:linear-gradient(135deg,#d4b06a 0%,#c9a055 45%,#a87830 100%);box-shadow:0 3px 10px rgba(201,160,85,0.3)}
+    #ducor-chat-reason-connect.show{display:inline-flex;align-items:center;justify-content:center}
+    #ducor-chat-reason-connect:disabled{opacity:.55;cursor:not-allowed}
+    #ducor-chat-reason-cancel{background:transparent;border:none;color:rgba(255,255,255,0.55);font-size:0.74rem;font-weight:600;cursor:pointer;padding:8px 6px;font-family:inherit}
+    #ducor-chat-reason-cancel:hover{color:#e0c080}
   
   `;
   document.head.appendChild(style);
@@ -390,6 +410,23 @@ function initChat() {
         Talk to pharmacist
       </button>
     </div>
+    <div id="ducor-chat-reason" role="group" aria-label="Why would you like to talk to a pharmacist?">
+      <p id="ducor-chat-reason-prompt">What can the pharmacist help with?</p>
+      <div id="ducor-chat-reason-options">
+        <button type="button" class="ducor-reason-btn" data-reason="urgent" data-label="Urgent">Urgent</button>
+        <button type="button" class="ducor-reason-btn" data-reason="personal" data-label="Personal">Personal</button>
+        <button type="button" class="ducor-reason-btn" data-reason="prescription" data-label="Prescription question">Prescription question</button>
+        <button type="button" class="ducor-reason-btn" data-reason="assistant" data-label="Assistant couldn&#39;t help">Assistant couldn&#39;t help</button>
+        <button type="button" class="ducor-reason-btn" data-reason="other" data-label="Other">Other</button>
+      </div>
+      <div id="ducor-chat-reason-other">
+        <textarea id="ducor-chat-reason-other-input" rows="2" maxlength="160" placeholder="A few words (optional)…" aria-label="Brief reason"></textarea>
+      </div>
+      <div id="ducor-chat-reason-actions">
+        <button type="button" id="ducor-chat-reason-connect">Connect to pharmacist</button>
+        <button type="button" id="ducor-chat-reason-cancel">Not now</button>
+      </div>
+    </div>
     <div id="ducor-chat-messages">
       <div class="ducor-msg bot">Welcome to Ducor International Pharmacy! 👋<br><br>I'm your online assistant, here 24/7 to guide you through everything — finding medications, placing an order, payment options, and more. How can I help you today?</div>
     </div>
@@ -427,17 +464,34 @@ function initChat() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
   document.getElementById('ducor-chat-pharmacist-btn').addEventListener('click', function () {
-    requestHuman();
+    openReasonGate();
   });
   document.getElementById('ducor-chat-quick').addEventListener('click', e => {
     const b = e.target.closest('.ducor-quick-btn');
     if (!b) return;
     if (b.getAttribute('data-human')) {
-      requestHuman();
+      openReasonGate();
       return;
     }
     const q = b.getAttribute('data-quick');
     if (q) ducorChatQuick(q);
+  });
+  document.getElementById('ducor-chat-reason-options').addEventListener('click', function (e) {
+    const b = e.target.closest('.ducor-reason-btn');
+    if (!b) return;
+    selectReasonOption(b);
+  });
+  document.getElementById('ducor-chat-reason-cancel').addEventListener('click', function () {
+    closeReasonGate();
+  });
+  document.getElementById('ducor-chat-reason-connect').addEventListener('click', function () {
+    confirmReasonAndHandoff();
+  });
+  document.getElementById('ducor-chat-reason-other-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      confirmReasonAndHandoff();
+    }
   });
 
   function toggleChat() {
@@ -459,7 +513,7 @@ function initChat() {
     document.getElementById('ducor-chat-input').value = text;
     setTimeout(sendMessage, 100);
   };
-  window.ducorRequestHuman = requestHuman;
+  window.ducorRequestHuman = openReasonGate;
 
   function formatMsgHtml(text) {
     return String(text)
@@ -499,6 +553,102 @@ function initChat() {
   function showTyping() { document.getElementById('ducor-chat-typing').style.display = 'flex'; }
   function hideTyping() { document.getElementById('ducor-chat-typing').style.display = 'none'; }
 
+
+  let reasonGateOpen = false;
+  let selectedReason = null; // { id, label }
+
+  function openReasonGate() {
+    if (!chatOpen) openChat();
+    if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
+      appendMsg('You are already in the pharmacist queue. Please wait — a pharmacist will reply here.', 'system');
+      return;
+    }
+    reasonGateOpen = true;
+    selectedReason = null;
+    const gate = document.getElementById('ducor-chat-reason');
+    const cta = document.getElementById('ducor-chat-cta');
+    const otherWrap = document.getElementById('ducor-chat-reason-other');
+    const otherInput = document.getElementById('ducor-chat-reason-other-input');
+    const connectBtn = document.getElementById('ducor-chat-reason-connect');
+    gate.classList.add('show');
+    if (cta) cta.classList.add('hidden');
+    otherWrap.classList.remove('show');
+    if (otherInput) otherInput.value = '';
+    connectBtn.classList.remove('show');
+    connectBtn.disabled = false;
+    Array.prototype.forEach.call(document.querySelectorAll('.ducor-reason-btn'), function (btn) {
+      btn.classList.remove('selected');
+    });
+  }
+
+  function closeReasonGate() {
+    reasonGateOpen = false;
+    selectedReason = null;
+    const gate = document.getElementById('ducor-chat-reason');
+    const cta = document.getElementById('ducor-chat-cta');
+    const otherWrap = document.getElementById('ducor-chat-reason-other');
+    const otherInput = document.getElementById('ducor-chat-reason-other-input');
+    const connectBtn = document.getElementById('ducor-chat-reason-connect');
+    if (gate) gate.classList.remove('show');
+    if (otherWrap) otherWrap.classList.remove('show');
+    if (otherInput) otherInput.value = '';
+    if (connectBtn) connectBtn.classList.remove('show');
+    // Restore CTA only when not already in a live handoff
+    if (cta && sessionStatus !== 'waiting' && sessionStatus !== 'human') {
+      cta.classList.remove('hidden');
+    }
+  }
+
+  function selectReasonOption(btn) {
+    Array.prototype.forEach.call(document.querySelectorAll('.ducor-reason-btn'), function (b) {
+      b.classList.remove('selected');
+    });
+    btn.classList.add('selected');
+    const id = btn.getAttribute('data-reason');
+    const label = btn.getAttribute('data-label') || id;
+    selectedReason = { id: id, label: label };
+    const otherWrap = document.getElementById('ducor-chat-reason-other');
+    const connectBtn = document.getElementById('ducor-chat-reason-connect');
+    if (id === 'other') {
+      otherWrap.classList.add('show');
+      connectBtn.classList.add('show');
+      setTimeout(function () {
+        const inp = document.getElementById('ducor-chat-reason-other-input');
+        if (inp) inp.focus();
+      }, 50);
+    } else {
+      otherWrap.classList.remove('show');
+      connectBtn.classList.remove('show');
+      // Immediate handoff for preset reasons — short picker, not a wall
+      confirmReasonAndHandoff();
+    }
+  }
+
+  function buildReasonPayload() {
+    if (!selectedReason) return null;
+    const detail = (document.getElementById('ducor-chat-reason-other-input') || {}).value || '';
+    const detailTrim = String(detail).trim().slice(0, 160);
+    let staffLabel = selectedReason.label;
+    if (selectedReason.id === 'other' && detailTrim) {
+      staffLabel = 'Other: ' + detailTrim;
+    } else if (selectedReason.id === 'other') {
+      staffLabel = 'Other';
+    }
+    return {
+      id: selectedReason.id,
+      label: selectedReason.label,
+      detail: detailTrim,
+      staffLabel: staffLabel
+    };
+  }
+
+  function confirmReasonAndHandoff() {
+    const payload = buildReasonPayload();
+    if (!payload) return;
+    closeReasonGate();
+    requestHuman(payload);
+  }
+
   function setHandoffUI(status) {
     sessionStatus = status || 'ai';
     handoffMode = status === 'waiting' || status === 'human';
@@ -507,6 +657,7 @@ function initChat() {
     const dot = document.getElementById('ducor-chat-status');
     const input = document.getElementById('ducor-chat-input');
     const cta = document.getElementById('ducor-chat-cta');
+    const reasonGate = document.getElementById('ducor-chat-reason');
     dot.classList.remove('human', 'waiting');
     if (status === 'waiting') {
       bar.classList.add('show');
@@ -515,6 +666,8 @@ function initChat() {
       dot.classList.add('waiting');
       input.placeholder = 'Message the pharmacy team…';
       if (cta) cta.classList.add('hidden');
+      if (reasonGate) reasonGate.classList.remove('show');
+      reasonGateOpen = false;
     } else if (status === 'human') {
       bar.classList.add('show');
       bar.textContent = 'You are chatting with a pharmacist.';
@@ -522,12 +675,14 @@ function initChat() {
       dot.classList.add('human');
       input.placeholder = 'Message the pharmacist…';
       if (cta) cta.classList.add('hidden');
+      if (reasonGate) reasonGate.classList.remove('show');
+      reasonGateOpen = false;
     } else {
       bar.classList.remove('show');
       bar.textContent = '';
       if (subText) subText.textContent = 'Online Assistant · Available 24/7';
       input.placeholder = 'Ask me anything about medications…';
-      if (cta) cta.classList.remove('hidden');
+      if (cta && !reasonGateOpen) cta.classList.remove('hidden');
     }
   }
 
@@ -717,9 +872,16 @@ function initChat() {
   }
 
   /** Notify Lucas Lonestar WhatsApp ONLY via server (Green API token never client-side). */
-  async function notifyLonestarWhatsApp(kind, lastMessage) {
+  async function notifyLonestarWhatsApp(kind, lastMessage, reasonLabel) {
     if (!LONESTAR_BRIDGE_ENABLED || !sessionId) return;
     try {
+      const reason = String(reasonLabel || '').slice(0, 200);
+      // Pack reason into lastMessage context so staff always see why, even if
+      // older API builds ignore a dedicated reason field.
+      let alertLast = String(lastMessage || '').slice(0, 500);
+      if (reason && kind !== 'followup') {
+        alertLast = ('Reason: ' + reason + (alertLast ? ' — ' + alertLast : '')).slice(0, 500);
+      }
       await fetch('/api/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -728,8 +890,9 @@ function initChat() {
           handoff: {
             sessionId: sessionId,
             sessionCode: sessionCodeFromId(sessionId),
-            lastMessage: String(lastMessage || '').slice(0, 500),
-            preview: String(lastMessage || '').slice(0, 200),
+            lastMessage: alertLast,
+            preview: alertLast.slice(0, 200),
+            reason: reason,
             pageUrl: String(location.href || '').slice(0, 500)
           }
         })
@@ -739,12 +902,15 @@ function initChat() {
     }
   }
 
-  async function requestHuman() {
+  async function requestHuman(reasonInfo) {
     if (!chatOpen) openChat();
     if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
       appendMsg('You are already in the pharmacist queue. Please wait — a pharmacist will reply here.', 'system');
       return;
     }
+    const reason = reasonInfo && reasonInfo.staffLabel
+      ? String(reasonInfo.staffLabel).slice(0, 200)
+      : (reasonInfo && reasonInfo.label ? String(reasonInfo.label).slice(0, 200) : '');
     // After-hours: still start handoff + WhatsApp-notify Lucas Lonestar so he can
     // reply from WhatsApp (try-now / testing). Show hours note but do not block.
     const afterHours = !isPharmacistHours();
@@ -758,19 +924,28 @@ function initChat() {
       const lastUser = ((chatHistory.slice().reverse().find(function (m) { return m.role === 'user'; }) || {}).content) || '';
       // Update status explicitly to waiting + mark WhatsApp bridge fields for Lonestar
       const F = await ensureFirebase();
-      await F.updateDoc(F.doc(F.db, 'chat_sessions', sessionId), {
+      const sessionPatch = {
         status: 'waiting',
         updatedAt: F.serverTimestamp(),
         pageUrl: String(location.href || '').slice(0, 500),
         sessionCode: code,
         waBridgeChatId: '231778174157@c.us', // Lucas Lonestar ONLY
         waBridgeEnabled: true
-      });
+      };
+      if (reason) {
+        sessionPatch.handoffReason = reason;
+        sessionPatch.preview = ('Reason: ' + reason).slice(0, 200);
+      }
+      await F.updateDoc(F.doc(F.db, 'chat_sessions', sessionId), sessionPatch);
       await seedTranscript();
-      await writeMessage('system', 'Connecting you to a pharmacist. Please wait here — the assistant is paused for this chat.');
+      // System note includes reason so staff see why in the transcript / dashboard
+      const systemNote = reason
+        ? ('Connecting you to a pharmacist (' + reason + '). Please wait here — the assistant is paused for this chat.')
+        : 'Connecting you to a pharmacist. Please wait here — the assistant is paused for this chat.';
+      await writeMessage('system', systemNote);
       await startListeners();
       // Server-side Green API → Lonestar only (token never exposed here)
-      await notifyLonestarWhatsApp('handoff', lastUser || 'Customer tapped Talk to pharmacist');
+      await notifyLonestarWhatsApp('handoff', lastUser || 'Customer requested a pharmacist', reason);
       hideTyping();
       setHandoffUI('waiting');
       if (afterHours) {
@@ -814,11 +989,11 @@ function initChat() {
       return;
     }
 
-    // Detect intent to talk to a human (handoff + Lonestar WhatsApp anytime)
+    // Detect intent to talk to a pharmacist — reason gate before handoff
     if (HUMAN_INTENT.test(text)) {
       appendMsg(text, 'user');
       chatHistory.push({ role: 'user', content: text });
-      await requestHuman();
+      openReasonGate();
       return;
     }
 
