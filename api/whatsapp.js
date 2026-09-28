@@ -106,6 +106,31 @@ export default async function handler(req, res) {
       return res.status(200).json({ state, settings });
     }
 
+    // ONE-SHOT — configure Green API webhook for Lonestar inbound bridge.
+    // Safe to re-run; only sets webhook URL + incomingWebhook. Remove after stable.
+    if (type === 'configure_lonestar_webhook') {
+      const webhookUrl =
+        'https://www.ducor-international-pharmacy.com/api/whatsapp-incoming';
+      const setResp = await fetch(`${API_URL}/waInstance${ID}/setSettings/${TOKEN}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          webhookUrl,
+          incomingWebhook: 'yes',
+        }),
+      });
+      const setData = await setResp.json();
+      const settingsResp = await fetch(`${API_URL}/waInstance${ID}/getSettings/${TOKEN}`);
+      const settings = await settingsResp.json();
+      return res.status(200).json({
+        ok: setResp.ok && (setData.saveSettings === true || setData.webhookUrl === webhookUrl || settings.webhookUrl === webhookUrl),
+        webhookUrl,
+        incomingWebhook: settings.incomingWebhook,
+        configuredWebhookUrl: settings.webhookUrl,
+        saveSettings: setData.saveSettings ?? setData,
+      });
+    }
+
     // TEMPORARY diagnostic — lists every chat (including groups) this
     // WhatsApp account is part of, so the right group's chatId can be
     // identified for scheduled group posting. Remove once that ID is found.
