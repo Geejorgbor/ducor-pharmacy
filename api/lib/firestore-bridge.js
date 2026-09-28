@@ -427,3 +427,245 @@ export function stripCodeFromReply(text) {
     .replace(/^\s*[A-Fa-f0-9]{8}\s*[:\-–]\s*/i, '')
     .trim();
 }
+
+// ── Generic Firestore helpers (Admin AI + other server ops) ─────────────────
+
+/** Read any document by path like "orders/abc" or "admin_state/products". */
+export async function getDocument(path) {
+  const data = await authedFetch(docUrl(path));
+  return docToObject(data);
+}
+
+/** Create or overwrite a document (PATCH with full fields; creates if missing). */
+export async function setDocument(path, fields) {
+  const body = { fields: {} };
+  for (const [k, v] of Object.entries(fields)) {
+    body.fields[k] = toFirestoreValue(v);
+  }
+  // Use PATCH without updateMask to write all fields; exists create via currentDocument.exists false option
+  const fieldPaths = Object.keys(fields);
+  const qs = fieldPaths.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+  try {
+    return await authedFetch(`${docUrl(path)}?${qs}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    // If missing, PATCH may fail — try PATCH with allowMissing via updateMask still
+    // Firestore REST: PATCH with currentDocument.exists is awkward; use PATCH ?updateMask + allow missing via POST to parent for new docs
+    if (/NOT_FOUND|404/i.test(String(e.message))) {
+      const parts = path.split('/');
+      const docId = parts.pop();
+      const collectionPath = parts.join('/');
+      return await authedFetch(
+        `${docUrl(collectionPath)}?documentId=${encodeURIComponent(docId)}`,
+        { method: 'POST', body: JSON.stringify(body) }
+      );
+    }
+    throw e;
+  }
+}
+
+/** Patch selected fields on an existing document. */
+export async function patchDocument(path, fields) {
+  const fieldPaths = Object.keys(fields);
+  const qs = fieldPaths.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+  const body = { fields: {} };
+  for (const [k, v] of Object.entries(fields)) {
+    body.fields[k] = toFirestoreValue(v);
+  }
+  return authedFetch(`${docUrl(path)}?${qs}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Run a structured query.
+ * @param {string} collectionId e.g. "orders"
+ * @param {object} opts { whereEqual?: {field, value}, orderBy?: {field, direction}, limit?: number }
+ */
+export async function runCollectionQuery(collectionId, opts = {}) {
+  const structuredQuery = {
+    from: [{ collectionId }],
+    limit: opts.limit || 50,
+  };
+  if (opts.whereEqual) {
+    structuredQuery.where = {
+      fieldFilter: {
+        field: { fieldPath: opts.whereEqual.field },
+        op: 'EQUAL',
+        value: toFirestoreValue(opts.whereEqual.value),
+      },
+    };
+  }
+  if (opts.orderBy) {
+    structuredQuery.orderBy = [
+      {
+        field: { fieldPath: opts.orderBy.field },
+        direction: opts.orderBy.direction === 'ASCENDING' ? 'ASCENDING' : 'DESCENDING',
+      },
+    ];
+  }
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const rows = await authedFetch(url, {
+    method: 'POST',
+    body: JSON.stringify({ structuredQuery }),
+  });
+  const out = [];
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      if (row && row.error) {
+        throw new Error(`Firestore runQuery: ${row.error.message || JSON.stringify(row.error)}`);
+      }
+      if (row.document) out.push(docToObject(row.document));
+    }
+  }
+  return out;
+}
+
+/** List documents in a collection (page size limited). */
+export async function listCollection(collectionId, pageSize = 50) {
+  const url = `${docUrl(collectionId)}?pageSize=${pageSize}`;
+  const data = await authedFetch(url);
+  const docs = data?.documents || [];
+  return docs.map(docToObject).filter(Boolean);
+}
+
+/** Read admin_state/{docId}.value */
+export async function getAdminState(docId) {
+  const doc = await getDocument(`admin_state/${docId}`);
+  return doc ? doc.value : null;
+}
+
+/** Write admin_state/{docId} = { value, updatedAt } */
+export async function setAdminState(docId, value) {
+  return setDocument(`admin_state/${docId}`, {
+    value,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Find order by full id, trailing id slice, or ref (e.g. DUCOR-12345678). */
+export async function findOrder(idOrRef) {
+  const key = String(idOrRef || '').trim();
+  if (!key) return null;
+
+  // Direct get by document id
+  try {
+    const direct = await getDocument(`orders/${encodeURIComponent(key)}`);
+    if (direct) return direct;
+  } catch (_) { /* not found */ }
+
+  // Query by ref field
+  try {
+    const byRef = await runCollectionQuery('orders', {
+      whereEqual: { field: 'ref', value: key.toUpperCase().startsWith('DUCOR') ? key.toUpperCase() : key },
+      limit: 5,
+    });
+    if (byRef.length) return byRef[0];
+  } catch (_) { /* index / not found */ }
+
+  // Fallback: list recent and match suffix / ref (no composite index needed)
+  try {
+    const recent = await listCollection('orders', 100);
+    const upper = key.toUpperCase();
+    const found = recent.find(
+      (o) =>
+        o.__id === key ||
+        o.__id?.endsWith(key) ||
+        key.endsWith(o.__id?.slice(-8) || '') ||
+        String(o.ref || '').toUpperCase() === upper ||
+        String(o.ref || '').toUpperCase().endsWith(upper)
+    );
+    if (found) return found;
+  } catch (_) {}
+
+  return null;
+}
+
+/** List recent orders (best-effort; sorts in memory by createdAt). */
+export async function listRecentOrders(limit = 20) {
+  let docs = [];
+  try {
+    docs = await runCollectionQuery('orders', {
+      orderBy: { field: 'createdAt', direction: 'DESCENDING' },
+      limit,
+    });
+  } catch (_) {
+    docs = await listCollection('orders', Math.min(limit * 3, 100));
+    docs.sort((a, b) => {
+      const ta = Date.parse(a.createdAt || a.time || 0) || 0;
+      const tb = Date.parse(b.createdAt || b.time || 0) || 0;
+      return tb - ta;
+    });
+    docs = docs.slice(0, limit);
+  }
+  return docs;
+}
+
+/** List open live-chat sessions (waiting|human). */
+export async function listLiveChatSessions(limit = 30) {
+  let docs = [];
+  try {
+    docs = await listCollection('chat_sessions', 80);
+  } catch (e) {
+    throw e;
+  }
+  const open = docs.filter((d) => d && (d.status === 'waiting' || d.status === 'human' || d.status === 'ai'));
+  open.sort((a, b) => {
+    const ta = Date.parse(a.updatedAt || a.lastMessageAt || a.createdAt || 0) || 0;
+    const tb = Date.parse(b.updatedAt || b.lastMessageAt || b.createdAt || 0) || 0;
+    return tb - ta;
+  });
+  return open.slice(0, limit);
+}
+
+/** Close a live chat session (status closed + system message). */
+export async function closeLiveChatSession(sessionId) {
+  const now = new Date();
+  await patchSession(sessionId, { status: 'closed', updatedAt: now });
+  await addSessionMessage(sessionId, {
+    role: 'system',
+    content: 'Chat closed by pharmacist.',
+    createdAt: now,
+  });
+  return { ok: true, sessionId, status: 'closed' };
+}
+
+/** Claim a live chat (status human). */
+export async function claimLiveChatSession(sessionId, claimedBy = 'Pharmacist') {
+  const now = new Date();
+  const session = await getSession(sessionId);
+  if (!session) throw new Error('Session not found: ' + sessionId);
+  await patchSession(sessionId, {
+    status: 'human',
+    claimedBy,
+    claimedAt: now,
+    updatedAt: now,
+  });
+  if (session.status === 'waiting' || session.status === 'ai') {
+    await addSessionMessage(sessionId, {
+      role: 'system',
+      content: 'A pharmacist has joined the chat.',
+      createdAt: now,
+      senderName: claimedBy,
+    });
+  }
+  return { ok: true, sessionId, status: 'human', claimedBy };
+}
+
+/** Find customers by email (exact). */
+export async function findCustomersByEmail(email) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return [];
+  try {
+    return await runCollectionQuery('customers', {
+      whereEqual: { field: 'email', value: normalized },
+      limit: 10,
+    });
+  } catch (_) {
+    const all = await listCollection('customers', 100);
+    return all.filter((c) => String(c.email || '').toLowerCase() === normalized);
+  }
+}
