@@ -1,5 +1,5 @@
 /**
- * Poll Green API receiveNotification → bridge Lonestar replies into Live Chat.
+ * Poll Green API receiveNotification → bridge handoff replies into Live Chat.
  *
  * Use when webhook is not configured yet, or as a backup.
  * Call with a shared secret:
@@ -7,11 +7,10 @@
  *   (reuses GROUP_POST_SECRET, or set WHATSAPP_POLL_SECRET)
  *
  * Processes up to `limit` notifications (default 10), deletes each after handling.
- * Green API credentials stay server-side.
+ * Accepts Lonestar OR Boss (275). Green API credentials stay server-side.
  */
 
 import {
-  LONESTAR_CHAT_ID,
   processInboundHandoffMessage,
 } from './lib/whatsapp-handoff.js';
 import { sendWhatsApp } from './lib/green-send.js';
@@ -72,8 +71,9 @@ export default async function handler(req, res) {
     let handled = { ok: true, skipped: true, reason: 'unhandled_type' };
     try {
       handled = await processInboundHandoffMessage(body);
+      const replyTo = handled.replyToChatId || null;
 
-      if (handled.needCode && Array.isArray(handled.codes)) {
+      if (handled.needCode && Array.isArray(handled.codes) && replyTo) {
         const msg = [
           'Several live chats are open. Reply like:',
           `Code: ${handled.codes[0]} Your message here`,
@@ -81,14 +81,14 @@ export default async function handler(req, res) {
           'Open codes: ' + handled.codes.join(', '),
         ].join('\n');
         try {
-          await sendWhatsApp(API_URL, ID, TOKEN, msg, LONESTAR_CHAT_ID);
+          await sendWhatsApp(API_URL, ID, TOKEN, msg, replyTo);
         } catch (_) {}
-      } else if (handled.ok && handled.sessionId && !handled.skipped) {
+      } else if (handled.ok && handled.sessionId && !handled.skipped && replyTo) {
         const confirm = handled.returnedToAI
           ? `✓ Returned to assistant (Code: ${handled.sessionCode})`
           : `✓ Sent to website chat (Code: ${handled.sessionCode})`;
         try {
-          await sendWhatsApp(API_URL, ID, TOKEN, confirm, LONESTAR_CHAT_ID);
+          await sendWhatsApp(API_URL, ID, TOKEN, confirm, replyTo);
         } catch (_) {}
       }
     } catch (err) {

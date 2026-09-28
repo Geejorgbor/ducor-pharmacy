@@ -1,11 +1,16 @@
 /**
  * WhatsApp ↔ Live Chat handoff helpers.
  *
- * OUTBOUND alerts and INBOUND reply bridging go to Lucas Lonestar ONLY:
- *   +231 778 174 157  →  chatId 231778174157@c.us
- * Never BOSS_CHAT_ID (231887221275) or DEV_CHAT_ID for this handoff path.
+ * OUTBOUND WEBSITE-CHAT alerts go to BOTH:
+ *   Lucas Lonestar  +231 778 174 157  →  231778174157@c.us  (primary / waBridgeChatId)
+ *   Boss (275)      +231 887 221 275  →  231887221275@c.us
+ * Never DEV_CHAT_ID for this handoff path.
  *
- * Try-now / after-hours: the website still creates a handoff + notifies Lonestar
+ * INBOUND: replies from EITHER chatId are accepted for bridging
+ * (same Code / single-open / DONE-AI logic). Sessions still store
+ * waBridgeChatId = Lonestar (primary) so single-open lookup stays stable.
+ *
+ * Try-now / after-hours: the website still creates a handoff + notifies both
  * outside Mon–Sat 9AM–5PM so replies can be tested anytime; clients only see
  * pharmacist/assistant copy (see assets/ducor-widgets.js).
  */
@@ -21,12 +26,26 @@ import {
   writeWhatsAppStaffReply,
 } from './firestore-bridge.js';
 
-/** Lucas Lonestar — ONLY destination for live-chat handoff WhatsApp alerts. */
+/** Lucas Lonestar — primary destination (also stored as waBridgeChatId). */
 export const LONESTAR_CHAT_ID = '231778174157@c.us';
 export const LONESTAR_PHONE_DISPLAY = '+231 778 174 157';
 
+/** Boss / +231887221275 — second handoff destination (outbound + inbound). */
+export const BOSS_HANDOFF_CHAT_ID = '231887221275@c.us';
+export const BOSS_HANDOFF_PHONE_DISPLAY = '+231 887 221 275';
+
+/** All chatIds that receive WEBSITE-CHAT alerts and may bridge inbound replies. */
+export const HANDOFF_CHAT_IDS = [LONESTAR_CHAT_ID, BOSS_HANDOFF_CHAT_ID];
+
+/** Primary chatId stored on chat_sessions.waBridgeChatId (Lonestar). */
+export const PRIMARY_WA_BRIDGE_CHAT_ID = LONESTAR_CHAT_ID;
+
 export const DASHBOARD_LIVE_CHAT_URL =
   'https://ducor-international-pharmacy.com/dashboard.html?section=live-chat';
+
+export function isHandoffChatId(chatId) {
+  return HANDOFF_CHAT_IDS.includes(String(chatId || ''));
+}
 
 export function buildHandoffAlert({
   sessionId,
@@ -130,7 +149,7 @@ export function inboundSenderChatId(body) {
 }
 
 /**
- * True when Lonestar's cleaned reply is essentially DONE or AI
+ * True when cleaned reply is essentially DONE or AI
  * (case-insensitive). Allows `Code: XXX DONE` after stripCodeFromReply.
  */
 export function isReturnToAICommand(text) {
@@ -140,7 +159,8 @@ export function isReturnToAICommand(text) {
 
 /**
  * Process one Green API incoming message notification.
- * Only Lonestar's chat is accepted for handoff bridging.
+ * Accepts Lonestar OR Boss (275) for handoff bridging.
+ * Single-open lookup uses primary waBridgeChatId (Lonestar).
  */
 export async function processInboundHandoffMessage(body) {
   if (!body || body.typeWebhook !== 'incomingMessageReceived') {
@@ -148,8 +168,8 @@ export async function processInboundHandoffMessage(body) {
   }
 
   const chatId = inboundSenderChatId(body);
-  if (chatId !== LONESTAR_CHAT_ID) {
-    return { ok: true, skipped: true, reason: 'not_lonestar', chatId };
+  if (!isHandoffChatId(chatId)) {
+    return { ok: true, skipped: true, reason: 'not_handoff_chat', chatId };
   }
 
   const rawText = extractInboundText(body).trim();
@@ -175,7 +195,9 @@ export async function processInboundHandoffMessage(body) {
   }
 
   if (!session) {
-    const open = await findOpenBridgedSessions(LONESTAR_CHAT_ID, 5);
+    // Sessions store primary Lonestar as waBridgeChatId — look up by that
+    // regardless of which allowed number replied.
+    const open = await findOpenBridgedSessions(PRIMARY_WA_BRIDGE_CHAT_ID, 5);
     if (open.length === 1) {
       session = open[0];
       resolveNote = code ? 'code_miss_fallback_single' : 'single_open_session';
@@ -185,9 +207,10 @@ export async function processInboundHandoffMessage(body) {
         needCode: true,
         codes: open.map((s) => s.sessionCode || sessionCodeFromId(s.__id)),
         reason: 'multiple_open_sessions',
+        replyToChatId: chatId,
       };
     } else if (!session) {
-      return { ok: false, error: 'No matching live chat session', code, resolveNote };
+      return { ok: false, error: 'No matching live chat session', code, resolveNote, replyToChatId: chatId };
     }
   }
 
@@ -195,7 +218,7 @@ export async function processInboundHandoffMessage(body) {
   const cleaned = stripCodeFromReply(rawText) || rawText;
   const sessionCode = session.sessionCode || sessionCodeFromId(sessionId);
 
-  // Lonestar: DONE / AI returns the customer to the online assistant
+  // DONE / AI returns the customer to the online assistant
   // (mirrors dashboard returnLiveChatToAI). Do not write DONE/AI as staff text.
   if (isReturnToAICommand(cleaned)) {
     const result = await returnLiveChatToAI(sessionId);
@@ -205,6 +228,7 @@ export async function processInboundHandoffMessage(body) {
       sessionCode,
       resolveNote,
       returnedToAI: true,
+      replyToChatId: chatId,
       ...result,
     };
   }
@@ -220,6 +244,7 @@ export async function processInboundHandoffMessage(body) {
     sessionId,
     sessionCode,
     resolveNote,
+    replyToChatId: chatId,
     ...result,
   };
 }

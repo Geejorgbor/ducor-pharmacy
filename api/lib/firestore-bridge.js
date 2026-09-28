@@ -250,7 +250,7 @@ export async function findSessionByCode(code) {
  *
  * Uses ONLY equality on waBridgeChatId (single-field; no composite index).
  * Status filter + updatedAt sort happen in memory so missing Firestore
- * composite indexes cannot break Lonestar inbound replies.
+ * composite indexes cannot break handoff inbound replies.
  */
 export async function findOpenBridgedSessions(waChatId, limit = 5) {
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;

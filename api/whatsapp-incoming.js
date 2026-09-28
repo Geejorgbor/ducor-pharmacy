@@ -6,12 +6,11 @@
  *   webhookUrlToken = <same value as GREEN_API_WEBHOOK_TOKEN in Vercel>  (optional but recommended)
  *   incomingWebhook = yes
  *
- * Only Lucas Lonestar (+231778174157 / 231778174157@c.us) replies are bridged.
+ * Replies from Lonestar (231778174157@c.us) OR Boss (231887221275@c.us) are bridged.
  * Green API token is never exposed client-side.
  */
 
 import {
-  LONESTAR_CHAT_ID,
   processInboundHandoffMessage,
 } from './lib/whatsapp-handoff.js';
 import { sendWhatsApp } from './lib/green-send.js';
@@ -44,9 +43,10 @@ export default async function handler(req, res) {
 
   try {
     const result = await processInboundHandoffMessage(body);
+    const replyTo = result.replyToChatId || null;
 
-    // If Lonestar must pick a session code, nudge them on WhatsApp
-    if (result.needCode && Array.isArray(result.codes)) {
+    // If staff must pick a session code, nudge them on the same WhatsApp chat
+    if (result.needCode && Array.isArray(result.codes) && replyTo) {
       const API_URL = process.env.GREEN_API_URL;
       const ID = process.env.GREEN_API_ID;
       const TOKEN = process.env.GREEN_API_TOKEN;
@@ -58,13 +58,13 @@ export default async function handler(req, res) {
           'Open codes: ' + result.codes.join(', '),
         ].join('\n');
         try {
-          await sendWhatsApp(API_URL, ID, TOKEN, msg, LONESTAR_CHAT_ID);
+          await sendWhatsApp(API_URL, ID, TOKEN, msg, replyTo);
         } catch (_) {}
       }
     }
 
-    // Ack delivered (optional short confirm)
-    if (result.ok && result.sessionId && !result.skipped) {
+    // Ack delivered (optional short confirm) back to the sender
+    if (result.ok && result.sessionId && !result.skipped && replyTo) {
       const API_URL = process.env.GREEN_API_URL;
       const ID = process.env.GREEN_API_ID;
       const TOKEN = process.env.GREEN_API_TOKEN;
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
           ? `✓ Returned to assistant (Code: ${result.sessionCode})`
           : `✓ Sent to website chat (Code: ${result.sessionCode})`;
         try {
-          await sendWhatsApp(API_URL, ID, TOKEN, confirm, LONESTAR_CHAT_ID);
+          await sendWhatsApp(API_URL, ID, TOKEN, confirm, replyTo);
         } catch (_) {}
       }
     }
