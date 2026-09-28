@@ -72,6 +72,7 @@ export default async function handler(req, res) {
         sessionCode: code,
         lastMessage: handoff.lastMessage || handoff.preview || '',
         pageUrl: handoff.pageUrl || '',
+        reason: handoff.reason || '',
       });
       const result = await sendWhatsApp(API_URL, ID, TOKEN, message, HANDOFF_CHAT_ID);
       return res.status(200).json({

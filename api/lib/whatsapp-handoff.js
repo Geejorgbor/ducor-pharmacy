@@ -28,15 +28,17 @@ export const LONESTAR_PHONE_DISPLAY = '+231 778 174 157';
 export const DASHBOARD_LIVE_CHAT_URL =
   'https://ducor-international-pharmacy.com/dashboard.html?section=live-chat';
 
-export function buildHandoffAlert({ sessionId, sessionCode, lastMessage, pageUrl }) {
+export function buildHandoffAlert({ sessionId, sessionCode, lastMessage, pageUrl, reason }) {
   const code = sessionCode || sessionCodeFromId(sessionId);
   const last = String(lastMessage || '(no message yet)').slice(0, 500);
+  const why = String(reason || '').trim().slice(0, 200);
   const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
   return [
     '🌐 WEBSITE-CHAT — Ducor Pharmacy',
     '━━━━━━━━━━━━━━━━━━━━━━━━',
     'This is a website-chat alert, not a normal WhatsApp text.',
     `🔖 Code: ${code}`,
+    why ? `📌 Reason: ${why}` : null,
     'Reply here to send your message to the website client.',
     'Reply DONE or AI to return this chat to the assistant.',
     '━━━━━━━━━━━━━━━━━━━━━━━━',
