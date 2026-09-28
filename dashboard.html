@@ -1734,7 +1734,7 @@ window.openLiveChatSession = function(id) {
       const m = d.data() || {};
       const role = m.role || 'user';
       const who = role === 'staff' ? (m.senderName || 'Pharmacist')
-        : role === 'assistant' ? 'AI assistant'
+        : role === 'assistant' ? 'Online Assistant'
         : role === 'system' ? 'System'
         : 'Customer';
       const safe = String(m.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1756,15 +1756,15 @@ window.claimLiveChat = async function() {
   try {
     await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
       status: 'human',
-      claimedBy: email,
+      claimedBy: 'Pharmacist',
       claimedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
     await addDoc(collection(db, 'chat_sessions', _lcActiveId, 'messages'), {
       role: 'system',
-      content: 'Pharmacist joined the chat.',
+      content: 'A pharmacist has joined the chat.',
       createdAt: serverTimestamp(),
-      senderName: email
+      senderName: 'Pharmacist'
     });
     addLog('info', `Claimed live chat ${_lcActiveId.slice(0, 8)}`);
   } catch (e) {
@@ -1825,7 +1825,7 @@ window.sendLiveChatReply = async function() {
     if (!s || s.status === 'waiting') {
       await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
         status: 'human',
-        claimedBy: email,
+        claimedBy: 'Pharmacist',
         claimedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -1834,7 +1834,7 @@ window.sendLiveChatReply = async function() {
       role: 'staff',
       content: text.slice(0, 4000),
       createdAt: serverTimestamp(),
-      senderName: name
+      senderName: 'Pharmacist'
     });
     await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
       updatedAt: serverTimestamp(),

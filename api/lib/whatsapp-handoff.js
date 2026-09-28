@@ -7,7 +7,7 @@
  *
  * Try-now / after-hours: the website still creates a handoff + notifies Lonestar
  * outside Mon–Sat 9AM–5PM so replies can be tested anytime; clients only see
- * neutral “real agent” copy (see assets/ducor-widgets.js).
+ * pharmacist/assistant copy (see assets/ducor-widgets.js).
  */
 
 import {
@@ -148,7 +148,7 @@ export async function processInboundHandoffMessage(body) {
   const cleaned = stripCodeFromReply(rawText) || rawText;
 
   const result = await writeWhatsAppStaffReply(sessionId, cleaned, {
-    senderName: 'Agent',
+    senderName: 'Pharmacist',
     claimedBy: 'Pharmacist',
     waMessageId: body.idMessage || null,
   });
