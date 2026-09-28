@@ -289,47 +289,63 @@ function initSearch() {
 function initChat() {
   const style = document.createElement('style');
   style.textContent = `
-    #ducor-chat-btn{position:fixed;bottom:28px;right:28px;z-index:9000;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#0a2558,#0d9488);border:none;cursor:pointer;box-shadow:0 6px 28px rgba(10,37,88,0.45);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s}
-    #ducor-chat-btn:hover{transform:scale(1.08);box-shadow:0 10px 36px rgba(10,37,88,0.55)}
+    #ducor-chat-btn{position:fixed;bottom:28px;right:28px;z-index:9000;width:60px;height:60px;border-radius:50%;background:linear-gradient(145deg,#0a2558 0%,#0d3a6e 45%,#0d9488 100%);border:2px solid rgba(201,160,85,0.45);cursor:pointer;box-shadow:0 8px 28px rgba(10,37,88,0.5),0 0 0 1px rgba(201,160,85,0.12);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s}
+    #ducor-chat-btn:hover{transform:scale(1.06);box-shadow:0 12px 36px rgba(10,37,88,0.55),0 0 0 2px rgba(201,160,85,0.35)}
+    #ducor-chat-btn:focus-visible{outline:2px solid #c9a055;outline-offset:3px}
     #ducor-chat-badge{position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:#dc2626;border-radius:50%;border:2px solid #fff;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
-    #ducor-chat-window{position:fixed;bottom:100px;right:28px;z-index:9000;width:370px;max-height:580px;background:#0a1929;border:1.5px solid rgba(201,160,85,0.3);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,0.55);display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateY(16px) scale(0.97);transition:all .25s}
+    #ducor-chat-window{position:fixed;bottom:100px;right:28px;z-index:9000;width:380px;max-height:min(640px,calc(100vh - 120px));background:#071422;border:1.5px solid rgba(201,160,85,0.35);border-radius:18px;box-shadow:0 28px 64px rgba(0,0,0,0.55),0 0 0 1px rgba(13,148,136,0.08);display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateY(16px) scale(0.97);transition:opacity .25s,transform .25s;overflow:hidden;font-family:Inter,system-ui,-apple-system,sans-serif}
     #ducor-chat-window.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
-    @media(max-width:440px){#ducor-chat-window{right:8px;left:8px;width:auto;bottom:90px}}
-    #ducor-chat-head{background:linear-gradient(135deg,#071a3e,#0a2558);padding:16px 18px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08)}
-    #ducor-chat-head-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,rgba(201,160,85,0.3),rgba(13,148,136,0.3));border:1.5px solid rgba(201,160,85,0.5);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-    #ducor-chat-head-info h4{color:#fff;font-size:0.9rem;font-weight:700;margin-bottom:2px}
-    #ducor-chat-head-info p{color:rgba(255,255,255,0.45);font-size:0.72rem}
-    #ducor-chat-status{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:chatPulse 2s infinite;margin-left:auto;flex-shrink:0}
-    #ducor-chat-status.human{background:#c9a055;animation:none}
-    #ducor-chat-status.waiting{background:#f59e0b}
-    @keyframes chatPulse{0%,100%{opacity:1}50%{opacity:.4}}
-    #ducor-chat-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:4px;border-radius:6px;transition:color .2s;margin-left:4px}
-    #ducor-chat-close:hover{color:#fff}
-    #ducor-chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:360px}
-    .ducor-msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:0.84rem;line-height:1.55}
-    .ducor-msg.bot{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.9);align-self:flex-start;border-radius:4px 14px 14px 14px}
-    .ducor-msg.user{background:linear-gradient(135deg,#0a2558,#0d3a6e);color:#fff;align-self:flex-end;border-radius:14px 14px 4px 14px;border:1px solid rgba(201,160,85,0.2)}
-    .ducor-msg.staff{background:rgba(201,160,85,0.15);color:#fff;align-self:flex-start;border-radius:4px 14px 14px 14px;border:1px solid rgba(201,160,85,0.35)}
-    .ducor-msg.staff .ducor-msg-label{display:block;font-size:0.65rem;font-weight:700;color:#c9a055;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
-    .ducor-msg.system{align-self:center;max-width:95%;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.65);font-size:0.75rem;text-align:center;border-radius:10px;border:1px dashed rgba(255,255,255,0.12)}
-    .ducor-msg.bot a,.ducor-msg.staff a,.ducor-msg.system a{color:#c9a055;text-decoration:underline}
-    #ducor-chat-typing{display:none;align-self:flex-start;background:rgba(255,255,255,0.08);padding:10px 16px;border-radius:4px 14px 14px 14px}
-    #ducor-chat-typing span{display:inline-block;width:6px;height:6px;background:rgba(255,255,255,0.4);border-radius:50%;margin:0 2px;animation:typingDot 1.2s infinite}
+    @media(max-width:440px){#ducor-chat-window{right:8px;left:8px;width:auto;bottom:90px;max-height:calc(100vh - 110px);border-radius:16px}}
+    #ducor-chat-head{background:linear-gradient(135deg,#061530 0%,#0a2558 55%,#0b3d4a 100%);padding:14px 14px 14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(201,160,85,0.22);flex-shrink:0}
+    #ducor-chat-head-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,rgba(201,160,85,0.35),rgba(13,148,136,0.28));border:1.5px solid rgba(201,160,85,0.55);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12)}
+    #ducor-chat-head-info{flex:1;min-width:0}
+    #ducor-chat-head-info h4{color:#fff;font-size:0.88rem;font-weight:700;margin:0 0 3px;letter-spacing:.2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #ducor-chat-head-sub{display:flex;align-items:center;gap:7px;margin:0;color:rgba(255,255,255,0.72);font-size:0.72rem;font-weight:500;line-height:1.2}
+    #ducor-chat-status{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:chatPulse 2s infinite;flex-shrink:0;box-shadow:0 0 0 3px rgba(34,197,94,0.18)}
+    #ducor-chat-status.human{background:#c9a055;animation:none;box-shadow:0 0 0 3px rgba(201,160,85,0.25)}
+    #ducor-chat-status.waiting{background:#f59e0b;animation:chatPulse 1.2s infinite;box-shadow:0 0 0 3px rgba(245,158,11,0.22)}
+    @keyframes chatPulse{0%,100%{opacity:1}50%{opacity:.45}}
+    #ducor-chat-close{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:rgba(255,255,255,0.55);padding:6px;border-radius:8px;transition:color .15s,background .15s,border-color .15s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+    #ducor-chat-close:hover{color:#fff;background:rgba(255,255,255,0.12);border-color:rgba(201,160,85,0.35)}
+    #ducor-chat-close:focus-visible{outline:2px solid #c9a055;outline-offset:2px}
+    #ducor-chat-cta{padding:10px 12px;background:linear-gradient(180deg,rgba(13,148,136,0.12),rgba(7,20,34,0));border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
+    #ducor-chat-cta.hidden{display:none}
+    #ducor-chat-pharmacist-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border:none;border-radius:11px;cursor:pointer;font-family:inherit;font-size:0.84rem;font-weight:700;letter-spacing:.2px;color:#071422;background:linear-gradient(135deg,#d4b06a 0%,#c9a055 45%,#a87830 100%);box-shadow:0 4px 14px rgba(201,160,85,0.35),inset 0 1px 0 rgba(255,255,255,0.25);transition:transform .15s,box-shadow .15s,filter .15s}
+    #ducor-chat-pharmacist-btn:hover{filter:brightness(1.06);box-shadow:0 6px 18px rgba(201,160,85,0.45),inset 0 1px 0 rgba(255,255,255,0.28);transform:translateY(-1px)}
+    #ducor-chat-pharmacist-btn:active{transform:translateY(0);filter:brightness(.98)}
+    #ducor-chat-pharmacist-btn:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+    #ducor-chat-pharmacist-btn svg{flex-shrink:0}
+    #ducor-chat-messages{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;min-height:180px;max-height:320px;scrollbar-width:thin;scrollbar-color:rgba(201,160,85,0.35) transparent}
+    #ducor-chat-messages::-webkit-scrollbar{width:6px}
+    #ducor-chat-messages::-webkit-scrollbar-thumb{background:rgba(201,160,85,0.35);border-radius:6px}
+    .ducor-msg{max-width:86%;padding:10px 13px;border-radius:14px;font-size:0.84rem;line-height:1.55;word-wrap:break-word}
+    .ducor-msg.bot{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.92);align-self:flex-start;border-radius:4px 14px 14px 14px;border:1px solid rgba(255,255,255,0.06)}
+    .ducor-msg.user{background:linear-gradient(135deg,#0a2558,#0d4a5c);color:#fff;align-self:flex-end;border-radius:14px 14px 4px 14px;border:1px solid rgba(201,160,85,0.28)}
+    .ducor-msg.staff{background:rgba(201,160,85,0.16);color:#fff;align-self:flex-start;border-radius:4px 14px 14px 14px;border:1px solid rgba(201,160,85,0.4)}
+    .ducor-msg.staff .ducor-msg-label{display:block;font-size:0.65rem;font-weight:700;color:#e0c080;letter-spacing:.45px;text-transform:uppercase;margin-bottom:4px}
+    .ducor-msg.system{align-self:center;max-width:95%;background:rgba(13,148,136,0.1);color:rgba(255,255,255,0.72);font-size:0.75rem;text-align:center;border-radius:10px;border:1px dashed rgba(13,148,136,0.35);padding:8px 12px}
+    .ducor-msg.bot a,.ducor-msg.staff a,.ducor-msg.system a{color:#e0c080;text-decoration:underline;text-underline-offset:2px}
+    .ducor-msg.bot a:hover,.ducor-msg.staff a:hover,.ducor-msg.system a:hover{color:#c9a055}
+    #ducor-chat-typing{display:none;align-self:flex-start;margin:0 14px 6px;background:rgba(255,255,255,0.08);padding:10px 14px;border-radius:4px 14px 14px 14px;border:1px solid rgba(255,255,255,0.06);gap:0;align-items:center}
+    #ducor-chat-typing span{display:inline-block;width:6px;height:6px;background:rgba(201,160,85,0.75);border-radius:50%;margin:0 2px;animation:typingDot 1.2s infinite}
     #ducor-chat-typing span:nth-child(2){animation-delay:.2s}
     #ducor-chat-typing span:nth-child(3){animation-delay:.4s}
-    @keyframes typingDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
-    #ducor-chat-handoff-bar{display:none;padding:8px 14px;background:rgba(201,160,85,0.12);border-top:1px solid rgba(201,160,85,0.2);font-size:0.72rem;color:rgba(201,160,85,0.95);font-weight:600;align-items:center;gap:8px}
+    @keyframes typingDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+    #ducor-chat-handoff-bar{display:none;padding:9px 14px;background:rgba(201,160,85,0.12);border-top:1px solid rgba(201,160,85,0.28);font-size:0.74rem;color:#e0c080;font-weight:600;align-items:center;gap:8px;flex-shrink:0;line-height:1.35}
     #ducor-chat-handoff-bar.show{display:flex}
-    #ducor-chat-input-area{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px}
-    #ducor-chat-input{flex:1;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;font-size:0.84rem;color:#fff;font-family:inherit;outline:none;transition:border-color .2s;resize:none}
-    #ducor-chat-input:focus{border-color:rgba(201,160,85,0.4)}
-    #ducor-chat-input::placeholder{color:rgba(255,255,255,0.25)}
-    #ducor-chat-send{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#c9a055,#a87830);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s}
-    #ducor-chat-send:hover{opacity:0.85}
-    #ducor-chat-quick{padding:0 14px 10px;display:flex;gap:6px;flex-wrap:wrap}
-    .ducor-quick-btn{background:rgba(201,160,85,0.1);border:1px solid rgba(201,160,85,0.25);color:rgba(201,160,85,0.9);font-size:0.72rem;font-weight:600;padding:5px 10px;border-radius:50px;cursor:pointer;transition:all .15s;font-family:inherit}
-    .ducor-quick-btn:hover{background:rgba(201,160,85,0.2)}
-    .ducor-quick-btn.human{background:rgba(13,148,136,0.15);border-color:rgba(13,148,136,0.4);color:#5eead4}
+    #ducor-chat-handoff-bar::before{content:"";width:7px;height:7px;border-radius:50%;background:#c9a055;flex-shrink:0;box-shadow:0 0 0 3px rgba(201,160,85,0.2)}
+    #ducor-chat-quick{padding:8px 12px 4px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+    .ducor-quick-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(201,160,85,0.28);color:rgba(224,192,128,0.95);font-size:0.72rem;font-weight:600;padding:6px 11px;border-radius:999px;cursor:pointer;transition:background .15s,border-color .15s,color .15s;font-family:inherit;line-height:1.2}
+    .ducor-quick-btn:hover{background:rgba(201,160,85,0.16);border-color:rgba(201,160,85,0.45);color:#f0d9a8}
+    .ducor-quick-btn:focus-visible{outline:2px solid #c9a055;outline-offset:2px}
+    #ducor-chat-input-area{padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;align-items:flex-end;background:rgba(0,0,0,0.18);flex-shrink:0}
+    #ducor-chat-input{flex:1;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:11px 13px;font-size:0.84rem;color:#fff;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;resize:none;line-height:1.4;min-height:42px;max-height:96px}
+    #ducor-chat-input:focus{border-color:rgba(201,160,85,0.55);box-shadow:0 0 0 3px rgba(201,160,85,0.12)}
+    #ducor-chat-input::placeholder{color:rgba(255,255,255,0.38)}
+    #ducor-chat-send{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#c9a055,#a87830);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .15s,box-shadow .15s;box-shadow:0 3px 10px rgba(201,160,85,0.3)}
+    #ducor-chat-send:hover{opacity:0.92;transform:translateY(-1px)}
+    #ducor-chat-send:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+  
   `;
   document.head.appendChild(style);
 
@@ -359,30 +375,34 @@ function initChat() {
   win.id = 'ducor-chat-window';
   win.innerHTML = `
     <div id="ducor-chat-head">
-      <div id="ducor-chat-head-avatar">💊</div>
+      <div id="ducor-chat-head-avatar" aria-hidden="true">💊</div>
       <div id="ducor-chat-head-info">
         <h4>Ducor International Pharmacy</h4>
-        <p id="ducor-chat-head-sub">Online Assistant · Available 24/7</p>
+        <p id="ducor-chat-head-sub"><span id="ducor-chat-status" aria-hidden="true"></span><span id="ducor-chat-head-sub-text">Online Assistant · Available 24/7</span></p>
       </div>
-      <div id="ducor-chat-status"></div>
-      <button id="ducor-chat-close" aria-label="Close chat">
+      <button id="ducor-chat-close" aria-label="Close chat" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="ducor-chat-cta">
+      <button type="button" id="ducor-chat-pharmacist-btn" aria-label="Talk to a pharmacist">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M16 11l2 2 4-4"/></svg>
+        Talk to pharmacist
       </button>
     </div>
     <div id="ducor-chat-messages">
       <div class="ducor-msg bot">Welcome to Ducor International Pharmacy! 👋<br><br>I'm your online assistant, here 24/7 to guide you through everything — finding medications, placing an order, payment options, and more. How can I help you today?</div>
     </div>
     <div id="ducor-chat-typing"><span></span><span></span><span></span></div>
-    <div id="ducor-chat-handoff-bar"></div>
+    <div id="ducor-chat-handoff-bar" role="status" aria-live="polite"></div>
     <div id="ducor-chat-quick">
       <button type="button" class="ducor-quick-btn" data-quick="What medications do you have?">Medications</button>
       <button type="button" class="ducor-quick-btn" data-quick="How do I place an order?">How to order</button>
       <button type="button" class="ducor-quick-btn" data-quick="Where are you located?">Location</button>
-      <button type="button" class="ducor-quick-btn human" data-human="1">Talk to pharmacist</button>
     </div>
     <div id="ducor-chat-input-area">
-      <textarea id="ducor-chat-input" rows="1" placeholder="Ask me anything about medications…"></textarea>
-      <button id="ducor-chat-send" aria-label="Send">
+      <textarea id="ducor-chat-input" rows="1" placeholder="Ask me anything about medications…" aria-label="Chat message"></textarea>
+      <button id="ducor-chat-send" aria-label="Send" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>`;
@@ -405,6 +425,9 @@ function initChat() {
   document.getElementById('ducor-chat-send').onclick = sendMessage;
   document.getElementById('ducor-chat-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  document.getElementById('ducor-chat-pharmacist-btn').addEventListener('click', function () {
+    requestHuman();
   });
   document.getElementById('ducor-chat-quick').addEventListener('click', e => {
     const b = e.target.closest('.ducor-quick-btn');
@@ -480,27 +503,31 @@ function initChat() {
     sessionStatus = status || 'ai';
     handoffMode = status === 'waiting' || status === 'human';
     const bar = document.getElementById('ducor-chat-handoff-bar');
-    const sub = document.getElementById('ducor-chat-head-sub');
+    const subText = document.getElementById('ducor-chat-head-sub-text');
     const dot = document.getElementById('ducor-chat-status');
     const input = document.getElementById('ducor-chat-input');
+    const cta = document.getElementById('ducor-chat-cta');
     dot.classList.remove('human', 'waiting');
     if (status === 'waiting') {
       bar.classList.add('show');
       bar.textContent = 'Connecting you to a pharmacist — the assistant is paused.';
-      sub.textContent = 'Connecting to a pharmacist…';
+      if (subText) subText.textContent = 'Connecting to pharmacist…';
       dot.classList.add('waiting');
       input.placeholder = 'Message the pharmacy team…';
+      if (cta) cta.classList.add('hidden');
     } else if (status === 'human') {
       bar.classList.add('show');
       bar.textContent = 'You are chatting with a pharmacist.';
-      sub.textContent = 'Pharmacist · Live';
+      if (subText) subText.textContent = 'Pharmacist · Live';
       dot.classList.add('human');
       input.placeholder = 'Message the pharmacist…';
+      if (cta) cta.classList.add('hidden');
     } else {
       bar.classList.remove('show');
       bar.textContent = '';
-      sub.textContent = 'Online Assistant · Available 24/7';
+      if (subText) subText.textContent = 'Online Assistant · Available 24/7';
       input.placeholder = 'Ask me anything about medications…';
+      if (cta) cta.classList.remove('hidden');
     }
   }
 
