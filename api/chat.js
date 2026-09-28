@@ -20,7 +20,7 @@ function setCors(req, res) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGINS[0]);
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Vary', 'Origin');
 }
 
@@ -192,7 +192,10 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages = [], system: customSystem, isAdmin = false } = req.body || {};
+  // Public storefront chat ONLY.
+  // SECURITY: ignore client-supplied system prompt and isAdmin flag.
+  // Admin AI with tools lives at POST /api/admin-ai (Bearer + isAdmin required).
+  const { messages = [] } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array required' });
   }
@@ -360,8 +363,8 @@ If the customer needs something not listed, tell them to search the shop by name
 - Always show empathy first when someone mentions health problems, before giving information
 - For emergencies, prioritize hospital/emergency care over any product suggestion`;
 
-  // Admin AI can supply its own system prompt
-  const activeSystem = customSystem || SYSTEM;
+  // Never accept elevated/custom system from the client on this public endpoint.
+  const activeSystem = SYSTEM;
 
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {

@@ -1606,6 +1606,15 @@ function startSharedStateSync() {
     localStorage.setItem('ducor-security-log', JSON.stringify(value));
     renderSecurityLog();
   });
+  // Photos written by server Admin AI (admin_state/photos) — keep local cache in sync
+  _watchSharedState('photos', value => {
+    if (!value || typeof value !== 'object') return;
+    localStorage.setItem('ducor-photos', JSON.stringify(value));
+    try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
+    if (typeof renderPhotoGrid === 'function') {
+      try { renderPhotoGrid(); } catch(e) {}
+    }
+  });
 }
 
 // ── LIVE CLOCK ──
@@ -4233,12 +4242,51 @@ window.sendAdminAI = async function() {
   showAITyping();
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: aiMessages, system: buildAISystem(), isAdmin: true })
-    });
-    const data = await res.json();
+    // Prefer authenticated /api/admin-ai (server-side tool execution).
+    // Falls back to legacy /api/chat + client [DO:] only if token missing or admin-ai unavailable.
+    let data = null;
+    let usedServerTools = false;
+    const user = window.currentUser;
+    let idToken = null;
+    try { idToken = user && typeof user.getIdToken === 'function' ? await user.getIdToken() : null; } catch (e) { idToken = null; }
+
+    if (idToken) {
+      try {
+        const res = await fetch('/api/admin-ai', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + idToken
+          },
+          body: JSON.stringify({ messages: aiMessages })
+        });
+        data = await res.json().catch(() => ({}));
+        if (res.ok && data && (data.reply != null || data.creditError || data.serverTools)) {
+          usedServerTools = !!data.serverTools;
+        } else if (res.status === 401 || res.status === 403) {
+          removeAITyping();
+          addAIMessage('bot', 'Admin auth failed (' + res.status + '). Sign out and sign back in, then try again.');
+          sendBtn.disabled = false;
+          return;
+        } else {
+          // Non-auth failure — fall through to legacy path
+          data = null;
+        }
+      } catch (e) {
+        data = null;
+      }
+    }
+
+    if (!data) {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: aiMessages, system: buildAISystem() })
+      });
+      data = await res.json();
+      usedServerTools = false;
+    }
+
     removeAITyping();
 
     if (data.creditError) {
@@ -4247,8 +4295,29 @@ window.sendAdminAI = async function() {
       return;
     }
 
-    const raw = data.reply || "I'm having trouble responding. Please try again.";
-    const { display, hasAsync } = processAIActions(raw);
+    let raw = data.reply || "I'm having trouble responding. Please try again.";
+    let display = raw;
+
+    if (usedServerTools) {
+      // Server already executed tools — show action card from server results; do NOT re-run [DO:].
+      raw = String(raw).replace(/\[DO:[^\]]+\]/g, '').trim();
+      display = raw;
+      const actions = Array.isArray(data.actions) ? data.actions : [];
+      if (actions.length) {
+        const rows = actions.map(a => {
+          const ok = a.ok !== false;
+          const cls = ok ? 'ai-act-done' : 'ai-act-done';
+          const icon = ok ? '✓' : '⚠';
+          return `<div class="ai-act-row ${cls}">${icon} <strong>${a.tool || 'action'}</strong>: ${a.summary || ''}</div>`;
+        }).join('');
+        display += `\n\n__CARD__<div class="ai-act-card">${rows}</div>`;
+      }
+    } else {
+      // Legacy fallback: parse [DO:] client-side (requires open dashboard tab for Firestore writes)
+      const processed = processAIActions(raw);
+      display = processed.display;
+    }
+
     addAIMessage('bot', display);
     aiMessages.push({ role: 'assistant', content: raw });
     if (aiMessages.length > _AI_MAX) aiMessages = aiMessages.slice(-_AI_MAX);
@@ -4646,6 +4715,7 @@ function aiExec_setPhoto(id, cat, url) {
   const customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}');
   customPhotos[id] = url;
   localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+  _saveSharedStateHere('photos', customPhotos);
   try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
   if (typeof addNotif === 'function') addNotif('success','AI: Photo Updated',`Photo set for ${p.name}`);
   if (typeof addLog  === 'function') addLog('info',`AI set photo for ${p.name} (${id}): ${url}`);
@@ -4659,6 +4729,7 @@ function aiExec_removePhoto(id, cat) {
   if (!customPhotos[id]) return `⚠ No custom photo found for <strong>${p.name}</strong>. It already uses the default image.`;
   delete customPhotos[id];
   localStorage.setItem('ducor-photos', JSON.stringify(customPhotos));
+  _saveSharedStateHere('photos', customPhotos);
   try { sessionStorage.removeItem('ducor_img_v3'); } catch(e) {}
   if (typeof addNotif === 'function') addNotif('info','AI: Photo Removed',`Custom photo removed for ${p.name}`);
   if (typeof addLog  === 'function') addLog('info',`AI removed photo for ${p.name} (${id})`);
