@@ -62,9 +62,9 @@ function localPharmacyFallback(text) {
     return "Of course — you can reach us on WhatsApp or by phone: +1 (630) 936-6050, +231 880 187 490, or +231 760 801 914. For payment receipts, please send them to +231 887 221 275 on WhatsApp. We're always happy to assist!";
   }
 
-  // Live agent intro
-  if (/\b(live agent|real person|human|speak to (a |someone|staff)|talk to (a |someone|staff)|customer service)\b/.test(t)) {
-    return "I'd be glad to connect you with our team. The fastest way is WhatsApp: +1 (630) 936-6050, +231 880 187 490, or +231 760 801 914. Share your question or order reference and a team member will take care of you. Meanwhile, I'm here if you'd like help with ordering, tracking, or the DIP plan.";
+  // Live agent intro (widget also has Talk to pharmacist handoff during Mon–Sat 9AM–5PM)
+  if (/\b(live agent|real person|human|speak to (a |someone|staff)|talk to (a |someone|staff)|customer service|pharmacist)\b/.test(t)) {
+    return "I'd be glad to connect you with our team. During pharmacy hours (Mon–Sat 9AM–5PM Monrovia time), tap Talk to pharmacist in this chat to request a live handoff. Anytime, WhatsApp is fastest: +1 (630) 936-6050, +231 880 187 490, or +231 760 801 914. Meanwhile, I'm here if you'd like help with ordering, tracking, or the DIP plan.";
   }
 
   // Order from outside Liberia / international / collector
@@ -232,6 +232,7 @@ Your communication style:
 ━━━ PHARMACY HOURS ━━━
 - Open Monday–Saturday, 9AM–5PM
 - Location: 10 & 11 Street near Ecobank, Tubman Boulevard, Sinkor/Monrovia
+- Live pharmacist chat handoff: customers can tap "Talk to pharmacist" in this widget during open hours. Outside hours, tell them the hours and offer WhatsApp/phone, and keep helping as the AI assistant.
 
 ━━━ FACEBOOK PAGE ━━━
 - Facebook page: https://www.facebook.com/profile.php?id=61585508072180

@@ -291,6 +291,44 @@
     @media(max-width:1100px){#stats-overview{grid-template-columns:repeat(3,1fr)!important}}
     @media(max-width:768px){#stats-overview{grid-template-columns:repeat(2,1fr)!important}.topbar{padding:0 14px}.topbar-title h3{font-size:15px}.main-content{padding:16px 14px}}
     @media(max-width:480px){#stats-overview{grid-template-columns:repeat(2,1fr)!important}.stat-card{padding:14px 12px}.panel-header{flex-direction:column;align-items:flex-start;gap:10px}.panel-actions{width:100%;justify-content:flex-start}.filter-bar{flex-direction:column}.filter-bar input{width:100%}.greeting-banner{padding:18px 16px}.greeting-text h2{font-size:19px}table th,table td{padding:10px 8px;font-size:12px}.btn-sm{padding:7px 10px;font-size:11px}}
+
+    /* ── LIVE CHAT HANDOFF ── */
+    .live-chat-layout{display:grid;grid-template-columns:320px 1fr;gap:16px;min-height:520px}
+    @media(max-width:900px){.live-chat-layout{grid-template-columns:1fr}}
+    .lc-list{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column;max-height:620px}
+    .lc-list-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .lc-list-head h4{font-size:14px;font-weight:700;color:var(--text);margin:0}
+    .lc-filters{display:flex;gap:6px;flex-wrap:wrap}
+    .lc-filter{border:1px solid var(--border);background:#f8fafc;color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer}
+    .lc-filter.active{background:rgba(201,160,85,.15);border-color:rgba(201,160,85,.4);color:#92400e}
+    .lc-sessions{overflow-y:auto;flex:1}
+    .lc-item{padding:12px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .15s}
+    .lc-item:hover{background:#f8fafc}
+    .lc-item.active{background:rgba(13,27,42,.04);border-left:3px solid var(--gold)}
+    .lc-item-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px}
+    .lc-item-id{font-size:11px;font-weight:700;color:var(--text);font-family:ui-monospace,monospace}
+    .lc-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px}
+    .lc-pill.waiting{background:#fff7ed;color:#c2410c}
+    .lc-pill.human{background:#ecfdf5;color:#047857}
+    .lc-pill.ai,.lc-pill.closed{background:#f1f5f9;color:#64748b}
+    .lc-item-preview{font-size:12px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .lc-item-meta{font-size:10px;color:#94a3b8;margin-top:6px}
+    .lc-empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:13px}
+    .lc-thread{border:1px solid var(--border);border-radius:14px;background:#fff;display:flex;flex-direction:column;min-height:520px;max-height:620px}
+    .lc-thread-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+    .lc-thread-head h4{font-size:14px;font-weight:700;margin:0}
+    .lc-thread-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .lc-msgs{flex:1;overflow-y:auto;padding:16px;background:#f8fafc;display:flex;flex-direction:column;gap:10px}
+    .lc-bubble{max-width:85%;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+    .lc-bubble.user{align-self:flex-start;background:#fff;border:1px solid #e2e8f0;color:#0f172a}
+    .lc-bubble.assistant{align-self:flex-start;background:#eef2ff;border:1px solid #c7d2fe;color:#312e81}
+    .lc-bubble.staff{align-self:flex-end;background:linear-gradient(135deg,#0d1b2a,#162540);color:#fff}
+    .lc-bubble.system{align-self:center;background:transparent;color:#64748b;font-size:12px;text-align:center;border:1px dashed #cbd5e1}
+    .lc-bubble .lc-who{display:block;font-size:10px;font-weight:700;opacity:.7;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+    .lc-compose{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
+    .lc-compose textarea{flex:1;min-height:44px;max-height:120px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font:inherit;font-size:13px;resize:vertical}
+    .lc-compose textarea:focus{outline:none;border-color:var(--gold)}
+    .lc-placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;padding:40px;text-align:center}
   </style>
 </head>
 <body>
@@ -340,6 +378,11 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       Orders
       <span class="nav-badge" id="orders-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showSection('live-chat',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Live Chat
+      <span class="nav-badge" id="livechat-badge" style="display:none">0</span>
     </button>
     <button class="nav-item" onclick="showSection('content',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -706,6 +749,53 @@
           <div class="empty-state" id="orders-empty" style="display:none">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
             <p>No orders yet. Orders placed on the website will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ LIVE CHAT (human handoff) ════ -->
+    <div class="section" id="sec-live-chat">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h4>Live Chat — Pharmacist Handoff</h4>
+            <p>Customers who tap “Talk to pharmacist” (Mon–Sat 9AM–5PM Monrovia) appear here. Reply in the same thread; use Return to AI when done.</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="live-chat-layout">
+            <div class="lc-list">
+              <div class="lc-list-head">
+                <h4>Sessions</h4>
+                <div class="lc-filters">
+                  <button type="button" class="lc-filter active" data-lc-filter="open" onclick="setLiveChatFilter('open',this)">Open</button>
+                  <button type="button" class="lc-filter" data-lc-filter="all" onclick="setLiveChatFilter('all',this)">All</button>
+                </div>
+              </div>
+              <div class="lc-sessions" id="lc-sessions"></div>
+            </div>
+            <div class="lc-thread" id="lc-thread">
+              <div class="lc-placeholder" id="lc-placeholder">Select a waiting chat to reply as the pharmacist.</div>
+              <div id="lc-thread-active" style="display:none;flex-direction:column;flex:1;min-height:0">
+                <div class="lc-thread-head">
+                  <div>
+                    <h4 id="lc-thread-title">Chat</h4>
+                    <div style="font-size:11px;color:var(--muted);margin-top:2px" id="lc-thread-sub"></div>
+                  </div>
+                  <div class="lc-thread-actions">
+                    <button type="button" class="btn btn-gold btn-sm" id="lc-claim-btn" onclick="claimLiveChat()">Claim / Join</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="returnLiveChatToAI()">Return to AI</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeLiveChatSession()">Close</button>
+                  </div>
+                </div>
+                <div class="lc-msgs" id="lc-msgs"></div>
+                <div class="lc-compose">
+                  <textarea id="lc-reply" placeholder="Type a reply as pharmacist…" rows="2"></textarea>
+                  <button type="button" class="btn btn-primary" onclick="sendLiveChatReply()">Send</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1171,7 +1261,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { isOperatorEmail } from './assets/admin-auth.js';
-import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, where, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc, onSnapshot, orderBy, query, where, limit, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -1483,6 +1573,7 @@ function init() {
   startDeliveryListener();
   startSharedStateSync();
   if (typeof window._startAISharedWatchers === 'function') window._startAISharedWatchers();
+  startLiveChatListener();
 }
 
 // Subscribes to the shared (Firestore-backed) copies of products,
@@ -1539,6 +1630,220 @@ function setGreeting() {
   }
 }
 
+
+// ── LIVE CHAT HANDOFF (Firestore chat_sessions) ──
+let _lcSessions = [];
+let _lcFilter = 'open';
+let _lcActiveId = null;
+let _lcMsgUnsub = null;
+let _lcListUnsub = null;
+
+function _lcFmtTime(ts) {
+  try {
+    let d = null;
+    if (ts && typeof ts.toDate === 'function') d = ts.toDate();
+    else if (ts && ts.seconds) d = new Date(ts.seconds * 1000);
+    else if (typeof ts === 'string' || typeof ts === 'number') d = new Date(ts);
+    if (!d || isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', { timeZone: 'Africa/Monrovia', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' GMT';
+  } catch (e) { return ''; }
+}
+
+function startLiveChatListener() {
+  if (_lcListUnsub) return;
+  try {
+    // Recent sessions — filter client-side (low volume)
+    const q = query(collection(db, 'chat_sessions'), orderBy('updatedAt', 'desc'), limit(80));
+    _lcListUnsub = onSnapshot(q, snap => {
+      _lcSessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const waiting = _lcSessions.filter(s => s.status === 'waiting' || s.status === 'human').length;
+      const badge = document.getElementById('livechat-badge');
+      if (badge) {
+        if (waiting > 0) { badge.style.display = ''; badge.textContent = String(waiting); }
+        else { badge.style.display = 'none'; }
+      }
+      renderLiveChatList();
+    }, err => {
+      console.error('Live chat listener', err);
+    });
+  } catch (e) {
+    console.error('Live chat start failed', e);
+  }
+}
+
+window.setLiveChatFilter = function(filter, btn) {
+  _lcFilter = filter || 'open';
+  document.querySelectorAll('.lc-filter').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderLiveChatList();
+};
+
+window.renderLiveChatList = function() {
+  const box = document.getElementById('lc-sessions');
+  if (!box) return;
+  let list = _lcSessions.slice();
+  if (_lcFilter === 'open') {
+    list = list.filter(s => s.status === 'waiting' || s.status === 'human');
+  }
+  if (!list.length) {
+    box.innerHTML = `<div class="lc-empty">${_lcFilter === 'open' ? 'No customers waiting right now.' : 'No chat sessions yet.'}</div>`;
+    return;
+  }
+  box.innerHTML = list.map(s => {
+    const active = s.id === _lcActiveId ? ' active' : '';
+    const preview = (s.lastMessage || s.preview || '—').replace(/</g, '&lt;').slice(0, 120);
+    const st = s.status || 'ai';
+    return `<div class="lc-item${active}" onclick="openLiveChatSession('${s.id}')">
+      <div class="lc-item-top">
+        <span class="lc-item-id">${s.id.slice(0, 8)}…</span>
+        <span class="lc-pill ${st}">${st}</span>
+      </div>
+      <div class="lc-item-preview">${preview}</div>
+      <div class="lc-item-meta">${_lcFmtTime(s.updatedAt || s.createdAt)}${s.claimedBy ? ' · ' + String(s.claimedBy).split('@')[0] : ''}</div>
+    </div>`;
+  }).join('');
+};
+
+window.openLiveChatSession = function(id) {
+  _lcActiveId = id;
+  renderLiveChatList();
+  const placeholder = document.getElementById('lc-placeholder');
+  const active = document.getElementById('lc-thread-active');
+  if (placeholder) placeholder.style.display = 'none';
+  if (active) active.style.display = 'flex';
+  const s = _lcSessions.find(x => x.id === id) || {};
+  document.getElementById('lc-thread-title').textContent = 'Session ' + id.slice(0, 8) + '…';
+  document.getElementById('lc-thread-sub').textContent =
+    (s.status || '') + (s.pageUrl ? ' · ' + s.pageUrl.replace(/^https?:\/\//, '').slice(0, 60) : '');
+  if (_lcMsgUnsub) { try { _lcMsgUnsub(); } catch (e) {} _lcMsgUnsub = null; }
+  const msgsEl = document.getElementById('lc-msgs');
+  msgsEl.innerHTML = '<div class="lc-empty">Loading messages…</div>';
+  const mq = query(collection(db, 'chat_sessions', id, 'messages'), orderBy('createdAt', 'asc'), limit(200));
+  _lcMsgUnsub = onSnapshot(mq, snap => {
+    if (!snap.docs.length) {
+      msgsEl.innerHTML = '<div class="lc-empty">No messages yet.</div>';
+      return;
+    }
+    msgsEl.innerHTML = snap.docs.map(d => {
+      const m = d.data() || {};
+      const role = m.role || 'user';
+      const who = role === 'staff' ? (m.senderName || 'Pharmacist')
+        : role === 'assistant' ? 'AI assistant'
+        : role === 'system' ? 'System'
+        : 'Customer';
+      const safe = String(m.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<div class="lc-bubble ${role}"><span class="lc-who">${who}</span>${safe}</div>`;
+    }).join('');
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }, err => {
+    msgsEl.innerHTML = `<div class="lc-empty">Could not load messages: ${err.message || err}</div>`;
+  });
+  // Clear staff unread when opening
+  try {
+    updateDoc(doc(db, 'chat_sessions', id), { unreadStaff: 0, updatedAt: serverTimestamp() });
+  } catch (e) {}
+};
+
+window.claimLiveChat = async function() {
+  if (!_lcActiveId) return;
+  const email = currentUser?.email || 'pharmacist';
+  try {
+    await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
+      status: 'human',
+      claimedBy: email,
+      claimedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    await addDoc(collection(db, 'chat_sessions', _lcActiveId, 'messages'), {
+      role: 'system',
+      content: 'Pharmacist joined the chat.',
+      createdAt: serverTimestamp(),
+      senderName: email
+    });
+    addLog('info', `Claimed live chat ${_lcActiveId.slice(0, 8)}`);
+  } catch (e) {
+    alert('Could not claim chat: ' + (e.message || e));
+  }
+};
+
+window.returnLiveChatToAI = async function() {
+  if (!_lcActiveId) return;
+  if (!confirm('Return this customer to the AI assistant?')) return;
+  try {
+    await addDoc(collection(db, 'chat_sessions', _lcActiveId, 'messages'), {
+      role: 'system',
+      content: 'Pharmacist returned you to the online assistant.',
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
+      status: 'ai',
+      claimedBy: null,
+      claimedAt: null,
+      updatedAt: serverTimestamp()
+    });
+    addLog('info', `Returned chat ${_lcActiveId.slice(0, 8)} to AI`);
+  } catch (e) {
+    alert('Could not return to AI: ' + (e.message || e));
+  }
+};
+
+window.closeLiveChatSession = async function() {
+  if (!_lcActiveId) return;
+  if (!confirm('Close this chat session?')) return;
+  try {
+    await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
+      status: 'closed',
+      updatedAt: serverTimestamp()
+    });
+    await addDoc(collection(db, 'chat_sessions', _lcActiveId, 'messages'), {
+      role: 'system',
+      content: 'Chat closed by pharmacist.',
+      createdAt: serverTimestamp()
+    });
+  } catch (e) {
+    alert('Could not close chat: ' + (e.message || e));
+  }
+};
+
+window.sendLiveChatReply = async function() {
+  if (!_lcActiveId) return;
+  const ta = document.getElementById('lc-reply');
+  const text = (ta?.value || '').trim();
+  if (!text) return;
+  const email = currentUser?.email || 'pharmacist';
+  const name = email.split('@')[0];
+  ta.value = '';
+  try {
+    // Auto-claim if still waiting
+    const s = _lcSessions.find(x => x.id === _lcActiveId);
+    if (!s || s.status === 'waiting') {
+      await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
+        status: 'human',
+        claimedBy: email,
+        claimedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    }
+    await addDoc(collection(db, 'chat_sessions', _lcActiveId, 'messages'), {
+      role: 'staff',
+      content: text.slice(0, 4000),
+      createdAt: serverTimestamp(),
+      senderName: name
+    });
+    await updateDoc(doc(db, 'chat_sessions', _lcActiveId), {
+      updatedAt: serverTimestamp(),
+      lastMessage: text.slice(0, 200),
+      lastMessageAt: serverTimestamp(),
+      lastMessageRole: 'staff',
+      unreadClient: increment(1),
+      unreadStaff: 0
+    });
+  } catch (e) {
+    alert('Send failed: ' + (e.message || e));
+    ta.value = text;
+  }
+};
+
 // ── MOBILE SIDEBAR ──
 window.toggleSidebar = function() {
   document.querySelector('.sidebar').classList.toggle('mob-open');
@@ -1556,6 +1861,7 @@ window.showSection = function(name, btn) {
     'dashboard':'Dashboard','notifications':'Notifications',
     'products-rx':'Prescription Medications','products-otc':'Over-the-Counter Medications',
     'products-vit':'Vitamins & Supplements','orders':'Customer Orders',
+    'live-chat':'Live Chat',
     'content':'Website Content','security':'Security Log',
     'analytics':'Analytics','settings':'Settings','team':'Our Team',
     'hero-photos':'Hero Slideshow','product-photos':'Product Photos Manager'
@@ -1568,6 +1874,7 @@ window.showSection = function(name, btn) {
     'products-otc':'View, edit, add, or remove OTC medications',
     'products-vit':'View, edit, add, or remove vitamins & supplements',
     'orders':'Manage and track customer orders',
+    'live-chat':'Reply to customers who requested a pharmacist',
     'content':'Edit website text and information',
     'security':'Complete log of admin activities',
     'analytics':'Track visitors, page views, devices, and traffic sources',
@@ -1580,6 +1887,7 @@ window.showSection = function(name, btn) {
   document.querySelector('.sidebar').classList.remove('mob-open');
   document.getElementById('sidebar-overlay').classList.remove('mob-open');
   if (name === 'orders') renderOrders();
+  if (name === 'live-chat') renderLiveChatList();
   if (name === 'notifications') renderNotifications();
   if (name === 'security') renderSecurityLog();
   if (name === 'analytics') { renderOrderAnalytics(); loadAnalytics(); }
