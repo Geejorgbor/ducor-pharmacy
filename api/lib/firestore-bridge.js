@@ -245,77 +245,52 @@ export async function findSessionByCode(code) {
   return null;
 }
 
-/** Most recent open (waiting|human) sessions bridged to a given WhatsApp chatId. */
+/**
+ * Most recent open (waiting|human) sessions bridged to a given WhatsApp chatId.
+ *
+ * Uses ONLY equality on waBridgeChatId (single-field; no composite index).
+ * Status filter + updatedAt sort happen in memory so missing Firestore
+ * composite indexes cannot break Lonestar inbound replies.
+ */
 export async function findOpenBridgedSessions(waChatId, limit = 5) {
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  // Equality-only — never orderBy/composite here (those need indexes that may be absent).
   const queryBody = {
     structuredQuery: {
       from: [{ collectionId: 'chat_sessions' }],
       where: {
-        compositeFilter: {
-          op: 'AND',
-          filters: [
-            {
-              fieldFilter: {
-                field: { fieldPath: 'waBridgeChatId' },
-                op: 'EQUAL',
-                value: { stringValue: waChatId },
-              },
-            },
-            {
-              fieldFilter: {
-                field: { fieldPath: 'status' },
-                op: 'IN',
-                value: {
-                  arrayValue: {
-                    values: [{ stringValue: 'waiting' }, { stringValue: 'human' }],
-                  },
-                },
-              },
-            },
-          ],
+        fieldFilter: {
+          field: { fieldPath: 'waBridgeChatId' },
+          op: 'EQUAL',
+          value: { stringValue: waChatId },
         },
       },
-      orderBy: [{ field: { fieldPath: 'updatedAt' }, direction: 'DESCENDING' }],
-      limit,
+      limit: 50,
     },
   };
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
-  try {
-    const rows = await authedFetch(url, { method: 'POST', body: JSON.stringify(queryBody) });
-    const out = [];
-    if (Array.isArray(rows)) {
-      for (const row of rows) {
-        if (row.document) out.push(docToObject(row.document));
+  const rows = await authedFetch(url, { method: 'POST', body: JSON.stringify(queryBody) });
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      if (row && row.error) {
+        const msg = row.error.message || JSON.stringify(row.error);
+        throw new Error(`Firestore runQuery error: ${msg}`);
       }
     }
-    return out;
-  } catch (e) {
-    // Composite index may be missing — fall back to simpler query on waBridgeChatId only
-    const simple = {
-      structuredQuery: {
-        from: [{ collectionId: 'chat_sessions' }],
-        where: {
-          fieldFilter: {
-            field: { fieldPath: 'waBridgeChatId' },
-            op: 'EQUAL',
-            value: { stringValue: waChatId },
-          },
-        },
-        orderBy: [{ field: { fieldPath: 'updatedAt' }, direction: 'DESCENDING' }],
-        limit: 20,
-      },
-    };
-    const rows = await authedFetch(url, { method: 'POST', body: JSON.stringify(simple) });
-    const out = [];
-    if (Array.isArray(rows)) {
-      for (const row of rows) {
-        if (!row.document) continue;
-        const d = docToObject(row.document);
-        if (d && (d.status === 'waiting' || d.status === 'human')) out.push(d);
-      }
-    }
-    return out.slice(0, limit);
   }
+  const out = [];
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      if (!row.document) continue;
+      const d = docToObject(row.document);
+      if (d && (d.status === 'waiting' || d.status === 'human')) out.push(d);
+    }
+  }
+  out.sort((a, b) => {
+    const ta = Date.parse(a.updatedAt || a.lastMessageAt || 0) || 0;
+    const tb = Date.parse(b.updatedAt || b.lastMessageAt || 0) || 0;
+    return tb - ta;
+  });
+  return out.slice(0, limit);
 }
 
 /** Patch session fields (admin / service account). */
