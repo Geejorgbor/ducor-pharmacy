@@ -84,14 +84,11 @@ export default async function handler(req, res) {
           await sendWhatsApp(API_URL, ID, TOKEN, msg, LONESTAR_CHAT_ID);
         } catch (_) {}
       } else if (handled.ok && handled.sessionId && !handled.skipped) {
+        const confirm = handled.returnedToAI
+          ? `✓ Returned to assistant (Code: ${handled.sessionCode})`
+          : `✓ Sent to website chat (Code: ${handled.sessionCode})`;
         try {
-          await sendWhatsApp(
-            API_URL,
-            ID,
-            TOKEN,
-            `✓ Sent to website chat (Code: ${handled.sessionCode})`,
-            LONESTAR_CHAT_ID
-          );
+          await sendWhatsApp(API_URL, ID, TOKEN, confirm, LONESTAR_CHAT_ID);
         } catch (_) {}
       }
     } catch (err) {

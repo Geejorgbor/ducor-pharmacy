@@ -367,6 +367,32 @@ export async function writeWhatsAppStaffReply(sessionId, text, meta = {}) {
   return { ok: true, sessionId, status: patch.status || session.status };
 }
 
+/**
+ * Return a live chat to the AI assistant (mirrors dashboard returnLiveChatToAI).
+ * Clears claim fields, sets status ai, writes a client-safe system message.
+ * Does NOT write DONE/AI as a staff bubble.
+ */
+export async function returnLiveChatToAI(sessionId) {
+  const now = new Date();
+  const session = await getSession(sessionId);
+  if (!session) throw new Error('Session not found: ' + sessionId);
+
+  await addSessionMessage(sessionId, {
+    role: 'system',
+    content: 'Pharmacist returned you to the online assistant.',
+    createdAt: now,
+  });
+
+  await patchSession(sessionId, {
+    status: 'ai',
+    claimedBy: null,
+    claimedAt: null,
+    updatedAt: now,
+  });
+
+  return { ok: true, sessionId, status: 'ai', returnedToAI: true };
+}
+
 /** Short code used in WhatsApp alerts (8 chars from UUID). */
 export function sessionCodeFromId(sessionId) {
   return String(sessionId || '')
