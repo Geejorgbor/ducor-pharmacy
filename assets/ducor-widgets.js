@@ -284,7 +284,7 @@ function initSearch() {
 }
 
 // ══════════════════════════════════════════
-//  2. AI CHAT WIDGET
+//  2. AI CHAT WIDGET (+ human pharmacist handoff)
 // ══════════════════════════════════════════
 function initChat() {
   const style = document.createElement('style');
@@ -300,6 +300,8 @@ function initChat() {
     #ducor-chat-head-info h4{color:#fff;font-size:0.9rem;font-weight:700;margin-bottom:2px}
     #ducor-chat-head-info p{color:rgba(255,255,255,0.45);font-size:0.72rem}
     #ducor-chat-status{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:chatPulse 2s infinite;margin-left:auto;flex-shrink:0}
+    #ducor-chat-status.human{background:#c9a055;animation:none}
+    #ducor-chat-status.waiting{background:#f59e0b}
     @keyframes chatPulse{0%,100%{opacity:1}50%{opacity:.4}}
     #ducor-chat-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:4px;border-radius:6px;transition:color .2s;margin-left:4px}
     #ducor-chat-close:hover{color:#fff}
@@ -307,12 +309,17 @@ function initChat() {
     .ducor-msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:0.84rem;line-height:1.55}
     .ducor-msg.bot{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.9);align-self:flex-start;border-radius:4px 14px 14px 14px}
     .ducor-msg.user{background:linear-gradient(135deg,#0a2558,#0d3a6e);color:#fff;align-self:flex-end;border-radius:14px 14px 4px 14px;border:1px solid rgba(201,160,85,0.2)}
-    .ducor-msg.bot a{color:#c9a055;text-decoration:underline}
+    .ducor-msg.staff{background:rgba(201,160,85,0.15);color:#fff;align-self:flex-start;border-radius:4px 14px 14px 14px;border:1px solid rgba(201,160,85,0.35)}
+    .ducor-msg.staff .ducor-msg-label{display:block;font-size:0.65rem;font-weight:700;color:#c9a055;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
+    .ducor-msg.system{align-self:center;max-width:95%;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.65);font-size:0.75rem;text-align:center;border-radius:10px;border:1px dashed rgba(255,255,255,0.12)}
+    .ducor-msg.bot a,.ducor-msg.staff a,.ducor-msg.system a{color:#c9a055;text-decoration:underline}
     #ducor-chat-typing{display:none;align-self:flex-start;background:rgba(255,255,255,0.08);padding:10px 16px;border-radius:4px 14px 14px 14px}
     #ducor-chat-typing span{display:inline-block;width:6px;height:6px;background:rgba(255,255,255,0.4);border-radius:50%;margin:0 2px;animation:typingDot 1.2s infinite}
     #ducor-chat-typing span:nth-child(2){animation-delay:.2s}
     #ducor-chat-typing span:nth-child(3){animation-delay:.4s}
     @keyframes typingDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+    #ducor-chat-handoff-bar{display:none;padding:8px 14px;background:rgba(201,160,85,0.12);border-top:1px solid rgba(201,160,85,0.2);font-size:0.72rem;color:rgba(201,160,85,0.95);font-weight:600;align-items:center;gap:8px}
+    #ducor-chat-handoff-bar.show{display:flex}
     #ducor-chat-input-area{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px}
     #ducor-chat-input{flex:1;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;font-size:0.84rem;color:#fff;font-family:inherit;outline:none;transition:border-color .2s;resize:none}
     #ducor-chat-input:focus{border-color:rgba(201,160,85,0.4)}
@@ -322,8 +329,22 @@ function initChat() {
     #ducor-chat-quick{padding:0 14px 10px;display:flex;gap:6px;flex-wrap:wrap}
     .ducor-quick-btn{background:rgba(201,160,85,0.1);border:1px solid rgba(201,160,85,0.25);color:rgba(201,160,85,0.9);font-size:0.72rem;font-weight:600;padding:5px 10px;border-radius:50px;cursor:pointer;transition:all .15s;font-family:inherit}
     .ducor-quick-btn:hover{background:rgba(201,160,85,0.2)}
+    .ducor-quick-btn.human{background:rgba(13,148,136,0.15);border-color:rgba(13,148,136,0.4);color:#5eead4}
   `;
   document.head.appendChild(style);
+
+  const CONTACT_HTML = '<a href="https://wa.me/16309366050" target="_blank" rel="noopener">WhatsApp +1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank" rel="noopener">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank" rel="noopener">+231 760 801 914</a>';
+  const HOURS_MSG = 'Our pharmacists are available Monday–Saturday, 9AM–5PM (Monrovia time). Outside those hours I can keep helping as your online assistant, or you can reach the team anytime: ' + CONTACT_HTML + '.';
+  const FB_CONFIG = {
+    apiKey: 'AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE',
+    authDomain: 'ducor-pharmacy.firebaseapp.com',
+    projectId: 'ducor-pharmacy',
+    storageBucket: 'ducor-pharmacy.firebasestorage.app',
+    messagingSenderId: '952933384266',
+    appId: '1:952933384266:web:55b906e903d96940d426b3'
+  };
+  const SESSION_KEY = 'ducor-chat-session-id';
+  const HUMAN_INTENT = /\b(talk to (a )?(pharmacist|human|person|agent|staff|someone)|speak (to|with) (a )?(pharmacist|human|person|agent|staff|someone)|real (person|pharmacist|human)|live (agent|chat|person|pharmacist|human)|human (please|help)|customer service|pharmacist please)\b/i;
 
   const btn = document.createElement('button');
   btn.id = 'ducor-chat-btn';
@@ -337,7 +358,7 @@ function initChat() {
       <div id="ducor-chat-head-avatar">💊</div>
       <div id="ducor-chat-head-info">
         <h4>Ducor International Pharmacy</h4>
-        <p>Online Assistant · Available 24/7</p>
+        <p id="ducor-chat-head-sub">Online Assistant · Available 24/7</p>
       </div>
       <div id="ducor-chat-status"></div>
       <button id="ducor-chat-close" aria-label="Close chat">
@@ -348,11 +369,12 @@ function initChat() {
       <div class="ducor-msg bot">Welcome to Ducor International Pharmacy! 👋<br><br>I'm your online assistant, here 24/7 to guide you through everything — finding medications, placing an order, payment options, and more. How can I help you today?</div>
     </div>
     <div id="ducor-chat-typing"><span></span><span></span><span></span></div>
+    <div id="ducor-chat-handoff-bar"></div>
     <div id="ducor-chat-quick">
-      <button class="ducor-quick-btn" onclick="ducorChatQuick('What medications do you have?')">Medications</button>
-      <button class="ducor-quick-btn" onclick="ducorChatQuick('How do I place an order?')">How to order</button>
-      <button class="ducor-quick-btn" onclick="ducorChatQuick('Where are you located?')">Location</button>
-      <button class="ducor-quick-btn" onclick="ducorChatQuick('What are your prices?')">Prices</button>
+      <button type="button" class="ducor-quick-btn" data-quick="What medications do you have?">Medications</button>
+      <button type="button" class="ducor-quick-btn" data-quick="How do I place an order?">How to order</button>
+      <button type="button" class="ducor-quick-btn" data-quick="Where are you located?">Location</button>
+      <button type="button" class="ducor-quick-btn human" data-human="1">Talk to pharmacist</button>
     </div>
     <div id="ducor-chat-input-area">
       <textarea id="ducor-chat-input" rows="1" placeholder="Ask me anything about medications…"></textarea>
@@ -366,12 +388,29 @@ function initChat() {
 
   let chatOpen = false;
   let chatHistory = [];
+  let handoffMode = false; // waiting | human
+  let sessionId = null;
+  let sessionStatus = 'ai';
+  let fb = null; // { db, helpers }
+  let unsubSession = null;
+  let unsubMessages = null;
+  const renderedMsgIds = new Set();
 
   btn.onclick = toggleChat;
   document.getElementById('ducor-chat-close').onclick = closeChat;
   document.getElementById('ducor-chat-send').onclick = sendMessage;
   document.getElementById('ducor-chat-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  document.getElementById('ducor-chat-quick').addEventListener('click', e => {
+    const b = e.target.closest('.ducor-quick-btn');
+    if (!b) return;
+    if (b.getAttribute('data-human')) {
+      requestHuman();
+      return;
+    }
+    const q = b.getAttribute('data-quick');
+    if (q) ducorChatQuick(q);
   });
 
   function toggleChat() {
@@ -393,12 +432,38 @@ function initChat() {
     document.getElementById('ducor-chat-input').value = text;
     setTimeout(sendMessage, 100);
   };
+  window.ducorRequestHuman = requestHuman;
 
-  function appendMsg(text, role) {
+  function formatMsgHtml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // restore safe links we inject ourselves (wa.me / tel / our domain)
+      .replace(/&lt;a href="(https?:\/\/(?:wa\.me|www\.ducor-international-pharmacy\.com|ducor-international-pharmacy\.com)[^"]*)"(?: target="_blank")?(?: rel="noopener")?&gt;(.*?)&lt;\/a&gt;/g,
+        '<a href="$1" target="_blank" rel="noopener">$2</a>');
+  }
+
+  function appendMsg(text, role, opts) {
+    opts = opts || {};
     const msgs = document.getElementById('ducor-chat-messages');
     const div = document.createElement('div');
     div.className = 'ducor-msg ' + role;
-    div.innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    if (opts.id) {
+      div.dataset.msgId = opts.id;
+      renderedMsgIds.add(opts.id);
+    }
+    let html = formatMsgHtml(text);
+    if (role === 'staff') {
+      const label = opts.label || 'Pharmacist';
+      html = '<span class="ducor-msg-label">' + label + '</span>' + html;
+    }
+    // Allow intentional HTML from our own CONTACT_HTML (trusted)
+    if (opts.allowHtml) {
+      div.innerHTML = text;
+    } else {
+      div.innerHTML = html;
+    }
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
     return div;
@@ -407,12 +472,280 @@ function initChat() {
   function showTyping() { document.getElementById('ducor-chat-typing').style.display = 'flex'; }
   function hideTyping() { document.getElementById('ducor-chat-typing').style.display = 'none'; }
 
+  function setHandoffUI(status) {
+    sessionStatus = status || 'ai';
+    handoffMode = status === 'waiting' || status === 'human';
+    const bar = document.getElementById('ducor-chat-handoff-bar');
+    const sub = document.getElementById('ducor-chat-head-sub');
+    const dot = document.getElementById('ducor-chat-status');
+    const input = document.getElementById('ducor-chat-input');
+    dot.classList.remove('human', 'waiting');
+    if (status === 'waiting') {
+      bar.classList.add('show');
+      bar.textContent = 'Waiting for a pharmacist — AI replies are paused.';
+      sub.textContent = 'Connecting to pharmacist…';
+      dot.classList.add('waiting');
+      input.placeholder = 'Message the pharmacy team…';
+    } else if (status === 'human') {
+      bar.classList.add('show');
+      bar.textContent = 'You are chatting with a pharmacist.';
+      sub.textContent = 'Pharmacist · Live';
+      dot.classList.add('human');
+      input.placeholder = 'Message the pharmacist…';
+    } else {
+      bar.classList.remove('show');
+      bar.textContent = '';
+      sub.textContent = 'Online Assistant · Available 24/7';
+      input.placeholder = 'Ask me anything about medications…';
+    }
+  }
+
+  function isPharmacistHours(date) {
+    const d = date || new Date();
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Africa/Monrovia',
+        weekday: 'short',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: false
+      }).formatToParts(d);
+      const map = {};
+      parts.forEach(function (p) { if (p.type !== 'literal') map[p.type] = p.value; });
+      const day = map.weekday;
+      let hour = parseInt(map.hour, 10);
+      const minute = parseInt(map.minute, 10);
+      // Some engines emit hour "24" for midnight
+      if (hour === 24) hour = 0;
+      const mins = hour * 60 + minute;
+      const weekday = day !== 'Sun';
+      return weekday && mins >= 9 * 60 && mins < 17 * 60;
+    } catch (e) {
+      // Fallback: treat browser local as Monrovia (UTC+0)
+      const day = d.getUTCDay(); // 0=Sun
+      const mins = d.getUTCHours() * 60 + d.getUTCMinutes();
+      return day >= 1 && day <= 6 && mins >= 9 * 60 && mins < 17 * 60;
+    }
+  }
+
+  function newSessionId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  async function ensureFirebase() {
+    if (fb) return fb;
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const fsMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const app = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(FB_CONFIG);
+    const db = fsMod.getFirestore(app);
+    fb = {
+      db: db,
+      doc: fsMod.doc,
+      getDoc: fsMod.getDoc,
+      setDoc: fsMod.setDoc,
+      updateDoc: fsMod.updateDoc,
+      collection: fsMod.collection,
+      addDoc: fsMod.addDoc,
+      onSnapshot: fsMod.onSnapshot,
+      query: fsMod.query,
+      orderBy: fsMod.orderBy,
+      serverTimestamp: fsMod.serverTimestamp,
+      Timestamp: fsMod.Timestamp,
+      increment: fsMod.increment
+    };
+    return fb;
+  }
+
+  async function ensureSessionDoc(status) {
+    const F = await ensureFirebase();
+    if (!sessionId) {
+      try { sessionId = sessionStorage.getItem(SESSION_KEY); } catch (e) {}
+      if (!sessionId) {
+        sessionId = newSessionId();
+        try { sessionStorage.setItem(SESSION_KEY, sessionId); } catch (e) {}
+      }
+    }
+    const ref = F.doc(F.db, 'chat_sessions', sessionId);
+    const payload = {
+      status: status || 'waiting',
+      updatedAt: F.serverTimestamp(),
+      pageUrl: String(location.href || '').slice(0, 500),
+      preview: String(((chatHistory.find(function (m) { return m.role === 'user'; }) || {}).content || 'Chat request')).slice(0, 200),
+      unreadStaff: 0,
+      unreadClient: 0
+    };
+    try {
+      const existing = await F.getDoc(ref);
+      if (existing.exists()) {
+        await F.updateDoc(ref, {
+          status: payload.status,
+          updatedAt: payload.updatedAt,
+          pageUrl: payload.pageUrl,
+          preview: payload.preview
+        });
+      } else {
+        await F.setDoc(ref, Object.assign({ createdAt: F.serverTimestamp() }, payload));
+      }
+    } catch (e) {
+      console.error('chat session create failed', e);
+      throw e;
+    }
+    return ref;
+  }
+
+  async function writeMessage(role, content, extra, opts) {
+    opts = opts || {};
+    const F = await ensureFirebase();
+    const ref = F.doc(F.db, 'chat_sessions', sessionId);
+    const msg = Object.assign({
+      role: role,
+      content: String(content).slice(0, 4000),
+      createdAt: F.serverTimestamp()
+    }, extra || {});
+    await F.addDoc(F.collection(ref, 'messages'), msg);
+    const patch = {
+      updatedAt: F.serverTimestamp(),
+      lastMessage: String(content).slice(0, 200),
+      lastMessageAt: F.serverTimestamp(),
+      lastMessageRole: role
+    };
+    if (!opts.quiet) {
+      if (role === 'user') patch.unreadStaff = F.increment(1);
+      if (role === 'staff') patch.unreadClient = F.increment(1);
+    }
+    try { await F.updateDoc(ref, patch); } catch (e) { /* rules may block some fields mid-handoff */ }
+  }
+
+  function stopListeners() {
+    if (unsubSession) { try { unsubSession(); } catch (e) {} unsubSession = null; }
+    if (unsubMessages) { try { unsubMessages(); } catch (e) {} unsubMessages = null; }
+  }
+
+  async function startListeners() {
+    const F = await ensureFirebase();
+    stopListeners();
+    const ref = F.doc(F.db, 'chat_sessions', sessionId);
+    unsubSession = F.onSnapshot(ref, function (snap) {
+      if (!snap.exists()) return;
+      const data = snap.data() || {};
+      const st = data.status || 'ai';
+      const prev = sessionStatus;
+      setHandoffUI(st);
+      // System notices (joined / returned to AI) arrive via the messages listener
+    });
+    const mq = F.query(F.collection(ref, 'messages'), F.orderBy('createdAt', 'asc'));
+    unsubMessages = F.onSnapshot(mq, function (snap) {
+      snap.docChanges().forEach(function (change) {
+        if (change.type !== 'added') return;
+        const id = change.doc.id;
+        if (renderedMsgIds.has(id)) return;
+        const m = change.doc.data() || {};
+        const role = m.role;
+        if (role === 'user') {
+          // Client already showed their own outbound messages
+          renderedMsgIds.add(id);
+          return;
+        }
+        if (role === 'staff') {
+          appendMsg(m.content || '', 'staff', { id: id, label: m.senderName || 'Pharmacist' });
+          if (!chatOpen) document.getElementById('ducor-chat-badge').style.display = 'flex';
+        } else if (role === 'system') {
+          appendMsg(m.content || '', 'system', { id: id });
+        } else if (role === 'assistant') {
+          // Historical AI lines seeded at handoff — skip if we already have local UI
+          renderedMsgIds.add(id);
+        }
+      });
+    });
+  }
+
+  async function seedTranscript() {
+    // Copy recent local AI history into Firestore once at handoff so staff see context
+    const recent = chatHistory.slice(-12);
+    for (let i = 0; i < recent.length; i++) {
+      const m = recent[i];
+      if (!m || !m.content) continue;
+      const role = m.role === 'assistant' ? 'assistant' : 'user';
+      await writeMessage(role, m.content, null, { quiet: true });
+    }
+  }
+
+  async function requestHuman() {
+    if (!chatOpen) openChat();
+    if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
+      appendMsg('You are already in the pharmacist queue. Please wait — a team member will reply here.', 'system');
+      return;
+    }
+    if (!isPharmacistHours()) {
+      appendMsg(HOURS_MSG, 'bot', { allowHtml: true });
+      return;
+    }
+    showTyping();
+    try {
+      await ensureSessionDoc('waiting');
+      // Update status explicitly to waiting (merge create may have left prior status)
+      const F = await ensureFirebase();
+      await F.updateDoc(F.doc(F.db, 'chat_sessions', sessionId), {
+        status: 'waiting',
+        updatedAt: F.serverTimestamp(),
+        pageUrl: String(location.href || '').slice(0, 500)
+      });
+      await seedTranscript();
+      await writeMessage('system', 'Customer requested a pharmacist.');
+      await startListeners();
+      hideTyping();
+      setHandoffUI('waiting');
+      appendMsg('Connecting you to a pharmacist. AI replies are paused for this chat — please wait here, or reach us on ' + CONTACT_HTML + ' if it is urgent.', 'system', { allowHtml: true });
+    } catch (e) {
+      hideTyping();
+      console.error(e);
+      appendMsg('I could not start a live pharmacist chat right now. Please use ' + CONTACT_HTML + ', or keep chatting with me.', 'bot', { allowHtml: true });
+      setHandoffUI('ai');
+    }
+  }
+
+  async function sendHumanMessage(text) {
+    appendMsg(text, 'user');
+    chatHistory.push({ role: 'user', content: text });
+    try {
+      if (!sessionId) await ensureSessionDoc(sessionStatus === 'human' ? 'waiting' : 'waiting');
+      await writeMessage('user', text);
+      if (!unsubMessages) await startListeners();
+    } catch (e) {
+      console.error(e);
+      appendMsg('Message could not be delivered. Please try again or use ' + CONTACT_HTML + '.', 'system', { allowHtml: true });
+    }
+  }
+
   async function sendMessage() {
     const input = document.getElementById('ducor-chat-input');
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
     if (!chatOpen) openChat();
+
+    // Human / waiting mode — no AI
+    if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
+      await sendHumanMessage(text);
+      return;
+    }
+
+    // Detect intent to talk to a human
+    if (HUMAN_INTENT.test(text)) {
+      appendMsg(text, 'user');
+      chatHistory.push({ role: 'user', content: text });
+      if (!isPharmacistHours()) {
+        appendMsg(HOURS_MSG, 'bot', { allowHtml: true });
+        return;
+      }
+      await requestHuman();
+      return;
+    }
 
     appendMsg(text, 'user');
     chatHistory.push({ role: 'user', content: text });
@@ -428,19 +761,38 @@ function initChat() {
       const data = await resp.json();
       hideTyping();
       if (data.creditError) {
-        appendMsg('We are not available at this moment. Please contact us directly — <a href="https://wa.me/16309366050" target="_blank">WhatsApp +1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank">+231 760 801 914</a>. We will be happy to assist you.', 'bot');
+        appendMsg('We are not available at this moment. Please contact us directly — ' + CONTACT_HTML + '. We will be happy to assist you.', 'bot', { allowHtml: true });
       } else if (data.reply) {
         appendMsg(data.reply, 'bot');
         chatHistory.push({ role: 'assistant', content: data.reply });
         if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
       } else {
-        appendMsg('Sorry, I\'m having trouble connecting right now. For immediate help please WhatsApp us: <a href="https://wa.me/16309366050" target="_blank">+1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank">+231 760 801 914</a>.', 'bot');
+        appendMsg('Sorry, I\'m having trouble connecting right now. For immediate help please WhatsApp us: ' + CONTACT_HTML + '.', 'bot', { allowHtml: true });
       }
-    } catch(e) {
+    } catch (e) {
       hideTyping();
-      appendMsg('I\'m temporarily offline. For urgent help, please WhatsApp or call us directly: <a href="https://wa.me/16309366050" target="_blank">+1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank">+231 760 801 914</a>.', 'bot');
+      appendMsg('I\'m temporarily offline. For urgent help, please WhatsApp or call us directly: ' + CONTACT_HTML + '.', 'bot', { allowHtml: true });
     }
   }
+
+  // Resume handoff if this tab already had a live session
+  (async function resumeIfNeeded() {
+    try {
+      const existing = sessionStorage.getItem(SESSION_KEY);
+      if (!existing) return;
+      sessionId = existing;
+      const F = await ensureFirebase();
+      const snapUnsub = F.onSnapshot(F.doc(F.db, 'chat_sessions', sessionId), function (snap) {
+        snapUnsub();
+        if (!snap.exists()) return;
+        const st = (snap.data() || {}).status;
+        if (st === 'waiting' || st === 'human') {
+          setHandoffUI(st);
+          startListeners();
+        }
+      });
+    } catch (e) { /* ignore */ }
+  })();
 }
 
 // ══════════════════════════════════════════
