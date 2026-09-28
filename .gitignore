@@ -14,3 +14,4 @@ set-admin-only.js
 package.json
 package-lock.json
 .vercel
+.env*

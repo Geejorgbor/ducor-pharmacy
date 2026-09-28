@@ -459,7 +459,7 @@ function initChat() {
     }
     let html = formatMsgHtml(text);
     if (role === 'staff') {
-      const label = opts.label || 'Pharmacist';
+      const label = opts.label || 'Agent';
       html = '<span class="ducor-msg-label">' + label + '</span>' + html;
     }
     // Allow intentional HTML from our own CONTACT_HTML (trusted)
@@ -486,16 +486,16 @@ function initChat() {
     dot.classList.remove('human', 'waiting');
     if (status === 'waiting') {
       bar.classList.add('show');
-      bar.textContent = 'Waiting for a pharmacist — AI replies are paused.';
-      sub.textContent = 'Connecting to pharmacist…';
+      bar.textContent = 'A real agent is joining — the assistant is paused.';
+      sub.textContent = 'Connecting you to a real agent…';
       dot.classList.add('waiting');
       input.placeholder = 'Message the pharmacy team…';
     } else if (status === 'human') {
       bar.classList.add('show');
-      bar.textContent = 'You are chatting with a pharmacist.';
-      sub.textContent = 'Pharmacist · Live';
+      bar.textContent = 'A real agent has taken over this chat.';
+      sub.textContent = 'Agent · Live';
       dot.classList.add('human');
-      input.placeholder = 'Message the pharmacist…';
+      input.placeholder = 'Message the agent…';
     } else {
       bar.classList.remove('show');
       bar.textContent = '';
@@ -666,7 +666,7 @@ function initChat() {
           return;
         }
         if (role === 'staff') {
-          appendMsg(m.content || '', 'staff', { id: id, label: m.senderName || 'Pharmacist' });
+          appendMsg(m.content || '', 'staff', { id: id, label: m.senderName || 'Agent' });
           if (!chatOpen) document.getElementById('ducor-chat-badge').style.display = 'flex';
         } else if (role === 'system') {
           appendMsg(m.content || '', 'system', { id: id });
@@ -715,7 +715,7 @@ function initChat() {
   async function requestHuman() {
     if (!chatOpen) openChat();
     if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
-      appendMsg('You are already in the pharmacist queue. Please wait — a team member will reply here.', 'system');
+      appendMsg('You are already in the agent queue. Please wait — a real agent will reply here.', 'system');
       return;
     }
     // After-hours: still start handoff + WhatsApp-notify Lucas Lonestar so he can
@@ -740,18 +740,16 @@ function initChat() {
         waBridgeEnabled: true
       });
       await seedTranscript();
-      await writeMessage('system', afterHours
-        ? 'Customer requested a pharmacist outside desk hours — Lonestar notified on WhatsApp.'
-        : 'Customer requested a pharmacist.');
+      await writeMessage('system', 'Connecting you to a real agent.');
       await startListeners();
       // Server-side Green API → Lonestar only (token never exposed here)
       await notifyLonestarWhatsApp('handoff', lastUser || 'Customer tapped Talk to pharmacist');
       hideTyping();
       setHandoffUI('waiting');
       if (afterHours) {
-        appendMsg('A team member was notified on WhatsApp. They may reply here shortly — AI replies are paused for this chat. Desk hours are Mon–Sat 9AM–5PM (Monrovia). For other lines: ' + CONTACT_HTML + '.', 'system', { allowHtml: true });
+        appendMsg('A real agent has been notified. They will reply here shortly. The assistant is paused for this chat. Desk hours are Mon–Sat 9AM–5PM (Monrovia). If urgent: ' + CONTACT_HTML + '.', 'system', { allowHtml: true });
       } else {
-        appendMsg('Connecting you to a pharmacist. A team member was also notified on WhatsApp. AI replies are paused for this chat — please wait here, or reach us on ' + CONTACT_HTML + ' if it is urgent.', 'system', { allowHtml: true });
+        appendMsg('A real agent is taking over this chat. Please wait here — the assistant is paused. If urgent: ' + CONTACT_HTML + '.', 'system', { allowHtml: true });
       }
     } catch (e) {
       hideTyping();

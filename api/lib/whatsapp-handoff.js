@@ -6,8 +6,8 @@
  * Never BOSS_CHAT_ID (231887221275) or DEV_CHAT_ID for this handoff path.
  *
  * Try-now / after-hours: the website still creates a handoff + notifies Lonestar
- * outside Mon–Sat 9AM–5PM so replies can be tested anytime; the client is told
- * a team member was notified on WhatsApp (see assets/ducor-widgets.js).
+ * outside Mon–Sat 9AM–5PM so replies can be tested anytime; clients only see
+ * neutral “real agent” copy (see assets/ducor-widgets.js).
  */
 
 import {
@@ -148,8 +148,8 @@ export async function processInboundHandoffMessage(body) {
   const cleaned = stripCodeFromReply(rawText) || rawText;
 
   const result = await writeWhatsAppStaffReply(sessionId, cleaned, {
-    senderName: 'Lucas Lonestar',
-    claimedBy: 'Lucas Lonestar (WhatsApp)',
+    senderName: 'Agent',
+    claimedBy: 'Pharmacist',
     waMessageId: body.idMessage || null,
   });
 
