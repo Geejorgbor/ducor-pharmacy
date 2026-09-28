@@ -1697,14 +1697,28 @@ window.renderLiveChatList = function() {
   }
   box.innerHTML = list.map(s => {
     const active = s.id === _lcActiveId ? ' active' : '';
-    const preview = (s.lastMessage || s.preview || '—').replace(/</g, '&lt;').slice(0, 120);
+    const name = String(s.clientName || '').trim();
+    const reason = String(s.handoffReason || '').trim();
+    const ask = String(s.askingAbout || '').trim();
+    const previewRaw = ask || s.lastMessage || s.preview || '—';
+    const preview = String(previewRaw).replace(/</g, '&lt;').slice(0, 120);
     const st = s.status || 'ai';
+    const title = name
+      ? name.replace(/</g, '&lt;').slice(0, 40)
+      : (s.id.slice(0, 8) + '…');
+    const subBits = [];
+    if (reason) subBits.push(reason.replace(/</g, '&lt;').slice(0, 60));
+    if (name) subBits.push(s.id.slice(0, 8) + '…');
+    const subLine = subBits.length
+      ? `<div class="lc-item-preview" style="opacity:.85;font-size:.72rem;margin-top:2px">${subBits.join(' · ')}</div>`
+      : '';
     return `<div class="lc-item${active}" onclick="openLiveChatSession('${s.id}')">
       <div class="lc-item-top">
-        <span class="lc-item-id">${s.id.slice(0, 8)}…</span>
+        <span class="lc-item-id">${title}</span>
         <span class="lc-pill ${st}">${st}</span>
       </div>
       <div class="lc-item-preview">${preview}</div>
+      ${subLine}
       <div class="lc-item-meta">${_lcFmtTime(s.updatedAt || s.createdAt)}${s.claimedBy ? ' · ' + String(s.claimedBy).split('@')[0] : ''}</div>
     </div>`;
   }).join('');
@@ -1718,9 +1732,19 @@ window.openLiveChatSession = function(id) {
   if (placeholder) placeholder.style.display = 'none';
   if (active) active.style.display = 'flex';
   const s = _lcSessions.find(x => x.id === id) || {};
-  document.getElementById('lc-thread-title').textContent = 'Session ' + id.slice(0, 8) + '…';
-  document.getElementById('lc-thread-sub').textContent =
-    (s.status || '') + (s.pageUrl ? ' · ' + s.pageUrl.replace(/^https?:\/\//, '').slice(0, 60) : '');
+  const nm = String(s.clientName || '').trim();
+  document.getElementById('lc-thread-title').textContent = nm
+    ? nm
+    : ('Session ' + id.slice(0, 8) + '…');
+  const subParts = [];
+  if (s.status) subParts.push(s.status);
+  if (s.handoffReason) subParts.push(String(s.handoffReason).slice(0, 80));
+  if (s.askingAbout) subParts.push('Asking: ' + String(s.askingAbout).slice(0, 100));
+  if (s.clientPhone) subParts.push(String(s.clientPhone).slice(0, 40));
+  if (s.clientEmail) subParts.push(String(s.clientEmail).slice(0, 60));
+  if (s.pageUrl) subParts.push(s.pageUrl.replace(/^https?:\/\//, '').slice(0, 60));
+  if (!nm) subParts.unshift(id.slice(0, 8) + '…');
+  document.getElementById('lc-thread-sub').textContent = subParts.join(' · ');
   if (_lcMsgUnsub) { try { _lcMsgUnsub(); } catch (e) {} _lcMsgUnsub = null; }
   const msgsEl = document.getElementById('lc-msgs');
   msgsEl.innerHTML = '<div class="lc-empty">Loading messages…</div>';
