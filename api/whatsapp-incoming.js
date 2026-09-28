@@ -69,14 +69,11 @@ export default async function handler(req, res) {
       const ID = process.env.GREEN_API_ID;
       const TOKEN = process.env.GREEN_API_TOKEN;
       if (API_URL && ID && TOKEN) {
+        const confirm = result.returnedToAI
+          ? `✓ Returned to assistant (Code: ${result.sessionCode})`
+          : `✓ Sent to website chat (Code: ${result.sessionCode})`;
         try {
-          await sendWhatsApp(
-            API_URL,
-            ID,
-            TOKEN,
-            `✓ Sent to website chat (Code: ${result.sessionCode})`,
-            LONESTAR_CHAT_ID
-          );
+          await sendWhatsApp(API_URL, ID, TOKEN, confirm, LONESTAR_CHAT_ID);
         } catch (_) {}
       }
     }

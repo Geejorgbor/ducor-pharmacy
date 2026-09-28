@@ -15,6 +15,7 @@ import {
   findOpenBridgedSessions,
   findSessionByCode,
   parseSessionCode,
+  returnLiveChatToAI,
   sessionCodeFromId,
   stripCodeFromReply,
   writeWhatsAppStaffReply,
@@ -36,6 +37,7 @@ export function buildHandoffAlert({ sessionId, sessionCode, lastMessage, pageUrl
     '━━━━━━━━━━━━━━━━━━━━━━━━',
     `🔖 Code: ${code}`,
     '(Reply to this chat — include the Code if you have several open)',
+    'Reply DONE or AI to return to assistant (include Code when multiple chats).',
     '',
     `💬 Last client message:`,
     `"${last}"`,
@@ -89,6 +91,15 @@ export function extractInboundText(body) {
 export function inboundSenderChatId(body) {
   const sd = body?.senderData || {};
   return sd.sender || sd.chatId || '';
+}
+
+/**
+ * True when Lonestar's cleaned reply is essentially DONE or AI
+ * (case-insensitive). Allows `Code: XXX DONE` after stripCodeFromReply.
+ */
+export function isReturnToAICommand(text) {
+  const t = String(text || '').trim();
+  return /^(DONE|AI)$/i.test(t);
 }
 
 /**
@@ -146,6 +157,21 @@ export async function processInboundHandoffMessage(body) {
 
   const sessionId = session.__id;
   const cleaned = stripCodeFromReply(rawText) || rawText;
+  const sessionCode = session.sessionCode || sessionCodeFromId(sessionId);
+
+  // Lonestar: DONE / AI returns the customer to the online assistant
+  // (mirrors dashboard returnLiveChatToAI). Do not write DONE/AI as staff text.
+  if (isReturnToAICommand(cleaned)) {
+    const result = await returnLiveChatToAI(sessionId);
+    return {
+      ok: true,
+      sessionId,
+      sessionCode,
+      resolveNote,
+      returnedToAI: true,
+      ...result,
+    };
+  }
 
   const result = await writeWhatsAppStaffReply(sessionId, cleaned, {
     senderName: 'Pharmacist',
@@ -156,7 +182,7 @@ export async function processInboundHandoffMessage(body) {
   return {
     ok: true,
     sessionId,
-    sessionCode: session.sessionCode || sessionCodeFromId(sessionId),
+    sessionCode,
     resolveNote,
     ...result,
   };
