@@ -1,30 +1,27 @@
 // Vercel serverless function — sends WhatsApp notifications via Green API
 // Handles: new order alerts + delivery confirmation alerts to the boss
-//          + Live Chat handoff alerts to Lucas Lonestar ONLY
+//          + Live Chat handoff alerts to Lonestar AND Boss (275)
 //
 // SETUP — add these 3 env vars in Vercel dashboard → Settings → Environment Variables:
 //   GREEN_API_URL   = https://7107.api.greenapi.com
 //   GREEN_API_ID    = 7107656793
 //   GREEN_API_TOKEN = <apiTokenInstance from your Green API dashboard>
 //
-// Live Chat handoff (type=chat_handoff / chat_handoff_followup) ALWAYS goes to
-// Lucas Lonestar +231778174157 (231778174157@c.us) — never BOSS_CHAT_ID or DEV_CHAT_ID.
-// Inbound Lonestar replies are handled by api/whatsapp-incoming.js (webhook)
-// or api/whatsapp-poll.js (receiveNotification poll).
+// Live Chat handoff (type=chat_handoff / chat_handoff_followup) goes to BOTH:
+//   Lonestar 231778174157@c.us + Boss 231887221275@c.us — never DEV_CHAT_ID.
+// Inbound replies from either chatId are handled by api/whatsapp-incoming.js
+// (webhook) or api/whatsapp-poll.js (receiveNotification poll).
 
 import { sendWhatsApp } from './lib/green-send.js';
 import {
-  LONESTAR_CHAT_ID,
+  HANDOFF_CHAT_IDS,
   buildHandoffAlert,
   buildFollowUpAlert,
 } from './lib/whatsapp-handoff.js';
 import { sessionCodeFromId } from './lib/firestore-bridge.js';
 
-const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp in international format
-const DEV_CHAT_ID = '231888916127@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never the boss's
-
-// Re-export Lonestar for clarity in this file (handoff path only)
-const HANDOFF_CHAT_ID = LONESTAR_CHAT_ID; // 231778174157@c.us — Lonestar ONLY
+const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp (also a handoff destination)
+const DEV_CHAT_ID = '231888916127@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never handoff
 
 const ALLOWED_ORIGINS = [
   'https://www.ducor-international-pharmacy.com',
@@ -61,9 +58,9 @@ export default async function handler(req, res) {
   const { order, type, delivery, admin, handoff } = req.body || {};
 
   try {
-    // ── Live Chat handoff → Lucas Lonestar ONLY (never boss / never DEV_CHAT_ID) ──
+    // ── Live Chat handoff → Lonestar + Boss (275); never DEV_CHAT_ID ──
     // Client calls this when status becomes "waiting". After-hours handoffs are
-    // intentionally allowed so Lonestar can test replies anytime (see widgets).
+    // intentionally allowed so either number can test replies anytime (see widgets).
     if (type === 'chat_handoff' && handoff && handoff.sessionId) {
       const sessionId = String(handoff.sessionId);
       const code = String(handoff.sessionCode || sessionCodeFromId(sessionId)).toUpperCase();
@@ -78,16 +75,21 @@ export default async function handler(req, res) {
         clientEmail: handoff.clientEmail || '',
         askingAbout: handoff.askingAbout || '',
       });
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, HANDOFF_CHAT_ID);
+      const results = [];
+      for (const chatId of HANDOFF_CHAT_IDS) {
+        results.push({ chatId, ...(await sendWhatsApp(API_URL, ID, TOKEN, message, chatId)) });
+      }
+      const ok = results.some((r) => r.ok);
       return res.status(200).json({
-        ok: result.ok,
-        data: result.data,
-        to: HANDOFF_CHAT_ID,
+        ok,
+        data: results.map((r) => r.data),
+        to: HANDOFF_CHAT_IDS,
+        results,
         sessionCode: code,
       });
     }
 
-    // Follow-up client messages while a handoff is open → Lonestar only
+    // Follow-up client messages while a handoff is open → both handoff numbers
     if (type === 'chat_handoff_followup' && handoff && handoff.sessionId) {
       const code = String(handoff.sessionCode || sessionCodeFromId(handoff.sessionId)).toUpperCase();
       const message = buildFollowUpAlert({
@@ -96,8 +98,18 @@ export default async function handler(req, res) {
         lastMessage: handoff.lastMessage || '',
         pageUrl: handoff.pageUrl || '',
       });
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, HANDOFF_CHAT_ID);
-      return res.status(200).json({ ok: result.ok, data: result.data, to: HANDOFF_CHAT_ID, sessionCode: code });
+      const results = [];
+      for (const chatId of HANDOFF_CHAT_IDS) {
+        results.push({ chatId, ...(await sendWhatsApp(API_URL, ID, TOKEN, message, chatId)) });
+      }
+      const ok = results.some((r) => r.ok);
+      return res.status(200).json({
+        ok,
+        data: results.map((r) => r.data),
+        to: HANDOFF_CHAT_IDS,
+        results,
+        sessionCode: code,
+      });
     }
 
     // TEMPORARY diagnostic — checks whether the WhatsApp instance itself is
@@ -113,7 +125,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ state, settings });
     }
 
-    // ONE-SHOT — configure Green API webhook for Lonestar inbound bridge.
+    // ONE-SHOT — configure Green API webhook for handoff inbound bridge (Lonestar + 275).
     // Safe to re-run; only sets webhook URL + incomingWebhook. Remove after stable.
     if (type === 'configure_lonestar_webhook') {
       const webhookUrl =

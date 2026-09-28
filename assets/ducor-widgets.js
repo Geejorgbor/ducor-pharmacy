@@ -378,9 +378,9 @@ function initChat() {
 
   const CONTACT_HTML = '<a href="https://wa.me/16309366050" target="_blank" rel="noopener">WhatsApp +1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank" rel="noopener">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank" rel="noopener">+231 760 801 914</a>';
   const HOURS_MSG = 'Our pharmacists are available Monday–Saturday, 9AM–5PM (Monrovia time). Outside those hours I can keep helping as your online assistant, or you can reach the team anytime: ' + CONTACT_HTML + '.';
-  // WhatsApp bridge (Lucas Lonestar +231778174157): handoff is allowed ANYTIME so
-  // Lonestar can be notified and reply from WhatsApp even outside 9–5 for testing
-  // and urgent cases. We still show the hours note to the client.
+  // WhatsApp bridge: server notifies Lonestar + Boss (275). Client stores primary
+  // waBridgeChatId = Lonestar only. Handoff allowed ANYTIME (after-hours ok).
+  // Client UI never shows boss/Lonestar bridge numbers — only public contact links.
   const LONESTAR_BRIDGE_ENABLED = true;
   const FB_CONFIG = {
     apiKey: 'AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE',
@@ -979,7 +979,7 @@ function initChat() {
       unreadStaff: 0,
       unreadClient: 0,
       sessionCode: sessionCodeFromId(sessionId),
-      waBridgeChatId: '231778174157@c.us',
+      waBridgeChatId: '231778174157@c.us', // primary; inbound also accepts 231887221275@c.us
       waBridgeEnabled: true
     };
     try {
@@ -1081,7 +1081,7 @@ function initChat() {
     }
   }
 
-  /** Notify Lucas Lonestar WhatsApp ONLY via server (Green API token never client-side). */
+  /** Notify handoff WhatsApps (Lonestar + 275) via server — token never client-side. */
   async function notifyLonestarWhatsApp(kind, lastMessage, meta) {
     if (!LONESTAR_BRIDGE_ENABLED || !sessionId) return;
     meta = meta || {};
@@ -1125,7 +1125,7 @@ function initChat() {
         })
       });
     } catch (e) {
-      console.warn('Lonestar WhatsApp notify failed', e);
+      console.warn('Handoff WhatsApp notify failed', e);
     }
   }
 
@@ -1169,14 +1169,14 @@ function initChat() {
       await ensureSessionDoc('waiting');
       const code = sessionCodeFromId(sessionId);
       const lastUser = ((chatHistory.slice().reverse().find(function (m) { return m.role === 'user'; }) || {}).content) || '';
-      // Update status explicitly to waiting + mark WhatsApp bridge fields for Lonestar
+      // Update status explicitly to waiting + mark WhatsApp bridge (primary Lonestar)
       const F = await ensureFirebase();
       const sessionPatch = {
         status: 'waiting',
         updatedAt: F.serverTimestamp(),
         pageUrl: String(location.href || '').slice(0, 500),
         sessionCode: code,
-        waBridgeChatId: '231778174157@c.us', // Lucas Lonestar ONLY
+        waBridgeChatId: '231778174157@c.us', // primary; server also alerts 275
         waBridgeEnabled: true,
         clientName: clientName
       };
@@ -1199,7 +1199,7 @@ function initChat() {
         + '. Please wait here — the assistant is paused for this chat.';
       await writeMessage('system', systemNote);
       await startListeners();
-      // Server-side Green API → Lonestar only (token never exposed here)
+      // Server-side Green API → Lonestar + Boss 275 (token never exposed here)
       await notifyLonestarWhatsApp('handoff', lastUser || 'Customer requested a pharmacist', {
         reason: reason,
         clientName: clientName,
@@ -1230,7 +1230,7 @@ function initChat() {
       if (!sessionId) await ensureSessionDoc(sessionStatus === 'human' ? 'waiting' : 'waiting');
       await writeMessage('user', text);
       if (!unsubMessages) await startListeners();
-      // Forward follow-ups to Lonestar WhatsApp so the thread stays bidirectional
+      // Forward follow-ups to handoff WhatsApps (Lonestar + 275) so thread stays bidirectional
       await notifyLonestarWhatsApp('followup', text);
     } catch (e) {
       console.error(e);
