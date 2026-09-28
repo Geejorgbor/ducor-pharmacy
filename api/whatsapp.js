@@ -86,8 +86,10 @@ export default async function handler(req, res) {
     if (type === 'chat_handoff_followup' && handoff && handoff.sessionId) {
       const code = String(handoff.sessionCode || sessionCodeFromId(handoff.sessionId)).toUpperCase();
       const message = buildFollowUpAlert({
+        sessionId: handoff.sessionId,
         sessionCode: code,
         lastMessage: handoff.lastMessage || '',
+        pageUrl: handoff.pageUrl || '',
       });
       const result = await sendWhatsApp(API_URL, ID, TOKEN, message, HANDOFF_CHAT_ID);
       return res.status(200).json({ ok: result.ok, data: result.data, to: HANDOFF_CHAT_ID, sessionCode: code });

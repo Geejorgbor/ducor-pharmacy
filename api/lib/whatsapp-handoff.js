@@ -33,15 +33,16 @@ export function buildHandoffAlert({ sessionId, sessionCode, lastMessage, pageUrl
   const last = String(lastMessage || '(no message yet)').slice(0, 500);
   const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
   return [
-    '💊 LIVE CHAT HANDOFF — Ducor Pharmacy',
+    '🌐 WEBSITE-CHAT — Ducor Pharmacy',
     '━━━━━━━━━━━━━━━━━━━━━━━━',
+    'This is a website-chat alert, not a normal WhatsApp text.',
     `🔖 Code: ${code}`,
-    '(Reply to this chat — include the Code if you have several open)',
-    'Reply DONE or AI to return to assistant (include Code when multiple chats).',
-    '',
-    `💬 Last client message:`,
+    'Reply here to send your message to the website client.',
+    'Reply DONE or AI to return this chat to the assistant.',
+    '━━━━━━━━━━━━━━━━━━━━━━━━',
+    '💬 Last client message:',
     `"${last}"`,
-    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━',
     pageUrl ? `🌐 Page: ${String(pageUrl).slice(0, 200)}` : null,
     `📋 Session: ${sessionId}`,
     '',
@@ -54,15 +55,30 @@ export function buildHandoffAlert({ sessionId, sessionCode, lastMessage, pageUrl
     .join('\n');
 }
 
-export function buildFollowUpAlert({ sessionCode, lastMessage }) {
+export function buildFollowUpAlert({ sessionId, sessionCode, lastMessage, pageUrl }) {
   const code = sessionCode || '????????';
   const last = String(lastMessage || '').slice(0, 500);
+  const when = new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' });
   return [
-    `💬 Client follow-up — Code: ${code}`,
+    '🌐 WEBSITE-CHAT — Ducor Pharmacy',
+    '━━━━━━━━━━━━━━━━━━━━━━━━',
+    `🔖 Code: ${code}`,
+    'New client message in the website chat.',
+    `💬 Last client message:`,
     `"${last}"`,
+    '━━━━━━━━━━━━━━━━━━━━━━━━',
+    'Reply here to send your message to the website client.',
+    'Reply DONE or AI to return this chat to the assistant.',
+    pageUrl ? `🌐 Page: ${String(pageUrl).slice(0, 200)}` : null,
+    sessionId ? `📋 Session: ${sessionId}` : null,
     '',
-    '(Reply here to send it to the website chat)',
-  ].join('\n');
+    '🔗 Dashboard → Live Chat:',
+    DASHBOARD_LIVE_CHAT_URL,
+    '',
+    `⏰ ${when} (Monrovia)`,
+  ]
+    .filter((line) => line !== null && line !== undefined)
+    .join('\n');
 }
 
 /**
