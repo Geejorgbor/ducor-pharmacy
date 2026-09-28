@@ -374,9 +374,9 @@ export async function writeWhatsAppStaffReply(sessionId, text, meta = {}) {
   if (session.status === 'waiting') {
     await addSessionMessage(sessionId, {
       role: 'system',
-      content: 'A real agent has taken over this chat.',
+      content: 'A pharmacist has joined the chat.',
       createdAt: now,
-      senderName: meta.senderName || 'Agent',
+      senderName: meta.senderName || 'Pharmacist',
     });
   }
 
@@ -384,7 +384,7 @@ export async function writeWhatsAppStaffReply(sessionId, text, meta = {}) {
     role: 'staff',
     content,
     createdAt: now,
-    senderName: meta.senderName || 'Agent',
+    senderName: meta.senderName || 'Pharmacist',
     via: 'whatsapp',
     waMessageId: meta.waMessageId || null,
   });
