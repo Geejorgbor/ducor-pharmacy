@@ -760,7 +760,7 @@
         <div class="panel-header">
           <div>
             <h4>Live Chat — Pharmacist Handoff</h4>
-            <p>Customers who tap “Talk to pharmacist” (Mon–Sat 9AM–5PM Monrovia) appear here. Reply in the same thread; use Return to AI when done.</p>
+            <p>Customers who tap “Talk to pharmacist” appear here (handoff works anytime; Lonestar also gets a WhatsApp alert at +231 778 174 157). Reply in the same thread or from that WhatsApp; use Return to AI when done.</p>
           </div>
         </div>
         <div class="panel-body">
@@ -1574,6 +1574,12 @@ function init() {
   startSharedStateSync();
   if (typeof window._startAISharedWatchers === 'function') window._startAISharedWatchers();
   startLiveChatListener();
+  try {
+    const sec = new URLSearchParams(location.search).get('section');
+    if (sec && typeof showSection === 'function') {
+      showSection(sec, null);
+    }
+  } catch (e) { /* ignore */ }
 }
 
 // Subscribes to the shared (Firestore-backed) copies of products,

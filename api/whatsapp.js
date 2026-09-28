@@ -1,34 +1,50 @@
 // Vercel serverless function — sends WhatsApp notifications via Green API
 // Handles: new order alerts + delivery confirmation alerts to the boss
+//          + Live Chat handoff alerts to Lucas Lonestar ONLY
 //
 // SETUP — add these 3 env vars in Vercel dashboard → Settings → Environment Variables:
 //   GREEN_API_URL   = https://7107.api.greenapi.com
 //   GREEN_API_ID    = 7107656793
 //   GREEN_API_TOKEN = <apiTokenInstance from your Green API dashboard>
+//
+// Live Chat handoff (type=chat_handoff / chat_handoff_followup) ALWAYS goes to
+// Lucas Lonestar +231778174157 (231778174157@c.us) — never BOSS_CHAT_ID or DEV_CHAT_ID.
+// Inbound Lonestar replies are handled by api/whatsapp-incoming.js (webhook)
+// or api/whatsapp-poll.js (receiveNotification poll).
+
+import { sendWhatsApp } from './lib/green-send.js';
+import {
+  LONESTAR_CHAT_ID,
+  buildHandoffAlert,
+  buildFollowUpAlert,
+} from './lib/whatsapp-handoff.js';
+import { sessionCodeFromId } from './lib/firestore-bridge.js';
 
 const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp in international format
 const DEV_CHAT_ID = '231888916127@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never the boss's
 
-async function sendWhatsApp(apiUrl, id, token, message, chatId = BOSS_CHAT_ID) {
-  const response = await fetch(
-    `${apiUrl}/waInstance${id}/sendMessage/${token}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatId, message }),
-    }
-  );
-  const data = await response.json();
-  return { ok: response.ok && !!data.idMessage, data };
-}
+// Re-export Lonestar for clarity in this file (handoff path only)
+const HANDOFF_CHAT_ID = LONESTAR_CHAT_ID; // 231778174157@c.us — Lonestar ONLY
 
-const ALLOWED_ORIGIN = 'https://ducor-international-pharmacy.com';
+const ALLOWED_ORIGINS = [
+  'https://www.ducor-international-pharmacy.com',
+  'https://ducor-international-pharmacy.com',
+];
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+function setCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGINS[1]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Vary', 'Origin');
+}
+
+export default async function handler(req, res) {
+  setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -42,9 +58,41 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
 
-  const { order, type, delivery, admin } = req.body || {};
+  const { order, type, delivery, admin, handoff } = req.body || {};
 
   try {
+    // ── Live Chat handoff → Lucas Lonestar ONLY (never boss / never DEV_CHAT_ID) ──
+    // Client calls this when status becomes "waiting". After-hours handoffs are
+    // intentionally allowed so Lonestar can test replies anytime (see widgets).
+    if (type === 'chat_handoff' && handoff && handoff.sessionId) {
+      const sessionId = String(handoff.sessionId);
+      const code = String(handoff.sessionCode || sessionCodeFromId(sessionId)).toUpperCase();
+      const message = buildHandoffAlert({
+        sessionId,
+        sessionCode: code,
+        lastMessage: handoff.lastMessage || handoff.preview || '',
+        pageUrl: handoff.pageUrl || '',
+      });
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, HANDOFF_CHAT_ID);
+      return res.status(200).json({
+        ok: result.ok,
+        data: result.data,
+        to: HANDOFF_CHAT_ID,
+        sessionCode: code,
+      });
+    }
+
+    // Follow-up client messages while a handoff is open → Lonestar only
+    if (type === 'chat_handoff_followup' && handoff && handoff.sessionId) {
+      const code = String(handoff.sessionCode || sessionCodeFromId(handoff.sessionId)).toUpperCase();
+      const message = buildFollowUpAlert({
+        sessionCode: code,
+        lastMessage: handoff.lastMessage || '',
+      });
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, HANDOFF_CHAT_ID);
+      return res.status(200).json({ ok: result.ok, data: result.data, to: HANDOFF_CHAT_ID, sessionCode: code });
+    }
+
     // TEMPORARY diagnostic — checks whether the WhatsApp instance itself is
     // actually connected/authorized, not just whether the API accepted the
     // request (Green API can return a message ID even if the underlying
@@ -118,7 +166,7 @@ export default async function handler(req, res) {
         `⏰ Confirmed at: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' })}`,
       ].join('\n');
 
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, BOSS_CHAT_ID);
       return res.status(200).json(result);
     }
 
@@ -188,7 +236,7 @@ export default async function handler(req, res) {
         '✅ Payment marked as received. Order is now Processing.',
         `⏰ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' })}`,
       ].join('\n');
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, BOSS_CHAT_ID);
       return res.status(200).json(result);
     }
 
@@ -205,7 +253,7 @@ export default async function handler(req, res) {
         `🔄 Status: ${(delivery.prevStatus||'—').toUpperCase()} → ${(delivery.newStatus||'—').toUpperCase()}`,
         `⏰ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Monrovia' })}`,
       ].join('\n');
-      const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+      const result = await sendWhatsApp(API_URL, ID, TOKEN, message, BOSS_CHAT_ID);
       return res.status(200).json(result);
     }
 
@@ -254,7 +302,7 @@ export default async function handler(req, res) {
       '👉 Dashboard: ducor-international-pharmacy.com/dashboard.html',
     ].filter(Boolean).join('\n');
 
-    const result = await sendWhatsApp(API_URL, ID, TOKEN, message);
+    const result = await sendWhatsApp(API_URL, ID, TOKEN, message, BOSS_CHAT_ID);
     return res.status(200).json(result);
 
   } catch (err) {
