@@ -93,7 +93,8 @@ service cloud.firestore {
                             'lastMessageRole', 'unreadStaff', 'unreadClient',
                             'pageUrl', 'preview', 'clientLastSeenAt',
                             'sessionCode', 'waBridgeChatId', 'waBridgeEnabled',
-                            'handoffReason'
+                            'handoffReason', 'clientName', 'clientPhone',
+                            'clientEmail', 'clientUid', 'askingAbout'
                           ])
                         && request.resource.data.status is string
                         // Keep same status (incl. human while chatting), or move

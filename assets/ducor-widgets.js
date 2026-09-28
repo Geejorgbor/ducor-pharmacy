@@ -359,6 +359,13 @@ function initChat() {
     #ducor-chat-reason-other-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;padding:9px 11px;font-size:0.8rem;color:#fff;font-family:inherit;outline:none;resize:none;min-height:38px;max-height:72px;line-height:1.35}
     #ducor-chat-reason-other-input:focus{border-color:rgba(201,160,85,0.55);box-shadow:0 0 0 3px rgba(201,160,85,0.12)}
     #ducor-chat-reason-other-input::placeholder{color:rgba(255,255,255,0.38)}
+    #ducor-chat-contact{display:none;margin-top:10px}
+    #ducor-chat-contact.show{display:block}
+    #ducor-chat-contact-prompt{margin:0 0 6px;color:rgba(255,255,255,0.75);font-size:0.74rem;font-weight:600;line-height:1.35}
+    #ducor-chat-client-name,#ducor-chat-client-phone{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;padding:9px 11px;font-size:0.8rem;color:#fff;font-family:inherit;outline:none;line-height:1.35;margin-bottom:6px}
+    #ducor-chat-client-name:focus,#ducor-chat-client-phone:focus{border-color:rgba(201,160,85,0.55);box-shadow:0 0 0 3px rgba(201,160,85,0.12)}
+    #ducor-chat-client-name::placeholder,#ducor-chat-client-phone::placeholder{color:rgba(255,255,255,0.38)}
+    #ducor-chat-client-name.ducor-field-error{border-color:rgba(248,113,113,0.7)}
     #ducor-chat-reason-actions{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
     #ducor-chat-reason-connect{display:none;flex:1;min-width:120px;padding:9px 12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;color:#071422;background:linear-gradient(135deg,#d4b06a 0%,#c9a055 45%,#a87830 100%);box-shadow:0 3px 10px rgba(201,160,85,0.3)}
     #ducor-chat-reason-connect.show{display:inline-flex;align-items:center;justify-content:center}
@@ -421,6 +428,11 @@ function initChat() {
       </div>
       <div id="ducor-chat-reason-other">
         <textarea id="ducor-chat-reason-other-input" rows="2" maxlength="160" placeholder="A few words (optional)…" aria-label="Brief reason"></textarea>
+      </div>
+      <div id="ducor-chat-contact">
+        <p id="ducor-chat-contact-prompt">Please share your name so the pharmacist can greet you</p>
+        <input id="ducor-chat-client-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name *" aria-label="Your name (required)" required />
+        <input id="ducor-chat-client-phone" type="tel" maxlength="40" autocomplete="tel" placeholder="Phone number (optional)" aria-label="Phone number (optional)" />
       </div>
       <div id="ducor-chat-reason-actions">
         <button type="button" id="ducor-chat-reason-connect">Connect to pharmacist</button>
@@ -493,6 +505,21 @@ function initChat() {
       confirmReasonAndHandoff();
     }
   });
+  document.getElementById('ducor-chat-client-name').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmReasonAndHandoff();
+    }
+  });
+  document.getElementById('ducor-chat-client-phone').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmReasonAndHandoff();
+    }
+  });
+  document.getElementById('ducor-chat-client-name').addEventListener('input', function () {
+    this.classList.remove('ducor-field-error');
+  });
 
   function toggleChat() {
     chatOpen ? closeChat() : openChat();
@@ -557,6 +584,130 @@ function initChat() {
   let reasonGateOpen = false;
   let selectedReason = null; // { id, label }
 
+  let knownClientCache = null; // resolved account for this gate open
+
+  function resetContactFields() {
+    knownClientCache = null;
+    const nameInput = document.getElementById('ducor-chat-client-name');
+    const phoneInput = document.getElementById('ducor-chat-client-phone');
+    const contactWrap = document.getElementById('ducor-chat-contact');
+    const prompt = document.getElementById('ducor-chat-contact-prompt');
+    if (nameInput) {
+      nameInput.value = '';
+      nameInput.classList.remove('ducor-field-error');
+      nameInput.style.display = '';
+    }
+    if (phoneInput) phoneInput.value = '';
+    if (prompt) prompt.textContent = 'Please share your name so the pharmacist can greet you';
+    if (contactWrap) contactWrap.classList.remove('show');
+  }
+
+  function readLocalDucorAccount() {
+    try {
+      const sessRaw = sessionStorage.getItem('ducor_sess_v2') || localStorage.getItem('ducor_sess_v2');
+      if (!sessRaw) return null;
+      const sess = JSON.parse(sessRaw);
+      if (!sess || !sess.userId) return null;
+      // Session expiry mirrors auth.html (30 min default, or 7 days if remember)
+      if (sess.expiry && Date.now() > Number(sess.expiry)) return null;
+      const users = JSON.parse(localStorage.getItem('ducor_users_v2') || '[]');
+      const user = (Array.isArray(users) ? users : []).find(function (u) {
+        return u && (u.id === sess.userId || u.uid === sess.userId);
+      });
+      if (!user) return { uid: sess.userId, clientName: '', clientPhone: '', clientEmail: '', source: 'session' };
+      const name = [user.fname, user.lname].filter(Boolean).join(' ').trim()
+        || String(user.displayName || user.name || '').trim()
+        || (user.email ? String(user.email).split('@')[0] : '');
+      return {
+        uid: user.id || user.uid || sess.userId || '',
+        clientName: String(name || '').trim().slice(0, 80),
+        clientPhone: String(user.phone || '').trim().slice(0, 40),
+        clientEmail: String(user.email || '').trim().slice(0, 120),
+        source: 'ducor_account'
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function resolveKnownClient() {
+    const local = readLocalDucorAccount();
+    if (local && local.clientName) return local;
+    // Firebase Auth fallback (Google / email accounts)
+    try {
+      const appMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+      const authMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+      const app = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(FB_CONFIG);
+      const auth = authMod.getAuth(app);
+      const u = auth.currentUser;
+      if (u) {
+        const name = String(u.displayName || '').trim()
+          || (u.email ? String(u.email).split('@')[0] : '');
+        return {
+          uid: u.uid || '',
+          clientName: name.slice(0, 80),
+          clientPhone: (local && local.clientPhone) || '',
+          clientEmail: String(u.email || (local && local.clientEmail) || '').slice(0, 120),
+          source: 'firebase_auth'
+        };
+      }
+    } catch (e) { /* auth optional on public pages */ }
+    return local; // may have uid without name
+  }
+
+  function showContactStep() {
+    const contactWrap = document.getElementById('ducor-chat-contact');
+    const connectBtn = document.getElementById('ducor-chat-reason-connect');
+    const nameInput = document.getElementById('ducor-chat-client-name');
+    const phoneInput = document.getElementById('ducor-chat-client-phone');
+    const prompt = document.getElementById('ducor-chat-contact-prompt');
+    if (connectBtn) {
+      connectBtn.classList.add('show');
+      connectBtn.disabled = false;
+    }
+    // Resolve account (sync local first; async auth fills if needed)
+    knownClientCache = readLocalDucorAccount();
+    applyKnownClientToContactUI(knownClientCache);
+    resolveKnownClient().then(function (known) {
+      if (!reasonGateOpen) return;
+      if (known && known.clientName) {
+        knownClientCache = known;
+        applyKnownClientToContactUI(known);
+      }
+    });
+    if (contactWrap) contactWrap.classList.add('show');
+  }
+
+  function applyKnownClientToContactUI(known) {
+    const contactWrap = document.getElementById('ducor-chat-contact');
+    const nameInput = document.getElementById('ducor-chat-client-name');
+    const phoneInput = document.getElementById('ducor-chat-client-phone');
+    const prompt = document.getElementById('ducor-chat-contact-prompt');
+    if (!nameInput) return;
+    if (known && known.clientName) {
+      // Logged-in: do not force retyping — hide name field, polite note
+      nameInput.value = known.clientName;
+      nameInput.classList.remove('ducor-field-error');
+      nameInput.style.display = 'none';
+      if (phoneInput) {
+        if (known.clientPhone && !phoneInput.value) phoneInput.value = known.clientPhone;
+        // Keep phone optional & visible so they can update if they want
+        phoneInput.placeholder = 'Phone number (optional)';
+      }
+      if (prompt) {
+        prompt.textContent = 'Connecting as ' + known.clientName + ' — tap Connect when ready';
+      }
+      if (contactWrap) contactWrap.classList.add('show');
+    } else {
+      nameInput.style.display = '';
+      nameInput.value = nameInput.value || '';
+      if (prompt) prompt.textContent = 'Please share your name so the pharmacist can greet you';
+      setTimeout(function () {
+        if (nameInput && nameInput.style.display !== 'none') nameInput.focus();
+      }, 50);
+    }
+  }
+
   function openReasonGate() {
     if (!chatOpen) openChat();
     if (handoffMode && (sessionStatus === 'waiting' || sessionStatus === 'human')) {
@@ -574,6 +725,7 @@ function initChat() {
     if (cta) cta.classList.add('hidden');
     otherWrap.classList.remove('show');
     if (otherInput) otherInput.value = '';
+    resetContactFields();
     connectBtn.classList.remove('show');
     connectBtn.disabled = false;
     Array.prototype.forEach.call(document.querySelectorAll('.ducor-reason-btn'), function (btn) {
@@ -592,6 +744,7 @@ function initChat() {
     if (gate) gate.classList.remove('show');
     if (otherWrap) otherWrap.classList.remove('show');
     if (otherInput) otherInput.value = '';
+    resetContactFields();
     if (connectBtn) connectBtn.classList.remove('show');
     // Restore CTA only when not already in a live handoff
     if (cta && sessionStatus !== 'waiting' && sessionStatus !== 'human') {
@@ -608,43 +761,100 @@ function initChat() {
     const label = btn.getAttribute('data-label') || id;
     selectedReason = { id: id, label: label };
     const otherWrap = document.getElementById('ducor-chat-reason-other');
-    const connectBtn = document.getElementById('ducor-chat-reason-connect');
     if (id === 'other') {
       otherWrap.classList.add('show');
-      connectBtn.classList.add('show');
       setTimeout(function () {
         const inp = document.getElementById('ducor-chat-reason-other-input');
         if (inp) inp.focus();
       }, 50);
     } else {
       otherWrap.classList.remove('show');
-      connectBtn.classList.remove('show');
-      // Immediate handoff for preset reasons — short picker, not a wall
-      confirmReasonAndHandoff();
     }
+    // After any reason chip: collect name (required) before connect
+    showContactStep();
+  }
+
+  function buildAskingAbout(reasonInfo) {
+    const parts = [];
+    // Product / medication page interest
+    try {
+      const path = String(location.pathname || '');
+      const params = new URLSearchParams(location.search || '');
+      if (/product\.html/i.test(path)) {
+        const id = params.get('id') || '';
+        const cat = params.get('cat') || '';
+        let hint = 'Product interest';
+        if (id) hint += ': ' + id;
+        if (cat) hint += ' (' + cat + ')';
+        parts.push(hint);
+      } else if (/prescription\.html/i.test(path)) {
+        parts.push('Browsing prescription medications');
+      } else if (/otc\.html/i.test(path)) {
+        parts.push('Browsing over-the-counter medications');
+      } else if (/vitamins\.html/i.test(path)) {
+        parts.push('Browsing vitamins & supplements');
+      }
+    } catch (e) { /* ignore */ }
+    if (reasonInfo && reasonInfo.id === 'prescription') {
+      parts.push('Prescription / medication question');
+    }
+    // Recent user asks from chat history
+    const userMsgs = chatHistory
+      .filter(function (m) { return m && m.role === 'user' && m.content; })
+      .map(function (m) { return String(m.content).trim(); })
+      .filter(Boolean);
+    const recent = userMsgs.slice(-2);
+    if (recent.length) {
+      parts.push(recent.join(' · '));
+    }
+    const joined = parts.join(' — ').replace(/\s+/g, ' ').trim();
+    return joined.slice(0, 280);
   }
 
   function buildReasonPayload() {
     if (!selectedReason) return null;
     const detail = (document.getElementById('ducor-chat-reason-other-input') || {}).value || '';
     const detailTrim = String(detail).trim().slice(0, 160);
+    const nameInput = document.getElementById('ducor-chat-client-name');
+    const phoneInput = document.getElementById('ducor-chat-client-phone');
+    const typedName = String((nameInput && nameInput.value) || '').trim().slice(0, 80);
+    const typedPhone = String((phoneInput && phoneInput.value) || '').trim().slice(0, 40);
+    const known = knownClientCache || readLocalDucorAccount();
+    const clientName = typedName || (known && known.clientName) || '';
+    const clientPhone = typedPhone || (known && known.clientPhone) || '';
+    const clientEmail = (known && known.clientEmail) || '';
+    const clientUid = (known && known.uid) || '';
     let staffLabel = selectedReason.label;
     if (selectedReason.id === 'other' && detailTrim) {
       staffLabel = 'Other: ' + detailTrim;
     } else if (selectedReason.id === 'other') {
       staffLabel = 'Other';
     }
-    return {
+    const base = {
       id: selectedReason.id,
       label: selectedReason.label,
       detail: detailTrim,
-      staffLabel: staffLabel
+      staffLabel: staffLabel,
+      clientName: clientName,
+      clientPhone: clientPhone,
+      clientEmail: clientEmail,
+      clientUid: clientUid
     };
+    base.askingAbout = buildAskingAbout(base);
+    return base;
   }
 
   function confirmReasonAndHandoff() {
     const payload = buildReasonPayload();
     if (!payload) return;
+    const nameInput = document.getElementById('ducor-chat-client-name');
+    if (!payload.clientName) {
+      if (nameInput) {
+        nameInput.classList.add('ducor-field-error');
+        nameInput.focus();
+      }
+      return;
+    }
     closeReasonGate();
     requestHuman(payload);
   }
@@ -872,15 +1082,27 @@ function initChat() {
   }
 
   /** Notify Lucas Lonestar WhatsApp ONLY via server (Green API token never client-side). */
-  async function notifyLonestarWhatsApp(kind, lastMessage, reasonLabel) {
+  async function notifyLonestarWhatsApp(kind, lastMessage, meta) {
     if (!LONESTAR_BRIDGE_ENABLED || !sessionId) return;
+    meta = meta || {};
     try {
-      const reason = String(reasonLabel || '').slice(0, 200);
-      // Pack reason into lastMessage context so staff always see why, even if
-      // older API builds ignore a dedicated reason field.
+      const reason = String(meta.reason || '').slice(0, 200);
+      const clientName = String(meta.clientName || '').slice(0, 80);
+      const clientPhone = String(meta.clientPhone || '').slice(0, 40);
+      const clientEmail = String(meta.clientEmail || '').slice(0, 120);
+      const clientUid = String(meta.clientUid || '').slice(0, 80);
+      const askingAbout = String(meta.askingAbout || '').slice(0, 280);
+      // Keep a compact lastMessage; dedicated fields carry Name / Reason / Asking about
+      // for newer API builds. Older builds still see reason in lastMessage text.
       let alertLast = String(lastMessage || '').slice(0, 500);
-      if (reason && kind !== 'followup') {
-        alertLast = ('Reason: ' + reason + (alertLast ? ' — ' + alertLast : '')).slice(0, 500);
+      if (kind !== 'followup') {
+        const bits = [];
+        if (clientName) bits.push('Name: ' + clientName);
+        if (reason) bits.push('Reason: ' + reason);
+        if (askingAbout) bits.push('Asking about: ' + askingAbout);
+        if (bits.length) {
+          alertLast = (bits.join(' — ') + (alertLast ? ' — ' + alertLast : '')).slice(0, 500);
+        }
       }
       await fetch('/api/whatsapp', {
         method: 'POST',
@@ -893,6 +1115,11 @@ function initChat() {
             lastMessage: alertLast,
             preview: alertLast.slice(0, 200),
             reason: reason,
+            clientName: clientName,
+            clientPhone: clientPhone,
+            clientEmail: clientEmail,
+            clientUid: clientUid,
+            askingAbout: askingAbout,
             pageUrl: String(location.href || '').slice(0, 500)
           }
         })
@@ -911,8 +1138,28 @@ function initChat() {
     const reason = reasonInfo && reasonInfo.staffLabel
       ? String(reasonInfo.staffLabel).slice(0, 200)
       : (reasonInfo && reasonInfo.label ? String(reasonInfo.label).slice(0, 200) : '');
-    // After-hours: still start handoff + WhatsApp-notify Lucas Lonestar so he can
-    // reply from WhatsApp (try-now / testing). Show hours note but do not block.
+    const clientName = reasonInfo && reasonInfo.clientName
+      ? String(reasonInfo.clientName).trim().slice(0, 80)
+      : '';
+    const clientPhone = reasonInfo && reasonInfo.clientPhone
+      ? String(reasonInfo.clientPhone).trim().slice(0, 40)
+      : '';
+    const clientEmail = reasonInfo && reasonInfo.clientEmail
+      ? String(reasonInfo.clientEmail).trim().slice(0, 120)
+      : '';
+    const clientUid = reasonInfo && reasonInfo.clientUid
+      ? String(reasonInfo.clientUid).trim().slice(0, 80)
+      : '';
+    const askingAbout = reasonInfo && reasonInfo.askingAbout
+      ? String(reasonInfo.askingAbout).trim().slice(0, 280)
+      : buildAskingAbout(reasonInfo || null);
+    if (!clientName) {
+      appendMsg('Please share your name so we can connect you with a pharmacist.', 'system');
+      openReasonGate();
+      return;
+    }
+    // After-hours: still start handoff + notify the pharmacy team so they can
+    // reply (try-now / testing). Show hours note but do not block.
     const afterHours = !isPharmacistHours();
     if (afterHours) {
       appendMsg(HOURS_MSG, 'bot', { allowHtml: true });
@@ -930,22 +1177,37 @@ function initChat() {
         pageUrl: String(location.href || '').slice(0, 500),
         sessionCode: code,
         waBridgeChatId: '231778174157@c.us', // Lucas Lonestar ONLY
-        waBridgeEnabled: true
+        waBridgeEnabled: true,
+        clientName: clientName
       };
+      if (clientPhone) sessionPatch.clientPhone = clientPhone;
+      if (clientEmail) sessionPatch.clientEmail = clientEmail;
+      if (clientUid) sessionPatch.clientUid = clientUid;
+      if (askingAbout) sessionPatch.askingAbout = askingAbout;
       if (reason) {
         sessionPatch.handoffReason = reason;
-        sessionPatch.preview = ('Reason: ' + reason).slice(0, 200);
+        sessionPatch.preview = (clientName + ' · ' + reason).slice(0, 200);
+      } else {
+        sessionPatch.preview = clientName.slice(0, 200);
       }
       await F.updateDoc(F.doc(F.db, 'chat_sessions', sessionId), sessionPatch);
       await seedTranscript();
-      // System note includes reason so staff see why in the transcript / dashboard
-      const systemNote = reason
-        ? ('Connecting you to a pharmacist (' + reason + '). Please wait here — the assistant is paused for this chat.')
-        : 'Connecting you to a pharmacist. Please wait here — the assistant is paused for this chat.';
+      // System note includes name + reason so staff see who/why in transcript
+      const systemNote = 'Connecting you to a pharmacist'
+        + (clientName ? ' — ' + clientName : '')
+        + (reason ? ' (' + reason + ')' : '')
+        + '. Please wait here — the assistant is paused for this chat.';
       await writeMessage('system', systemNote);
       await startListeners();
       // Server-side Green API → Lonestar only (token never exposed here)
-      await notifyLonestarWhatsApp('handoff', lastUser || 'Customer requested a pharmacist', reason);
+      await notifyLonestarWhatsApp('handoff', lastUser || 'Customer requested a pharmacist', {
+        reason: reason,
+        clientName: clientName,
+        clientPhone: clientPhone,
+        clientEmail: clientEmail,
+        clientUid: clientUid,
+        askingAbout: askingAbout
+      });
       hideTyping();
       setHandoffUI('waiting');
       if (afterHours) {
