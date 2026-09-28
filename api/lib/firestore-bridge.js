@@ -365,7 +365,7 @@ export async function writeWhatsAppStaffReply(sessionId, text, meta = {}) {
   };
   if (session.status === 'waiting' || session.status === 'ai') {
     patch.status = 'human';
-    patch.claimedBy = meta.claimedBy || 'Lucas Lonestar (WhatsApp)';
+    patch.claimedBy = meta.claimedBy || 'Pharmacist';
     patch.claimedAt = now;
   }
 
@@ -374,9 +374,9 @@ export async function writeWhatsAppStaffReply(sessionId, text, meta = {}) {
   if (session.status === 'waiting') {
     await addSessionMessage(sessionId, {
       role: 'system',
-      content: 'Pharmacist joined via WhatsApp.',
+      content: 'A real agent has taken over this chat.',
       createdAt: now,
-      senderName: meta.senderName || 'Lucas Lonestar',
+      senderName: meta.senderName || 'Agent',
     });
   }
 
@@ -384,7 +384,7 @@ export async function writeWhatsAppStaffReply(sessionId, text, meta = {}) {
     role: 'staff',
     content,
     createdAt: now,
-    senderName: meta.senderName || 'Lucas Lonestar',
+    senderName: meta.senderName || 'Agent',
     via: 'whatsapp',
     waMessageId: meta.waMessageId || null,
   });
