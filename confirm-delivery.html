@@ -105,7 +105,7 @@
 
 <script type="module">
 // SECURITY: orders are no longer publicly readable/writable in Firestore.
-// The token is checked server-side by /api/order-confirm-delivery, which only
+// The token is checked server-side by /api/order?action=confirm-delivery, which only
 // sets confirmedByCustomer + deliveredAt.
 function show(id) {
   ['state-loading','state-success','state-already','state-error'].forEach(s => {
@@ -120,7 +120,7 @@ async function confirmDelivery() {
   if (!orderId || !token) { show('state-error'); return; }
 
   try {
-    const resp = await fetch('/api/order-confirm-delivery', {
+    const resp = await fetch('/api/order?action=confirm-delivery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order: orderId, token })

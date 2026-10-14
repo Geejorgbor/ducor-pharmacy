@@ -12,8 +12,8 @@
 
 import {
   processInboundHandoffMessage,
-} from './lib/whatsapp-handoff.js';
-import { sendWhatsApp } from './lib/green-send.js';
+} from '../lib/whatsapp-handoff.js';
+import { sendWhatsApp } from '../lib/green-send.js';
 
 function checkWebhookAuth(req) {
   const expected = process.env.GREEN_API_WEBHOOK_TOKEN;

@@ -5,7 +5,7 @@ service cloud.firestore {
 
 
     // Phase A: single operator email — must match assets/admin-auth.js ADMIN_EMAILS
-    // and api/lib/admin-emails.js (used by /api/admin-ai Bearer gate).
+    // and lib/admin-emails.js (used by /api/admin-ai Bearer gate).
     function isAdmin() {
       return request.auth != null &&
         request.auth.token.email in ['lucaspaye02@gmail.com'];
@@ -16,8 +16,8 @@ service cloud.firestore {
     // Reads/updates are restricted to the admin or the logged-in owner
     // (buyerEmail == auth email). Guest flows go through server endpoints
     // that check the ref / confirmToken and return status only:
-    //   /api/order-status            (track-order.html)
-    //   /api/order-confirm-delivery  (confirm-delivery.html)
+    //   /api/order?action=status            (track-order.html)
+    //   /api/order?action=confirm-delivery (confirm-delivery.html)
     // confirm-payment.html now requires the admin to be signed in.
     function isOrderOwner() {
       return request.auth != null
