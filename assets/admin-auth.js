@@ -1,6 +1,6 @@
 /**
  * Phase A operator allowlist (UI + keep in sync with firestore.rules isAdmin()
- * AND api/lib/admin-emails.js used by /api/admin-ai).
+ * AND lib/admin-emails.js used by /api/admin-ai).
  * Interim client guard — real enforcement is Firestore rules + server Bearer verify.
  * Claims come in Phase B.
  */

@@ -109,6 +109,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const app = initializeApp({
   apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
@@ -119,6 +120,7 @@ const app = initializeApp({
   appId: "1:952933384266:web:55b906e903d96940d426b3"
 });
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 function show(id) {
   ['state-loading','state-confirm','state-success','state-already','state-error']
@@ -151,8 +153,24 @@ let orderDocRef = null;
 let orderData = null;
 let orderDocId = null;
 
+// SECURITY: orders are admin-only in Firestore now. This page works when the
+// pharmacy admin is signed in on this device (same login as /dashboard.html).
+function waitForUser() {
+  return new Promise(resolve => {
+    const unsub = onAuthStateChanged(auth, u => { unsub(); resolve(u || null); });
+    setTimeout(() => resolve(auth.currentUser || null), 5000);
+  });
+}
+
 async function init() {
   if (!orderRef) { show('state-error'); return; }
+  const user = await waitForUser();
+  if (!user) {
+    document.getElementById('error-msg').innerHTML =
+      'Please <a href="/admin.html">sign in to the admin dashboard</a> on this device first, then open this link again.';
+    show('state-error');
+    return;
+  }
   try {
     const q = query(collection(db, 'orders'), where('ref', '==', orderRef));
     const snap = await getDocs(q);

@@ -10,9 +10,9 @@
  * Executes website ops via server tools (orders, products, live chat, etc.)
  * so actions work even when the dashboard tab is closed.
  */
-import { verifyAdminBearer } from './lib/verify-admin.js';
-import { ADMIN_SYSTEM, TOOL_DEFINITIONS, executeTool } from './lib/admin-ai-tools.js';
-import { bridgeConfigured } from './lib/firestore-bridge.js';
+import { verifyAdminBearer } from '../lib/verify-admin.js';
+import { ADMIN_SYSTEM, TOOL_DEFINITIONS, executeTool } from '../lib/admin-ai-tools.js';
+import { bridgeConfigured } from '../lib/firestore-bridge.js';
 
 const ALLOWED_ORIGINS = [
   'https://www.ducor-international-pharmacy.com',

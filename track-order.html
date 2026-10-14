@@ -134,19 +134,8 @@
 </div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
-const app = initializeApp({
-  apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
-  authDomain: "ducor-pharmacy.firebaseapp.com",
-  projectId: "ducor-pharmacy",
-  storageBucket: "ducor-pharmacy.firebasestorage.app",
-  messagingSenderId: "952933384266",
-  appId: "1:952933384266:web:55b906e903d96940d426b3"
-});
-const db = getFirestore(app);
-
+// SECURITY: orders are no longer publicly readable in Firestore. Tracking goes
+// through /api/order?action=status, which returns status fields only (no personal data).
 const STEPS = [
   { key: 'new',        label: 'Order Placed',          desc: 'We have received your order and it is being reviewed by our team.' },
   { key: 'processing', label: 'Order Processing',       desc: 'Your order is being prepared by our pharmacy team.' },
@@ -172,21 +161,35 @@ document.getElementById('ref-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.searchOrder();
 });
 
-async function loadOrder(ref) {
-  try {
-    const q = query(collection(db, 'orders'), where('ref', '==', ref));
-    unsubscribe = onSnapshot(q, snap => {
-      if (snap.empty) {
-        document.getElementById('result').innerHTML = `
+const NOT_FOUND_HTML = `
           <div class="not-found">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <strong>Order not found</strong><br>
             Please check your reference number. It looks like <strong>DUCOR-XXXXXXXX</strong>.
           </div>`;
-        return;
-      }
-      renderOrder(snap.docs[0].data(), snap.docs[0].id);
-    });
+
+async function fetchStatus(ref) {
+  const resp = await fetch('/api/order?action=status&ref=' + encodeURIComponent(ref), { cache: 'no-store' });
+  if (resp.status === 404) return null;
+  const j = await resp.json();
+  if (!resp.ok || !j.ok) throw new Error(j.error || 'lookup failed');
+  return j.order;
+}
+
+async function loadOrder(ref) {
+  try {
+    const order = await fetchStatus(ref);
+    if (!order) { document.getElementById('result').innerHTML = NOT_FOUND_HTML; return; }
+    renderOrder(order, order.ref);
+    // Light polling replaces the old live Firestore listener.
+    let last = JSON.stringify(order);
+    const timer = setInterval(async () => {
+      try {
+        const o = await fetchStatus(ref);
+        if (o && JSON.stringify(o) !== last) { last = JSON.stringify(o); renderOrder(o, o.ref); }
+      } catch (e) {}
+    }, 30000);
+    unsubscribe = () => clearInterval(timer);
   } catch(e) {
     document.getElementById('result').innerHTML = `<div class="not-found">Something went wrong. Please try again or contact us on WhatsApp.</div>`;
   }
@@ -255,10 +258,9 @@ function renderOrder(data, docId) {
 
   document.getElementById('result').innerHTML = `
     <div class="order-header">
-      <div class="ref">${data.ref || docId.slice(-8).toUpperCase()}</div>
+      <div class="ref">${_escHtml(data.ref || docId)}</div>
       <div class="name">${name}</div>
       <div class="meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-        <span>${_escHtml(data.paymentMethod) || '—'}</span>
         ${paymentBadge}
       </div>
     </div>

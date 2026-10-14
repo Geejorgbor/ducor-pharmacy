@@ -12,13 +12,13 @@
 // Inbound replies from either chatId are handled by api/whatsapp-incoming.js
 // (webhook) or api/whatsapp-poll.js (receiveNotification poll).
 
-import { sendWhatsApp } from './lib/green-send.js';
+import { sendWhatsApp } from '../lib/green-send.js';
 import {
   HANDOFF_CHAT_IDS,
   buildHandoffAlert,
   buildFollowUpAlert,
-} from './lib/whatsapp-handoff.js';
-import { sessionCodeFromId } from './lib/firestore-bridge.js';
+} from '../lib/whatsapp-handoff.js';
+import { sessionCodeFromId } from '../lib/firestore-bridge.js';
 
 const BOSS_CHAT_ID = '231887221275@c.us'; // Boss WhatsApp (also a handoff destination)
 const DEV_CHAT_ID = '231888916127@c.us'; // Lucas (developer) WhatsApp — for admin-login alerts, never handoff
