@@ -13,22 +13,22 @@ service cloud.firestore {
 
 
     // Orders — checkout creates orders without requiring an account.
-    // Tracking (by ref), delivery confirmation, and payment confirmation
-    // are all public "secret link" flows for guest checkout, so reads
-    // stay open. Updates are restricted to only the status/confirmation
-    // fields the site's own code ever writes — price, items, and buyer
-    // info are locked after creation so a guessed/leaked link can't be
-    // used to tamper with an order's contents.
+    // Reads/updates are restricted to the admin or the logged-in owner
+    // (buyerEmail == auth email). Guest flows go through server endpoints
+    // that check the ref / confirmToken and return status only:
+    //   /api/order-status            (track-order.html)
+    //   /api/order-confirm-delivery  (confirm-delivery.html)
+    // confirm-payment.html now requires the admin to be signed in.
+    function isOrderOwner() {
+      return request.auth != null
+        && request.auth.token.email != null
+        // exact match so account.html's where('buyerEmail','==',email) query is provable
+        && resource.data.buyerEmail == request.auth.token.email;
+    }
     match /orders/{orderId} {
       allow create: if true;
-      allow read: if true;
-      allow update: if request.resource.data.diff(resource.data).affectedKeys()
-                      .hasOnly([
-                        'status', 'statusUpdatedAt', 'confirmToken',
-                        'deliveredAt', 'confirmedByCustomer',
-                        'paymentConfirmed', 'paymentConfirmedAt', 'adminNote',
-                        'subscriptionStatus', 'subscriptionActivatedAt'
-                      ]);
+      allow read: if isAdmin() || isOrderOwner();
+      allow update: if isAdmin();
       allow delete: if false;
     }
 
@@ -82,10 +82,13 @@ service cloud.firestore {
     // and write user/assistant/system messages; only operators write staff
     // messages, claim sessions, or set status to "human".
     match /chat_sessions/{sessionId} {
+      // get-only for the public: the widget knows its own random session ID.
+      // Listing/querying all sessions is admin-only (dashboard + server bridge).
+      allow get: if true;
+      allow list: if isAdmin();
       allow create: if request.resource.data.keys().hasAll(['status', 'createdAt', 'updatedAt'])
                       && request.resource.data.status in ['waiting', 'ai']
                       && request.resource.data.status is string;
-      allow read: if true;
       allow update: if isAdmin()
                       || (
                         request.resource.data.diff(resource.data).affectedKeys()
@@ -111,6 +114,8 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /messages/{msgId} {
+        // Readable only via the (secret) parent session path; there is no
+        // collection-group rule, so messages can't be enumerated across sessions.
         allow read: if true;
         allow create: if
           (
