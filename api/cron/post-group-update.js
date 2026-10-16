@@ -48,6 +48,80 @@ async function sendWhatsApp(apiUrl, id, token, message, chatId) {
   return { ok: response.ok && !!data.idMessage, data };
 }
 
+// Product photos for the wholesale group post. Each picked item that has a
+// real photo is sent right after the text message, captioned with its name.
+// Images live in assets/wa-products/ (not referenced by any website page);
+// the name -> file map is in _wa-product-images.json (underscore
+// prefix so Vercel does not count it as a Serverless Function). Names are matched
+// loosely (case, pack-size brackets and punctuation ignored) so small
+// differences between WHOLESALE_STOCK_JSON and the sheet still match.
+const SITE_BASE = 'https://www.ducor-international-pharmacy.com';
+const IMAGE_GAP_MS = 1500;
+
+function normalizeName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\([^)]*\)?/g, ' ')
+    .replace(/[^a-z0-9.%/]+/g, ' ')
+    .trim();
+}
+
+let productImageIndex = null;
+function getProductImageIndex() {
+  if (productImageIndex) return productImageIndex;
+  productImageIndex = new Map();
+  try {
+    const map = require('./_wa-product-images.json');
+    for (const [name, file] of Object.entries(map)) {
+      const key = normalizeName(name);
+      if (key && file && !productImageIndex.has(key)) productImageIndex.set(key, file);
+    }
+  } catch {
+    // Missing or broken map: post stays text-only.
+  }
+  return productImageIndex;
+}
+
+function imageFileFor(name) {
+  return getProductImageIndex().get(normalizeName(name)) || null;
+}
+
+async function sendWhatsAppImage(apiUrl, id, token, chatId, file, caption) {
+  const response = await fetch(`${apiUrl}/waInstance${id}/sendFileByUrl/${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatId,
+      urlFile: `${SITE_BASE}/assets/wa-products/${file}`,
+      fileName: file,
+      caption,
+    }),
+  });
+  const data = await response.json();
+  return { ok: response.ok && !!data.idMessage, data };
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Never throws — an image problem must not affect the text post's result.
+async function sendItemImages(apiUrl, id, token, chatId, items) {
+  const results = [];
+  let first = true;
+  for (const name of items) {
+    const file = imageFileFor(name);
+    if (!file) continue;
+    if (!first) await sleep(IMAGE_GAP_MS);
+    first = false;
+    try {
+      const r = await sendWhatsAppImage(apiUrl, id, token, chatId, file, name);
+      results.push({ name, ok: r.ok });
+    } catch (err) {
+      results.push({ name, ok: false, error: err.message });
+    }
+  }
+  return results;
+}
+
 function getStockList() {
   try {
     const parsed = JSON.parse(process.env.WHOLESALE_STOCK_JSON || '[]');
@@ -109,6 +183,14 @@ const URGENCY_LINES = [
   '⚡ Fast-moving stock — reach out now before someone else does.',
 ];
 
+function pickSlotItems(slot) {
+  const seed = dayOfYear();
+  const stock = getStockList();
+  const third = Math.ceil(stock.length / 3);
+  const slotSeeds = { morning: seed, midday: seed + third, closing: seed + third * 2 };
+  return pickItems(stock, 6, slotSeeds[slot]);
+}
+
 function buildMessage(slot) {
   const seed = dayOfYear();
   const stock = getStockList();
@@ -157,8 +239,18 @@ module.exports = async function handler(req, res) {
   try {
     const message = buildMessage(slot);
     const result = await sendWhatsApp(API_URL, ID, TOKEN, message, CLIENT_GROUP_CHAT_ID);
+    if (result.ok) {
+      try {
+        await sleep(IMAGE_GAP_MS);
+        result.images = await sendItemImages(API_URL, ID, TOKEN, CLIENT_GROUP_CHAT_ID, pickSlotItems(slot));
+      } catch (err) {
+        result.images = { ok: false, error: err.message };
+      }
+    }
     return res.status(200).json(result);
   } catch (err) {
     return res.status(200).json({ ok: false, error: err.message });
   }
 };
+
+module.exports._test = { buildMessage, pickSlotItems, imageFileFor, normalizeName };
