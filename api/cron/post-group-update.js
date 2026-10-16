@@ -32,7 +32,10 @@
 
 // "Lucas PharMed Consultant whole sell in international medication with Good
 // Prices" — the real client group, found via the list_groups diagnostic.
-const CLIENT_GROUP_CHAT_ID = '120363425756994007@g.us';
+const CLIENT_GROUP_CHAT_IDS = [
+  '120363425756994007@g.us',
+  '120363428569355920@g.us', // PharMed Consultants medications chatroom
+];
 
 // Real number Lucas asked orders to go through — a tap-to-chat WhatsApp
 // link is far less friction for a group member than typing a website URL.
@@ -236,21 +239,29 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
 
-  try {
-    const message = buildMessage(slot);
-    const result = await sendWhatsApp(API_URL, ID, TOKEN, message, CLIENT_GROUP_CHAT_ID);
-    if (result.ok) {
-      try {
-        await sleep(IMAGE_GAP_MS);
-        result.images = await sendItemImages(API_URL, ID, TOKEN, CLIENT_GROUP_CHAT_ID, pickSlotItems(slot));
-      } catch (err) {
-        result.images = { ok: false, error: err.message };
+  const message = buildMessage(slot);
+  const groups = [];
+  for (const chatId of CLIENT_GROUP_CHAT_IDS) {
+    let result;
+    try {
+      result = await sendWhatsApp(API_URL, ID, TOKEN, message, chatId);
+      if (result.ok) {
+        try {
+          await sleep(IMAGE_GAP_MS);
+          result.images = await sendItemImages(API_URL, ID, TOKEN, chatId, pickSlotItems(slot));
+        } catch (err) {
+          result.images = { ok: false, error: err.message };
+        }
       }
+    } catch (err) {
+      result = { ok: false, error: err.message };
     }
-    return res.status(200).json(result);
-  } catch (err) {
-    return res.status(200).json({ ok: false, error: err.message });
+    groups.push({ chatId, ...result });
   }
+  // Keep top-level shape compatible (first group's result), plus per-group details.
+  const first = groups[0] || { ok: false };
+  const { chatId: _c, ...firstResult } = first;
+  return res.status(200).json({ ...firstResult, ok: groups.some((g) => g.ok), groups });
 };
 
 module.exports._test = { buildMessage, pickSlotItems, imageFileFor, normalizeName };
