@@ -51,7 +51,8 @@ async function sendWhatsApp(apiUrl, id, token, message, chatId) {
 // Product photos for the wholesale group post. Each picked item that has a
 // real photo is sent right after the text message, captioned with its name.
 // Images live in assets/wa-products/ (not referenced by any website page);
-// the name -> file map is in wa-product-images.json. Names are matched
+// the name -> file map is in _wa-product-images.json (underscore
+// prefix so Vercel does not count it as a Serverless Function). Names are matched
 // loosely (case, pack-size brackets and punctuation ignored) so small
 // differences between WHOLESALE_STOCK_JSON and the sheet still match.
 const SITE_BASE = 'https://www.ducor-international-pharmacy.com';
@@ -70,7 +71,7 @@ function getProductImageIndex() {
   if (productImageIndex) return productImageIndex;
   productImageIndex = new Map();
   try {
-    const map = require('./wa-product-images.json');
+    const map = require('./_wa-product-images.json');
     for (const [name, file] of Object.entries(map)) {
       const key = normalizeName(name);
       if (key && file && !productImageIndex.has(key)) productImageIndex.set(key, file);
