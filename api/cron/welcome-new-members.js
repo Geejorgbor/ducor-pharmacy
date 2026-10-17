@@ -1,5 +1,5 @@
-// Vercel serverless function — welcomes new members who join Lucas's real
-// wholesale WhatsApp group, with a strong, special greeting.
+// Vercel serverless function — welcomes new members (by WhatsApp name,
+// never by phone number) who join the two allowed PharMed WhatsApp groups, with a strong, special greeting.
 //
 // Branding note: this group is PharMed Consultant Liberia, the WHOLESALE
 // business — separate from Ducor International Pharmacy (the retail
@@ -23,10 +23,18 @@
 //   store the member list there. Private on purpose: phone numbers are
 //   personal info and shouldn't sit in the public ducor-pharmacy repo.)
 
-const CLIENT_GROUP_CHAT_ID = '120363425756994007@g.us';
+// Only the two groups allowed by Lucas (shared allow-list + per-group
+// contact numbers live in post-group-update.js — no new api/ file needed).
+const { GROUPS } = require('./post-group-update.js');
 const STATE_OWNER = 'Geejorgbor';
 const STATE_REPO = 'ducor-pharmacy-state';
-const STATE_FILE = 'group-members.json';
+// The original client group keeps its existing state file so nobody already
+// in it gets re-welcomed; other groups get their own file (seeded quietly on
+// their first run).
+function stateFileFor(chatId) {
+  if (chatId === '120363425756994007@g.us') return 'group-members.json';
+  return `group-members-${chatId.split('@')[0]}.json`;
+}
 
 async function ghRequest(path, token, options = {}) {
   return fetch(`https://api.github.com${path}`, {
@@ -59,8 +67,8 @@ async function ensureStateRepo(token) {
 // Returns { ids, sha, isFirstRun }. isFirstRun is true only when the state
 // file has never been written before — that's the signal to seed quietly
 // instead of "welcoming" the entire existing group.
-async function readState(token) {
-  const res = await ghRequest(`/repos/${STATE_OWNER}/${STATE_REPO}/contents/${STATE_FILE}`, token);
+async function readState(token, file) {
+  const res = await ghRequest(`/repos/${STATE_OWNER}/${STATE_REPO}/contents/${file}`, token);
   if (res.status === 404) return { ids: [], sha: null, isFirstRun: true };
   if (!res.ok) throw new Error(`GitHub read failed: ${res.status}`);
   const json = await res.json();
@@ -68,13 +76,13 @@ async function readState(token) {
   return { ids: JSON.parse(content), sha: json.sha, isFirstRun: false };
 }
 
-async function writeState(token, ids, sha) {
+async function writeState(token, ids, sha, file) {
   const body = {
     message: 'Update known WhatsApp group members',
     content: Buffer.from(JSON.stringify(ids, null, 2)).toString('base64'),
   };
   if (sha) body.sha = sha;
-  const res = await ghRequest(`/repos/${STATE_OWNER}/${STATE_REPO}/contents/${STATE_FILE}`, token, {
+  const res = await ghRequest(`/repos/${STATE_OWNER}/${STATE_REPO}/contents/${file}`, token, {
     method: 'PUT',
     body: JSON.stringify(body),
   });
@@ -91,22 +99,122 @@ async function sendWhatsApp(apiUrl, id, token, message, chatId) {
   return { ok: response.ok && !!data.idMessage, data };
 }
 
-function displayNameFor(participant) {
-  const raw = (participant.id || '').split('@')[0];
-  return raw ? `+${raw}` : 'our newest partner';
+// A WhatsApp display name we can safely show. Rejects anything that is
+// really just a phone number (so the raw number is never posted), strips
+// WhatsApp formatting characters, trims overly long names.
+function cleanName(raw) {
+  let name = String(raw || '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
+  if (!name) return null;
+  const digits = name.replace(/\D/g, '');
+  if (digits.length >= 6 && /^[\d\s+()\-.]+$/.test(name)) return null; // looks like a number
+  if (!/\p{L}/u.test(name)) return null; // no letters at all
+  if (name.length > 40) name = name.slice(0, 40).trim() + '…';
+  return name;
 }
 
-function buildWelcomeMessage(newParticipants) {
-  const names = newParticipants.map(displayNameFor).join(', ');
+// Looks up the member's WhatsApp name via Green API getContactInfo
+// (contactName = saved in the PharMed phone's contacts, name = their
+// WhatsApp profile/push name). Falls back to any name in the participant
+// object. Returns null if nothing usable — never throws.
+async function lookupName(apiUrl, id, token, participant) {
+  const direct = cleanName(participant.name || participant.pushname || participant.contactName);
+  if (direct) return direct;
+  try {
+    const r = await fetch(`${apiUrl}/waInstance${id}/getContactInfo/${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: participant.id }),
+    });
+    const info = await r.json();
+    return cleanName(info && info.contactName) || cleanName(info && info.name) || null;
+  } catch {
+    return null;
+  }
+}
+
+function joinNames(names) {
+  const bold = names.map((n) => `*${n}*`);
+  if (bold.length <= 1) return bold[0] || '';
+  return `${bold.slice(0, -1).join(', ')} and ${bold[bold.length - 1]}`;
+}
+
+// names: array of display names (null = unknown). Unknown members are
+// greeted generically — the phone number is never shown.
+function buildWelcomeMessage(names, { groupName, chatId, seed = Math.floor(Date.now() / 86400000) } = {}) {
+  const cfg = GROUPS.find((g) => g.chatId === chatId) || GROUPS[GROUPS.length - 1];
+  const group = groupName || cfg.fallbackName;
+  const known = names.filter(Boolean);
+  const unknownCount = names.length - known.length;
+  let who;
+  if (known.length && unknownCount) {
+    who = `${joinNames(known)} and ${unknownCount === 1 ? 'one more new friend' : `${unknownCount} more new friends`}`;
+  } else if (known.length) {
+    who = joinNames(known);
+  } else {
+    who = unknownCount > 1 ? '*our new friends*' : '*our new friend*';
+  }
+  const plural = names.length > 1;
+
+  const openers = [
+    '🎉 *WELCOME TO THE FAMILY!* 🎉',
+    '🌟 *A WARM PHARMED WELCOME!* 🌟',
+    '🤝 *OUR FAMILY JUST GOT BIGGER!* 🤝',
+  ];
+  const greet = [
+    `Everyone, please join us in welcoming ${who}! 👏👏`,
+    `A big, warm hello to ${who} — we’re so glad you’re here! 💚`,
+    `Say hello to ${who}, the newest member${plural ? 's' : ''} of *${group}*! 🙌`,
+  ];
+  const k = ((seed % 3) + 3) % 3;
   return [
-    '🎉🔥 A WARM PHARMED CONSULTANT LIBERIA WELCOME! 🔥🎉',
+    openers[k],
     '',
-    `Everyone please join us in welcoming our newest member(s): ${names}! 👏`,
+    greet[k],
     '',
-    'You are now part of a trusted family of pharmacies, medicine stores, and clinics across Liberia — real stock, real prices, real partnership. We are proud to have you with us. 🙌',
+    `You’re now part of *${group}* — a trusted network of pharmacies, medicine stores and clinics across Liberia. 🇱🇷`,
     '',
-    'PharMed Consultant Liberia — Monrovia, Liberia 🇱🇷',
+    '📦 Here you’ll get our *real in-stock updates* every morning, midday and evening — including every *new shipment* as soon as it arrives.',
+    '',
+    `📲 Questions or orders? Message us anytime: ${cfg.waLink}  (${cfg.phoneDisplay})`,
+    '',
+    '🏥 *PharMed Consultant Liberia* — Monrovia 🇱🇷',
   ].join('\n');
+}
+
+async function processGroup(API_URL, ID, TOKEN, GH_TOKEN, chatId) {
+  const groupResp = await fetch(`${API_URL}/waInstance${ID}/getGroupData/${TOKEN}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ groupId: chatId }),
+  });
+  const group = await groupResp.json();
+  const participants = group.participants || [];
+  const currentIds = participants.map((p) => p.id).filter(Boolean);
+  // Guard: an empty/failed lookup must not overwrite state (would cause a
+  // mass re-welcome on the next run).
+  if (currentIds.length === 0) {
+    return { chatId, ok: false, error: 'No participants returned by getGroupData' };
+  }
+  const groupName = (typeof group.subject === 'string' && group.subject.trim()) || undefined;
+  const file = stateFileFor(chatId);
+  const { ids: knownIds, sha, isFirstRun } = await readState(GH_TOKEN, file);
+
+  let welcomeResult = null;
+  let newIds = [];
+  if (!isFirstRun) {
+    newIds = currentIds.filter((id) => !knownIds.includes(id));
+    if (newIds.length > 0) {
+      const newParticipants = participants.filter((p) => newIds.includes(p.id));
+      const names = [];
+      for (const p of newParticipants) names.push(await lookupName(API_URL, ID, TOKEN, p));
+      const message = buildWelcomeMessage(names, { groupName, chatId });
+      welcomeResult = await sendWhatsApp(API_URL, ID, TOKEN, message, chatId);
+    }
+  }
+  // Always save the current full list, so someone who leaves and rejoins
+  // later gets welcomed again correctly.
+  await writeState(GH_TOKEN, currentIds, sha, file);
+  return { chatId, ok: true, isFirstRun, newMembers: newIds.length, welcomeResult };
 }
 
 module.exports = async function handler(req, res) {
@@ -130,37 +238,19 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const groupResp = await fetch(`${API_URL}/waInstance${ID}/getGroupData/${TOKEN}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ groupId: CLIENT_GROUP_CHAT_ID }),
-    });
-    const group = await groupResp.json();
-    const participants = group.participants || [];
-    const currentIds = participants.map((p) => p.id).filter(Boolean);
-
     await ensureStateRepo(GH_TOKEN);
-    const { ids: knownIds, sha, isFirstRun } = await readState(GH_TOKEN);
-
-    let welcomeResult = null;
-    let newIds = [];
-
-    if (!isFirstRun) {
-      newIds = currentIds.filter((id) => !knownIds.includes(id));
-      if (newIds.length > 0) {
-        const newParticipants = participants.filter((p) => newIds.includes(p.id));
-        const message = buildWelcomeMessage(newParticipants);
-        welcomeResult = await sendWhatsApp(API_URL, ID, TOKEN, message, CLIENT_GROUP_CHAT_ID);
-      }
-    }
-
-    // Always save the current full list, whether first run, no change, or
-    // new members found — so someone who leaves and rejoins later gets
-    // welcomed again correctly.
-    await writeState(GH_TOKEN, currentIds, sha);
-
-    return res.status(200).json({ ok: true, isFirstRun, newMembers: newIds, welcomeResult });
   } catch (err) {
     return res.status(200).json({ ok: false, error: err.message });
   }
+  const groups = [];
+  for (const { chatId } of GROUPS) {
+    try {
+      groups.push(await processGroup(API_URL, ID, TOKEN, GH_TOKEN, chatId));
+    } catch (err) {
+      groups.push({ chatId, ok: false, error: err.message });
+    }
+  }
+  return res.status(200).json({ ok: groups.some((g) => g.ok), groups });
 };
+
+module.exports._test = { buildWelcomeMessage, cleanName, lookupName };

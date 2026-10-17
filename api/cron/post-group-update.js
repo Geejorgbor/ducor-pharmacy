@@ -30,16 +30,56 @@
 // Reuses the same GREEN_API_URL / GREEN_API_ID / GREEN_API_TOKEN env vars
 // already set up for api/whatsapp.js.
 
-// "Lucas PharMed Consultant whole sell in international medication with Good
-// Prices" — the real client group, found via the list_groups diagnostic.
-const CLIENT_GROUP_CHAT_IDS = [
-  '120363425756994007@g.us',
-  '120363428569355920@g.us', // PharMed Consultants medications chatroom
+// The ONLY groups this automation may post to or welcome in (per Lucas,
+// 2026-10-17: two groups for now — never any other group this number joins).
+// Each group has its own order contact and a fallback display name used when
+// Green API getGroupData can't return the group's subject.
+//   - "Lucas PharMed Consultant whole sell in international medication with
+//     Good Prices" — Lucas's real client group -> Lucas's own number.
+//   - "PharMed Consultants medications chatroom" -> +231 77 671 8151.
+const GROUPS = [
+  {
+    chatId: '120363425756994007@g.us',
+    fallbackName: 'PharMed Family',
+    phoneDisplay: '+231 888 916 127',
+    waLink: 'wa.me/231888916127',
+  },
+  {
+    chatId: '120363428569355920@g.us',
+    fallbackName: 'PharMed Consultants medications chatroom',
+    phoneDisplay: '+231 77 671 8151',
+    waLink: 'wa.me/231776718151',
+  },
 ];
+const CLIENT_GROUP_CHAT_IDS = GROUPS.map((g) => g.chatId);
 
-// Real number Lucas asked orders to go through — a tap-to-chat WhatsApp
-// link is far less friction for a group member than typing a website URL.
-const ORDER_LINE = '📞 Call or WhatsApp to order: wa.me/231888916127 (+231 88 891 6127)';
+function groupConfig(chatId) {
+  return GROUPS.find((g) => g.chatId === chatId) || null;
+}
+
+// Real group subject from Green API, falling back to the hardcoded name.
+// Never throws.
+async function fetchGroupName(apiUrl, id, token, chatId) {
+  const cfg = groupConfig(chatId);
+  const fallback = (cfg && cfg.fallbackName) || 'PharMed Family';
+  try {
+    const r = await fetch(`${apiUrl}/waInstance${id}/getGroupData/${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId: chatId }),
+    });
+    const data = await r.json();
+    const subject = data && typeof data.subject === 'string' ? data.subject.trim() : '';
+    return subject || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function orderLine(chatId) {
+  const cfg = groupConfig(chatId) || GROUPS[1];
+  return `📲 *Order now:* ${cfg.waLink}  (call/WhatsApp ${cfg.phoneDisplay})`;
+}
 
 async function sendWhatsApp(apiUrl, id, token, message, chatId) {
   const response = await fetch(`${apiUrl}/waInstance${id}/sendMessage/${token}`, {
@@ -158,62 +198,118 @@ function formatItems(items) {
   return items.map((name) => `  ✅ ${name}`).join('\n');
 }
 
-// Several real options per slot so the message doesn't read like the same
-// copy-pasted bot text every day — rotates deterministically with the day,
-// same as the item picks.
-const OPENERS = {
+// Rotating copy. Each slot has several headline/intro/closing variants and
+// the choice rotates with the day (and slot), so the group doesn't see the
+// same bot text twice in a row. Copy rules (per Lucas): no prices, no
+// discounts, no medical claims, item names exactly as in stock data.
+const HEADLINES = {
   morning: [
-    '🌅 Good morning, PharMed Consultant Liberia family!',
-    '🌅 Rise and restock, PharMed family!',
-    '🌅 Another day, fresh stock — good morning, partners!',
+    '🚚✨ *NEW SHIPMENT JUST ARRIVED!* ✨🚚',
+    '🌅📦 *GOOD MORNING — FRESH STOCK IS IN!* 📦🌅',
+    '🔔 *NEW SHIPMENT JUST LANDED — MORE MEDICATIONS NOW IN STOCK!* 🔔',
+    '☀️🚚 *RISE & RESTOCK — NEW SHIPMENT JUST ARRIVED!* 🚚☀️',
   ],
   midday: [
-    '🕐 Midday Restock Alert — PharMed Consultant Liberia',
-    '🕐 Halfway through the day — here’s what’s ready for you:',
-    '🕐 Quick midday check-in from PharMed Consultant Liberia:',
+    '⚡ *MIDDAY STOCK ALERT — NEW SHIPMENT IN!* ⚡',
+    '📦🔥 *MORE MEDICATIONS NOW IN STOCK!* 🔥📦',
+    '🕐 *HALF-DAY UPDATE — FRESH ARRIVALS NOW IN STOCK!* 🕐',
+    '🚚 *NEW SHIPMENT JUST ARRIVED — MIDDAY EDITION* 🚚',
   ],
   closing: [
-    '🌇 Before We Close — PharMed Consultant Liberia Update',
-    '🌇 Last call before we close today:',
-    '🌇 Closing time check — don’t miss out before tomorrow:',
+    '🌇⏳ *LAST CALL TODAY — NEW STOCK STILL AVAILABLE!* ⏳🌇',
+    '🔔 *BEFORE WE CLOSE — NEW SHIPMENT ITEMS IN STOCK!* 🔔',
+    '🌆📦 *EVENING UPDATE — MORE MEDICATIONS NOW IN STOCK!* 📦🌆',
+    '⏰ *DON’T MISS OUT — NEW SHIPMENT JUST ARRIVED!* ⏰',
   ],
 };
 
-const URGENCY_LINES = [
-  '🔥 Once it’s gone, it’s gone until our next delivery — don’t wait.',
-  '💪 Stock up today and keep your shelves ready for your customers.',
-  '🚀 Your customers are asking — be the one who has it in stock.',
-  '⚡ Fast-moving stock — reach out now before someone else does.',
+const GREETINGS = {
+  morning: [
+    (g) => `Good morning, *${g}*! 🌞`,
+    (g) => `Hello, dear *${g}* family! 👋`,
+    (g) => `A bright new day to you, *${g}*! 🌤️`,
+  ],
+  midday: [
+    (g) => `Hey *${g}*, quick midday update for you! 👋`,
+    (g) => `Good afternoon, *${g}*! ☀️`,
+    (g) => `*${g}* — here’s what’s on our shelves right now 👇`,
+  ],
+  closing: [
+    (g) => `Good evening, *${g}*! 🌙`,
+    (g) => `*${g}*, one last update before we close today 👇`,
+    (g) => `Evening, dear *${g}* family! ✨`,
+  ],
+};
+
+const INTROS = [
+  'A *new shipment* has just arrived and these medications are *in stock now* for your pharmacy, medicine store or clinic:',
+  'Fresh from our *new shipment* — ready for your shelves *today*:',
+  'More medications are now *in stock*! Here are some picks from the new arrivals:',
+  'Our shelves just got restocked 📦 — these are *available right now*:',
 ];
 
-function pickSlotItems(slot) {
-  const seed = dayOfYear();
+const URGENCY_LINES = [
+  '🔥 Fast-moving items go quickly — secure yours before they’re gone.',
+  '⏳ Stock is limited and moves fast — reserve your order today.',
+  '💼 Keep your shelves full so your customers never leave empty-handed.',
+  '🚀 Be the first in your area to have these ready for your customers.',
+  '✅ Don’t wait for the next delivery — order now while it’s in stock.',
+];
+
+const CTAS = {
+  morning: [
+    '👉 Send us your order list this morning and we’ll get it ready for you.',
+    '👉 Message us now — start your day with a full shelf!',
+  ],
+  midday: [
+    '👉 Need something not listed? Just ask — we may have it in stock.',
+    '👉 Reply or message us now to reserve your items.',
+  ],
+  closing: [
+    '👉 Message us before closing to have your order ready first thing tomorrow.',
+    '👉 Last chance today — send your order now!',
+  ],
+};
+
+const SIGNOFFS = [
+  '🏥 *PharMed Consultant Liberia* — your trusted wholesale partner, Monrovia 🇱🇷',
+  '🤝 *PharMed Consultant Liberia* — real stock, reliable service. Monrovia 🇱🇷',
+  '💚 *PharMed Consultant Liberia* — growing together with you. Monrovia 🇱🇷',
+];
+
+const SLOT_INDEX = { morning: 0, midday: 1, closing: 2 };
+
+function pickSlotItems(slot, seed = dayOfYear()) {
   const stock = getStockList();
   const third = Math.ceil(stock.length / 3);
   const slotSeeds = { morning: seed, midday: seed + third, closing: seed + third * 2 };
   return pickItems(stock, 6, slotSeeds[slot]);
 }
 
-function buildMessage(slot) {
-  const seed = dayOfYear();
-  const stock = getStockList();
-  const third = Math.ceil(stock.length / 3); // spreads the 3 daily slots across different items
-  const slotSeeds = { morning: seed, midday: seed + third, closing: seed + third * 2 };
+const at = (arr, n) => arr[((n % arr.length) + arr.length) % arr.length];
 
-  const items = pickItems(stock, 6, slotSeeds[slot]);
-  const opener = OPENERS[slot][seed % OPENERS[slot].length];
-  const urgency = URGENCY_LINES[(seed + slotSeeds[slot]) % URGENCY_LINES.length];
+// groupName/chatId personalise the post per group; seed defaults to the day
+// of year (overridable for dry-runs).
+function buildMessage(slot, { chatId = CLIENT_GROUP_CHAT_IDS[0], groupName, seed = dayOfYear() } = {}) {
+  const name = groupName || (groupConfig(chatId) || {}).fallbackName || 'PharMed Family';
+  const items = pickSlotItems(slot, seed);
+  const n = seed * 3 + SLOT_INDEX[slot]; // advances every slot, every day
 
   return [
-    opener,
+    at(HEADLINES[slot], seed),
     '',
-    'Available NOW for your pharmacy, store, or clinic:',
+    at(GREETINGS[slot], seed + SLOT_INDEX[slot])(name),
+    '',
+    at(INTROS, n),
     '',
     formatItems(items),
     '',
-    urgency,
-    ORDER_LINE,
-    '📍 PharMed Consultant Liberia — Monrovia, Liberia 🇱🇷',
+    at(URGENCY_LINES, n),
+    at(CTAS[slot], seed),
+    '',
+    orderLine(chatId),
+    '',
+    at(SIGNOFFS, n),
   ].join('\n');
 }
 
@@ -239,11 +335,12 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
 
-  const message = buildMessage(slot);
   const groups = [];
   for (const chatId of CLIENT_GROUP_CHAT_IDS) {
     let result;
     try {
+      const groupName = await fetchGroupName(API_URL, ID, TOKEN, chatId);
+      const message = buildMessage(slot, { chatId, groupName });
       result = await sendWhatsApp(API_URL, ID, TOKEN, message, chatId);
       if (result.ok) {
         try {
@@ -264,4 +361,7 @@ module.exports = async function handler(req, res) {
   return res.status(200).json({ ...firstResult, ok: groups.some((g) => g.ok), groups });
 };
 
-module.exports._test = { buildMessage, pickSlotItems, imageFileFor, normalizeName };
+module.exports._test = { buildMessage, pickSlotItems, imageFileFor, normalizeName, orderLine };
+// Shared with welcome-new-members.js (same allow-list + contacts).
+module.exports.GROUPS = GROUPS;
+module.exports.fetchGroupName = fetchGroupName;
