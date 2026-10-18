@@ -7,13 +7,14 @@
 // website). Per Lucas, never brand these messages as "Ducor" — the two are
 // unrelated businesses that just happen to share this codebase/phone.
 //
-// Content comes from WHOLESALE_STOCK_JSON, a plain JSON array of medication
-// names that ARE currently in stock (In-Stock + Nimba Stock + Over Stock >
-// 0), built once from a real inventory sheet Lucas shared. Per Lucas: only
-// ever say an item IS in stock — never the exact quantity, never expiry
-// dates. That's why this env var only ever holds names, no numbers.
-// To refresh it when stock changes, replace WHOLESALE_STOCK_JSON in Vercel
-// (Settings → Environment Variables) with a new JSON array of names.
+// Content comes from _wa-in-stock.json (same folder): ONLY medications whose
+// In-Stock count is > 0 in the "PharMed/DIP Inventory 2026" sheet, with
+// clean customer-friendly display names ("name") plus the raw sheet names
+// ("sources", used only to match product photos). Per Lucas: only ever say
+// an item IS in stock — never quantities, never prices, never expiry dates,
+// so the file holds names only. To refresh when stock changes, regenerate
+// _wa-in-stock.json from the sheet's in-stock rows and redeploy.
+// (The old WHOLESALE_STOCK_JSON env var is no longer read.)
 //
 // Triggered by an external scheduler, not Vercel Cron: this project is on
 // Vercel's Hobby plan, which only allows a Cron Job to run once a day.
@@ -25,7 +26,6 @@
 //   GROUP_POST_SECRET   = <any random string — must match the same secret
 //                          stored as GROUP_POST_SECRET in the GitHub repo's
 //                          Actions secrets>
-//   WHOLESALE_STOCK_JSON = <JSON array of in-stock medication names>
 //
 // Reuses the same GREEN_API_URL / GREEN_API_ID / GREEN_API_TOKEN env vars
 // already set up for api/whatsapp.js.
@@ -150,8 +150,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function sendItemImages(apiUrl, id, token, chatId, items) {
   const results = [];
   let first = true;
-  for (const name of items) {
-    const file = imageFileFor(name);
+  for (const item of items) {
+    const name = item.name;
+    const file = [name, ...item.sources].map(imageFileFor).find(Boolean);
     if (!file) continue;
     if (!first) await sleep(IMAGE_GAP_MS);
     first = false;
@@ -165,37 +166,56 @@ async function sendItemImages(apiUrl, id, token, chatId, items) {
   return results;
 }
 
+// In-stock list (see header). Each entry: { name, sources: [sheet names] }.
 function getStockList() {
   try {
-    const parsed = JSON.parse(process.env.WHOLESALE_STOCK_JSON || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = require('./_wa-in-stock.json');
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((e) => e && typeof e.name === 'string' && e.name.trim())
+      .map((e) => ({ name: e.name.trim(), sources: Array.isArray(e.sources) ? e.sources : [] }));
   } catch {
     return [];
   }
 }
 
-// Picks real in-stock items, deterministically rotating by day so the same
-// slot doesn't repeat the same items two days running, without needing to
-// store any state between calls.
-function pickItems(list, count, seed) {
-  if (list.length === 0) return [];
-  const picked = [];
-  let i = ((seed % list.length) + list.length) % list.length;
-  for (let n = 0; n < count && n < list.length; n++) {
-    picked.push(list[i]);
-    i = (i + 11) % list.length; // step spreads picks across the whole list
+const ITEMS_PER_POST = 6;
+
+// Stable shuffled order (by a hash of each name) so neighbouring sheet rows
+// (e.g. five Levothyroxine strengths) don't all land in the same post.
+function hashName(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
   }
-  return picked;
+  return h;
+}
+function rotationOrder(list) {
+  return list
+    .map((item) => ({ item, h: hashName(item.name.toLowerCase()) }))
+    .sort((a, b) => a.h - b.h || a.item.name.localeCompare(b.item.name))
+    .map((x) => x.item);
 }
 
-function dayOfYear() {
-  const now = new Date();
+// Every post slot gets its own index: (Mon–Sat days since 1970, UTC —
+// Monrovia is UTC+0, and there are no Sunday posts) * 3 + slot. Each post
+// takes the next ITEMS_PER_POST items of the rotation, so consecutive posts
+// never repeat an item and the whole in-stock list is cycled through before
+// anything repeats. Stateless/deterministic — no storage needed.
+function postIndex(slot, now = new Date()) {
+  const day = Math.floor(now.getTime() / 86400000); // 1970-01-04 (day 3) was a Sunday
+  const postingDays = day - Math.floor((day + 4) / 7);
+  return postingDays * 3 + SLOT_INDEX[slot];
+}
+
+function dayOfYear(now = new Date()) {
   const start = Date.UTC(now.getUTCFullYear(), 0, 0);
-  return Math.floor((Date.now() - start) / 86400000);
+  return Math.floor((now.getTime() - start) / 86400000);
 }
 
 function formatItems(items) {
-  return items.map((name) => `  ✅ ${name}`).join('\n');
+  return items.map((item) => `  ✅ ${item.name}`).join('\n');
 }
 
 // Rotating copy. Each slot has several headline/intro/closing variants and
@@ -279,20 +299,24 @@ const SIGNOFFS = [
 
 const SLOT_INDEX = { morning: 0, midday: 1, closing: 2 };
 
-function pickSlotItems(slot, seed = dayOfYear()) {
-  const stock = getStockList();
-  const third = Math.ceil(stock.length / 3);
-  const slotSeeds = { morning: seed, midday: seed + third, closing: seed + third * 2 };
-  return pickItems(stock, 6, slotSeeds[slot]);
+function pickSlotItems(slot, now = new Date()) {
+  const order = rotationOrder(getStockList());
+  if (order.length === 0) return [];
+  const count = Math.min(ITEMS_PER_POST, order.length);
+  const start = (postIndex(slot, now) * count) % order.length;
+  const picked = [];
+  for (let k = 0; k < count; k++) picked.push(order[(start + k) % order.length]);
+  return picked;
 }
 
 const at = (arr, n) => arr[((n % arr.length) + arr.length) % arr.length];
 
-// groupName/chatId personalise the post per group; seed defaults to the day
-// of year (overridable for dry-runs).
-function buildMessage(slot, { chatId = CLIENT_GROUP_CHAT_IDS[0], groupName, seed = dayOfYear() } = {}) {
+// groupName/chatId personalise the post per group; `now` picks the items and
+// the copy variants (overridable for dry-runs).
+function buildMessage(slot, { chatId = CLIENT_GROUP_CHAT_IDS[0], groupName, now = new Date() } = {}) {
   const name = groupName || (groupConfig(chatId) || {}).fallbackName || 'PharMed Family';
-  const items = pickSlotItems(slot, seed);
+  const seed = dayOfYear(now);
+  const items = pickSlotItems(slot, now);
   const n = seed * 3 + SLOT_INDEX[slot]; // advances every slot, every day
 
   return [
@@ -335,17 +359,18 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: false, error: 'WhatsApp not configured yet' });
   }
 
+  const now = new Date(); // one timestamp so text + photos match in both groups
   const groups = [];
   for (const chatId of CLIENT_GROUP_CHAT_IDS) {
     let result;
     try {
       const groupName = await fetchGroupName(API_URL, ID, TOKEN, chatId);
-      const message = buildMessage(slot, { chatId, groupName });
+      const message = buildMessage(slot, { chatId, groupName, now });
       result = await sendWhatsApp(API_URL, ID, TOKEN, message, chatId);
       if (result.ok) {
         try {
           await sleep(IMAGE_GAP_MS);
-          result.images = await sendItemImages(API_URL, ID, TOKEN, chatId, pickSlotItems(slot));
+          result.images = await sendItemImages(API_URL, ID, TOKEN, chatId, pickSlotItems(slot, now));
         } catch (err) {
           result.images = { ok: false, error: err.message };
         }
@@ -361,7 +386,7 @@ module.exports = async function handler(req, res) {
   return res.status(200).json({ ...firstResult, ok: groups.some((g) => g.ok), groups });
 };
 
-module.exports._test = { buildMessage, pickSlotItems, imageFileFor, normalizeName, orderLine };
+module.exports._test = { buildMessage, pickSlotItems, getStockList, postIndex, imageFileFor, normalizeName, orderLine };
 // Shared with welcome-new-members.js (same allow-list + contacts).
 module.exports.GROUPS = GROUPS;
 module.exports.fetchGroupName = fetchGroupName;
