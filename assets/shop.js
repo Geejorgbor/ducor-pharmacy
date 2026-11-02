@@ -1035,6 +1035,8 @@ function _applyImage(productId, imageUrl, svgFallback) {
     el.appendChild(img);
   };
   img.onerror = () => { el.innerHTML = svgFallback; };
+  img.decoding = 'async';
+  img.alt = '';
   img.src = imageUrl;
 }
 
@@ -1114,10 +1116,27 @@ function _startImageLoading(list, category) {
     }
     // Show placeholder SVG while real photo loads
     el.innerHTML = svgFallback;
-    _imgQueue.push({ productId: p.id, productName: p.name, category, svgFallback });
+    const item = { productId: p.id, productName: p.name, category, svgFallback };
+    // Load the photo only when the card is close to the screen
+    if (_imgObserver) { _imgPending.set(el, item); _imgObserver.observe(el); }
+    else _imgQueue.push(item);
   });
   _processImgQueue();
 }
+
+var _imgPending = new Map();
+var _imgObserver = (typeof IntersectionObserver === 'function')
+  ? new IntersectionObserver((entries, obs) => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        obs.unobserve(en.target);
+        const item = _imgPending.get(en.target);
+        _imgPending.delete(en.target);
+        if (item) _imgQueue.push(item);
+      });
+      _processImgQueue();
+    }, { rootMargin: '400px 0px' })
+  : null;
 
 // ── PRODUCT DETAIL MODAL ───────────────────────────────────────────────────────
 

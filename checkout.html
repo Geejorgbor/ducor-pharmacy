@@ -14,7 +14,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
   <title>Secure Checkout – Ducor International Pharmacy | Order Medications Online Liberia</title>
-  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <link rel="icon" href="/assets/company-logo-sm.jpg"/>
   <meta name="description" content="Securely order your medications online from Ducor International Pharmacy, Monrovia Liberia. Fast delivery, multiple payment options including MTN MoMo and bank transfer."/>
   <meta name="keywords" content="order medicine online Liberia, buy medicine Monrovia, secure checkout pharmacy Liberia, medication delivery Liberia, order prescription online Liberia"/>
   <meta name="robots" content="index, follow"/>
@@ -192,7 +192,7 @@
 
 <nav class="shop-nav">
   <a href="/index.html" class="nav-brand">
-    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <img src="/assets/company-logo-sm.jpg" alt="Ducor"/>
     <div class="nav-brand-text">
       <h1>DUCOR</h1>
       <p>International Pharmacy</p>
@@ -1217,6 +1217,8 @@ window._db = _db;
     const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment', prescriptionFileData);
     const _placeBtn = document.querySelector('.place-order-btn, #place-order-btn');
     if (_placeBtn) { _placeBtn.disabled = true; _placeBtn.style.opacity = '0.7'; _placeBtn.setAttribute('aria-busy', 'true'); }
+    const _placeTxt = document.getElementById('order-btn-text');
+    if (_placeTxt) _placeTxt.textContent = 'Placing your order…';
     let _orderId = null;
     if (window._saveOrderToFirestore) _orderId = await window._saveOrderToFirestore(payload);
     // Server-priced totals replace the browser's figures (payment amount,
