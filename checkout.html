@@ -510,6 +510,7 @@
       <div id="dip-plan-banner" style="display:none;background:linear-gradient(135deg,rgba(10,37,88,0.08),rgba(200,168,75,0.12));border:1px solid rgba(200,168,75,0.4);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:0.88rem;line-height:1.55;color:#0a2558">
         <strong style="color:#0a2558">DIP Subscription Plan — $120 / year</strong><br>
         This checkout includes your annual plan. After payment is confirmed, your account becomes <strong>Active</strong> for 1 year and <strong>SUBSCRIBER40</strong> applies automatically on medication orders.
+        <div style="margin-top:8px"><a href="/index.html#dip-plan" style="color:#0a2558;font-weight:600">Read plan details</a> <span style="color:#6b7280">&middot;</span> <a href="#" id="dip-remove-link" onclick="removeDipPlan(event)" style="color:#0a2558;font-weight:600">Remove plan</a></div>
       </div>
 <!-- Promo Code -->
       <div style="margin-bottom:16px">
@@ -1325,23 +1326,38 @@ window._db = _db;
   }
 
   Cart.load();
-  // Preload DIP Subscription Plan from homepage CTA (?plan=dip or localStorage)
+  // DIP Subscription Plan: added only when the link carries ?plan=dip.
+  // A plan left over from an earlier visit (old dipSubscribe flag) is cleared.
   (function preloadDipPlan(){
     try {
       const params = new URLSearchParams(window.location.search);
-      const wants = params.get('plan') === 'dip' || localStorage.getItem('dipSubscribe') === '1';
-      if (!wants) return;
-      try { localStorage.setItem('dipSubscribe', '1'); } catch(e) {}
+      const banner = document.getElementById('dip-plan-banner');
+      if (params.get('plan') !== 'dip') {
+        try { localStorage.removeItem('dipSubscribe'); } catch(e) {}
+        if (Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan() && Cart.removeSubscriptionPlan) Cart.removeSubscriptionPlan();
+        if (banner) banner.style.display = 'none';
+        return;
+      }
       if (typeof Cart.addSubscriptionPlan === 'function') Cart.addSubscriptionPlan();
+      if (banner) banner.style.display = 'block';
+    } catch(e) {}
+  })();
+  window.removeDipPlan = function(ev){
+    if (ev) ev.preventDefault();
+    try { if (Cart.removeSubscriptionPlan) Cart.removeSubscriptionPlan(); } catch(e) {}
+    try { localStorage.removeItem('dipSubscribe'); } catch(e) {}
+    const banner = document.getElementById('dip-plan-banner');
+    if (banner) banner.style.display = 'none';
+    try {
+      const params = new URLSearchParams(window.location.search);
       if (params.get('plan') === 'dip') {
         params.delete('plan');
         const q = params.toString();
         history.replaceState({}, '', window.location.pathname + (q ? '?' + q : '') + window.location.hash);
       }
-      const banner = document.getElementById('dip-plan-banner');
-      if (banner) banner.style.display = 'block';
     } catch(e) {}
-  })();
+    try { renderSummary(); } catch(e) {}
+  };
   Cart.updateBadge();
   renderSummary();
   // Auto-apply SUBSCRIBER40 for active members on ordinary (non-plan) carts
