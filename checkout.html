@@ -152,33 +152,21 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 <script>
-// Session guard — guests may check out; sign-in is only required for the DIP
-// Subscription Plan (?plan=dip or plan in cart). Redirect once; avoid auth↔checkout loop.
+// Session guard — an account is required to order. Redirect to sign-in/sign-up
+// once (avoid auth↔checkout loop); auth.html returns the customer here with their cart.
 (function(){
   var SESSION_KEY='ducor_sess_v2';
   var LOOP_KEY='ducor_checkout_auth_bounce';
-  var _dipParams=new URLSearchParams(window.location.search);
-  var CART_KEY='ducor-cart';
   try{
     // Persist DIP subscribe intent before any redirect so login → checkout keeps the plan
     try{
-      _dipParams=new URLSearchParams(window.location.search);
+      var _dipParams=new URLSearchParams(window.location.search);
       if(_dipParams.get('plan')==='dip'){
         localStorage.setItem('dipSubscribe','1');
         try{ sessionStorage.setItem('dip_share_hit','dip'); }catch(x){}
         try{ if(typeof gtag==='function') gtag('event','dip_share_landing',{plan:'dip'}); }catch(x){}
       }
     }catch(x){}
-    // Guest checkout: only the DIP Subscription Plan needs an account
-    // (activation is tied to the customer record). Ordinary orders can be
-    // placed without signing in.
-    var _needsAccount=false;
-    try{
-      if(_dipParams.get('plan')==='dip') _needsAccount=true;
-      var _cartRaw=JSON.parse(localStorage.getItem(CART_KEY)||'[]');
-      if(Array.isArray(_cartRaw)&&_cartRaw.some(function(i){return i&&(i.id==='dip-plan'||i.category==='plan');})) _needsAccount=true;
-    }catch(x){}
-    if(!_needsAccount){ try{ sessionStorage.removeItem(LOOP_KEY); }catch(x){} return; }
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     if(!raw){throw new Error('no session');}
     var s=JSON.parse(raw);
