@@ -152,21 +152,33 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 <script>
-// Session guard — redirect to login if not authenticated (once; avoid auth↔checkout loop)
-// DIP share (?plan=dip): still require login first; preserve plan via next= + dipSubscribe
+// Session guard — guests may check out; sign-in is only required for the DIP
+// Subscription Plan (?plan=dip or plan in cart). Redirect once; avoid auth↔checkout loop.
 (function(){
   var SESSION_KEY='ducor_sess_v2';
   var LOOP_KEY='ducor_checkout_auth_bounce';
+  var _dipParams=new URLSearchParams(window.location.search);
+  var CART_KEY='ducor-cart';
   try{
     // Persist DIP subscribe intent before any redirect so login → checkout keeps the plan
     try{
-      var _dipParams=new URLSearchParams(window.location.search);
+      _dipParams=new URLSearchParams(window.location.search);
       if(_dipParams.get('plan')==='dip'){
         localStorage.setItem('dipSubscribe','1');
         try{ sessionStorage.setItem('dip_share_hit','dip'); }catch(x){}
         try{ if(typeof gtag==='function') gtag('event','dip_share_landing',{plan:'dip'}); }catch(x){}
       }
     }catch(x){}
+    // Guest checkout: only the DIP Subscription Plan needs an account
+    // (activation is tied to the customer record). Ordinary orders can be
+    // placed without signing in.
+    var _needsAccount=false;
+    try{
+      if(_dipParams.get('plan')==='dip') _needsAccount=true;
+      var _cartRaw=JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+      if(Array.isArray(_cartRaw)&&_cartRaw.some(function(i){return i&&(i.id==='dip-plan'||i.category==='plan');})) _needsAccount=true;
+    }catch(x){}
+    if(!_needsAccount){ try{ sessionStorage.removeItem(LOOP_KEY); }catch(x){} return; }
     var raw=sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY);
     if(!raw){throw new Error('no session');}
     var s=JSON.parse(raw);
@@ -404,6 +416,23 @@
             <h4>Deliver to Me</h4>
             <p>$8.00 delivery fee (free over $200)</p>
           </div>
+        </div>
+      </div>
+
+      <div id="delivery-address-section" style="display:none;margin-top:16px">
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label for="delivery-street">Street / House Location *</label>
+            <input type="text" id="delivery-street" autocomplete="street-address" placeholder="e.g. house near the junction, street name"/>
+          </div>
+          <div class="form-group">
+            <label for="delivery-area">Area / Community *</label>
+            <input type="text" id="delivery-area" placeholder="e.g. Sinkor, Congo Town, Paynesville"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="delivery-landmark">Nearby Landmark (optional)</label>
+          <input type="text" id="delivery-landmark" placeholder="Helps our rider find you"/>
         </div>
       </div>
 
@@ -823,6 +852,8 @@ window._db = _db;
     document.querySelectorAll('#delivery-pickup-opt, #delivery-deliver-opt').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
     deliveryMethod = method;
+    const addr = document.getElementById('delivery-address-section');
+    if (addr) addr.style.display = method === 'delivery' ? '' : 'none';
     renderSummary();
   }
 
@@ -953,16 +984,8 @@ window._db = _db;
   }
 
   // ── Promo codes ──
-  // SUBSCRIBER40: standing discount for Subscription Plan clients, always on.
-  // HOLIDAY15: seasonal discount, technically always valid when entered —
-  // deliberately not tied to a hardcoded date range, since it's meant to
-  // cover whichever Liberian holiday is current (Independence Day,
-  // Thanksgiving, Christmas, etc.). Staff control timing by choosing when
-  // to actually advertise the code, not by the code itself expiring.
-  const PROMO_CODES = {
-    'SUBSCRIBER40': { type:'percent', value:40, label:'40% off for Subscription Plan clients' },
-    'HOLIDAY15':    { type:'percent', value:15, label:'15% off for the holiday season' },
-  };
+  // Codes are validated server-side (/api/order?action=promo); none are
+  // embedded in this page.
   let activePromo = null;
 
     function isActiveSubscriber() {
@@ -978,23 +1001,31 @@ window._db = _db;
     } catch(e) { return false; }
   }
 
-  function applyPromo() {
+  async function applyPromo() {
     const code = document.getElementById('promo-input').value.trim().toUpperCase();
     const msg  = document.getElementById('promo-msg');
     if (!code) { msg.style.display = 'none'; activePromo = null; renderSummary(); return; }
     msg.style.display = 'block';
-    const promo = PROMO_CODES[code];
+    msg.style.color = '#64748b'; msg.textContent = 'Checking code…';
+    let promo = null;
+    try {
+      const r = await fetch('/api/order?action=promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+      const j = await r.json();
+      if (j && j.ok && j.promo) promo = j.promo;
+    } catch (e) {
+      msg.style.color='#dc2626'; msg.textContent='Could not check the code right now. Please try again.'; activePromo=null; renderSummary(); return;
+    }
     if (!promo) { msg.style.color='#dc2626'; msg.textContent='Invalid promo code. Please check and try again.'; activePromo=null; renderSummary(); return; }
-    // Buying the DIP plan itself never gets SUBSCRIBER40
-    if (code === 'SUBSCRIBER40' && Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) {
-      msg.style.color='#dc2626'; msg.textContent='SUBSCRIBER40 cannot be used on the subscription plan purchase.'; activePromo=null; renderSummary(); return;
+    // Buying the DIP plan itself never gets the subscriber discount
+    if (promo.subscriberOnly && Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) {
+      msg.style.color='#dc2626'; msg.textContent=code + ' cannot be used on the subscription plan purchase.'; activePromo=null; renderSummary(); return;
     }
-    if (code === 'SUBSCRIBER40' && !isActiveSubscriber()) {
-      msg.style.color='#dc2626'; msg.textContent='SUBSCRIBER40 is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return;
+    if (promo.subscriberOnly && !isActiveSubscriber()) {
+      msg.style.color='#dc2626'; msg.textContent=code + ' is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return;
     }
-    activePromo = { code, ...promo };
+    activePromo = { code, type: promo.type, value: promo.value, label: promo.label };
     msg.style.color='#16a34a';
-    msg.textContent='Promo applied: ' + promo.label + '!';
+    msg.textContent='Promo applied: ' + promo.label;
     renderSummary();
   }
 
@@ -1035,6 +1066,12 @@ window._db = _db;
       showToast('Please select your country');
       document.getElementById('buyer-country').focus();
       return false;
+    }
+    if (deliveryMethod === 'delivery') {
+      const dStreet = document.getElementById('delivery-street');
+      const dArea = document.getElementById('delivery-area');
+      if (!dStreet.value.trim()) { showToast('Please enter your street or house location for delivery'); dStreet.focus(); return false; }
+      if (!dArea.value.trim()) { showToast('Please enter your area or community for delivery'); dArea.focus(); return false; }
     }
     if (pickupWho === 'other') {
       if (!document.getElementById('pickup-name').value.trim()) {
@@ -1114,6 +1151,11 @@ window._db = _db;
       discount,
       promoCode: activePromo ? activePromo.code : null,
       deliveryMethod,
+      deliveryAddress: deliveryMethod === 'delivery' ? {
+        street: document.getElementById('delivery-street').value.trim(),
+        area: document.getElementById('delivery-area').value.trim(),
+        landmark: document.getElementById('delivery-landmark').value.trim() || null,
+      } : null,
       shipping: (deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0,
       rxPricesPending: hasRx,
       total: parseFloat((otcSub + planSub - discount + ((deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0)).toFixed(2)),
