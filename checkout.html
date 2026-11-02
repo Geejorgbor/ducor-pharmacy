@@ -152,8 +152,8 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 <script>
-// Session guard — redirect to login if not authenticated (once; avoid auth↔checkout loop)
-// DIP share (?plan=dip): still require login first; preserve plan via next= + dipSubscribe
+// Session guard — an account is required to order. Redirect to sign-in/sign-up
+// once (avoid auth↔checkout loop); auth.html returns the customer here with their cart.
 (function(){
   var SESSION_KEY='ducor_sess_v2';
   var LOOP_KEY='ducor_checkout_auth_bounce';
@@ -407,6 +407,23 @@
         </div>
       </div>
 
+      <div id="delivery-address-section" style="display:none;margin-top:16px">
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label for="delivery-street">Street / House Location *</label>
+            <input type="text" id="delivery-street" autocomplete="street-address" placeholder="e.g. house near the junction, street name"/>
+          </div>
+          <div class="form-group">
+            <label for="delivery-area">Area / Community *</label>
+            <input type="text" id="delivery-area" placeholder="e.g. Sinkor, Congo Town, Paynesville"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="delivery-landmark">Nearby Landmark (optional)</label>
+          <input type="text" id="delivery-landmark" placeholder="Helps our rider find you"/>
+        </div>
+      </div>
+
       <div class="form-spacer"></div>
       <p class="form-section-title">Payment Method</p>
 
@@ -483,7 +500,7 @@
             <p id="pay-details-sub" style="font-size:11px;color:#a16207">Send payment to the number below after placing your order</p>
           </div>
         </div>
-        <div class="pay-detail-row" id="pay-row-number"><span id="pay-label-number">Number</span><strong id="pay-details-number">+231 88 722 1275</strong></div>
+        <div class="pay-detail-row" id="pay-row-number"><span id="pay-label-number">Number</span><strong id="pay-details-number">+231 887 221 275</strong></div>
         <div class="pay-detail-row" id="pay-row-routing" style="display:none"><span>Routing #</span><strong id="pay-details-routing"></strong></div>
         <div class="pay-detail-row"><span id="pay-label-name">Account Name</span><strong id="pay-details-name">Ducor International Pharmacy</strong></div>
         <p id="pay-details-note" style="font-size:11px;color:#a16207;margin-top:8px">After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.</p>
@@ -586,10 +603,10 @@
     <div class="pharmacy-info" style="margin-top:16px;background:white;border-radius:16px;border:1px solid var(--border);padding:20px;">
       <p style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;">Need help with your order?</p>
       <p style="font-size:12px;color:var(--muted);line-height:1.8;">
-        <a href="https://wa.me/16309366050" target="_blank" style="color:inherit;text-decoration:none"><strong>WhatsApp:</strong> +1 (630) 936-6050</a><br>
         <a href="https://wa.me/231880187490" target="_blank" style="color:inherit;text-decoration:none"><strong>WhatsApp:</strong> +231 880 187 490</a><br>
         <a href="https://wa.me/231760801914" target="_blank" style="color:inherit;text-decoration:none"><strong>WhatsApp:</strong> +231 760 801 914</a><br>
-        <strong>Location:</strong> 10 &amp; 11 Street, Near Ecobank,<br>Tubman Boulevard, Monrovia
+        <a href="https://wa.me/16309366050" target="_blank" style="color:inherit;text-decoration:none"><strong>WhatsApp:</strong> +1 (630) 936-6050</a><br>
+        <strong>Location:</strong> 10th &amp; 11th St., Sinkor (near Ecobank),<br>Tubman Boulevard, Monrovia
       </p>
     </div>
   </div>
@@ -651,7 +668,7 @@
 <script src="/assets/shop.js"></script>
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _fbCfg = {
@@ -675,8 +692,39 @@ function _waitForAuthUser(){
 
 async function _saveOrderToFirestore(orderData) {
   try {
-    await addDoc(collection(_db, 'orders'), orderData);
-  } catch(e) {}
+    // Id is known up front; wait up to 10s for the write so a slow network
+    // never leaves the customer stuck on "placing order".
+    const ref = doc(collection(_db, 'orders'));
+    const ok = await Promise.race([
+      setDoc(ref, orderData).then(() => true, () => false),
+      new Promise(r => setTimeout(() => r(null), 10000)),
+    ]);
+    return ok === false ? null : ref.id;
+  } catch(e) { return null; }
+}
+
+async function _getIdToken() {
+  try { const u = await _waitForAuthUser(); return u ? await u.getIdToken() : null; } catch(e) { return null; }
+}
+
+// Ask the server to price the order from its own price list. The server
+// overwrites subtotal/discount/shipping/total on the order and returns them.
+async function _finalizeOrder(orderId) {
+  if (!orderId) return null;
+  try {
+    const token = await _getIdToken();
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch('/api/order?action=finalize', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+      body: JSON.stringify({ orderId }),
+      signal: ctl.signal,
+    });
+    clearTimeout(timer);
+    const j = await r.json();
+    return (j && j.ok && j.totals) ? j : null;
+  } catch(e) { return null; }
 }
 
 async function _markCustomerSubscriptionPending(email) {
@@ -708,6 +756,8 @@ async function _markCustomerSubscriptionPending(email) {
 }
 
 window._saveOrderToFirestore = _saveOrderToFirestore;
+window._finalizeOrder = _finalizeOrder;
+window._getIdToken = _getIdToken;
 window._markCustomerSubscriptionPending = _markCustomerSubscriptionPending;
 window._db = _db;
 </script>
@@ -823,6 +873,8 @@ window._db = _db;
     document.querySelectorAll('#delivery-pickup-opt, #delivery-deliver-opt').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
     deliveryMethod = method;
+    const addr = document.getElementById('delivery-address-section');
+    if (addr) addr.style.display = method === 'delivery' ? '' : 'none';
     renderSummary();
   }
 
@@ -854,7 +906,7 @@ window._db = _db;
       title: 'Send Payment via MTN Mobile Money',
       sub: 'Send payment to the number below after placing your order',
       labelNumber: 'Number',
-      number: '+231 88 722 1275',
+      number: '+231 887 221 275',
       labelName: 'Account Name',
       name: 'Ducor International Pharmacy',
       note: 'After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
@@ -869,7 +921,7 @@ window._db = _db;
       title: 'Send Payment via Sendwave',
       sub: 'Send to the number below using the Sendwave app',
       labelNumber: 'Phone Number',
-      number: '+231 88 722 1275',
+      number: '+231 887 221 275',
       labelName: 'Recipient Name',
       name: 'Ducor International Pharmacy',
       note: 'After sending, WhatsApp your receipt to +231 887 221 275 to confirm your order.',
@@ -900,7 +952,7 @@ window._db = _db;
       title: 'Cash on Delivery / Walk-In',
       sub: 'Pay cash when your order is delivered or when you pick it up',
       labelNumber: 'Location',
-      number: '10 & 11 Street, Tubman Blvd, Monrovia',
+      number: '10th & 11th St., Sinkor, Tubman Blvd, Monrovia',
       labelName: 'Contact',
       name: '+231 887 221 275',
       note: 'Our team will contact you to confirm delivery timing. No delivery fee for walk-in pickup. Delivery fee for home delivery depends on your location.',
@@ -953,16 +1005,8 @@ window._db = _db;
   }
 
   // ── Promo codes ──
-  // SUBSCRIBER40: standing discount for Subscription Plan clients, always on.
-  // HOLIDAY15: seasonal discount, technically always valid when entered —
-  // deliberately not tied to a hardcoded date range, since it's meant to
-  // cover whichever Liberian holiday is current (Independence Day,
-  // Thanksgiving, Christmas, etc.). Staff control timing by choosing when
-  // to actually advertise the code, not by the code itself expiring.
-  const PROMO_CODES = {
-    'SUBSCRIBER40': { type:'percent', value:40, label:'40% off for Subscription Plan clients' },
-    'HOLIDAY15':    { type:'percent', value:15, label:'15% off for the holiday season' },
-  };
+  // Codes are validated server-side (/api/order?action=promo); none are
+  // embedded in this page.
   let activePromo = null;
 
     function isActiveSubscriber() {
@@ -978,23 +1022,32 @@ window._db = _db;
     } catch(e) { return false; }
   }
 
-  function applyPromo() {
+  async function applyPromo() {
     const code = document.getElementById('promo-input').value.trim().toUpperCase();
     const msg  = document.getElementById('promo-msg');
     if (!code) { msg.style.display = 'none'; activePromo = null; renderSummary(); return; }
     msg.style.display = 'block';
-    const promo = PROMO_CODES[code];
+    msg.style.color = '#64748b'; msg.textContent = 'Checking code…';
+    let promo = null;
+    try {
+      const token = window._getIdToken ? await window._getIdToken() : null;
+      const r = await fetch('/api/order?action=promo', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}), body: JSON.stringify({ code }) });
+      const j = await r.json();
+      if (j && j.ok && j.promo) promo = j.promo;
+      else if (j && j.error === 'not_subscriber') { msg.style.color='#dc2626'; msg.textContent=code + ' is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return; }
+      else if (j && j.error === 'sign_in_required') { msg.style.color='#dc2626'; msg.textContent='Please sign in again to use ' + code + '.'; activePromo=null; renderSummary(); return; }
+    } catch (e) {
+      msg.style.color='#dc2626'; msg.textContent='Could not check the code right now. Please try again.'; activePromo=null; renderSummary(); return;
+    }
     if (!promo) { msg.style.color='#dc2626'; msg.textContent='Invalid promo code. Please check and try again.'; activePromo=null; renderSummary(); return; }
-    // Buying the DIP plan itself never gets SUBSCRIBER40
-    if (code === 'SUBSCRIBER40' && Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) {
-      msg.style.color='#dc2626'; msg.textContent='SUBSCRIBER40 cannot be used on the subscription plan purchase.'; activePromo=null; renderSummary(); return;
+    // Buying the DIP plan itself never gets the subscriber discount
+    if (promo.subscriberOnly && Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) {
+      msg.style.color='#dc2626'; msg.textContent=code + ' cannot be used on the subscription plan purchase.'; activePromo=null; renderSummary(); return;
     }
-    if (code === 'SUBSCRIBER40' && !isActiveSubscriber()) {
-      msg.style.color='#dc2626'; msg.textContent='SUBSCRIBER40 is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return;
-    }
-    activePromo = { code, ...promo };
+    // Membership for subscriber-only codes is checked by the server above.
+    activePromo = { code, type: promo.type, value: promo.value, label: promo.label, subscriberOnly: !!promo.subscriberOnly };
     msg.style.color='#16a34a';
-    msg.textContent='Promo applied: ' + promo.label + '!';
+    msg.textContent='Promo applied: ' + promo.label;
     renderSummary();
   }
 
@@ -1035,6 +1088,12 @@ window._db = _db;
       showToast('Please select your country');
       document.getElementById('buyer-country').focus();
       return false;
+    }
+    if (deliveryMethod === 'delivery') {
+      const dStreet = document.getElementById('delivery-street');
+      const dArea = document.getElementById('delivery-area');
+      if (!dStreet.value.trim()) { showToast('Please enter your street or house location for delivery'); dStreet.focus(); return false; }
+      if (!dArea.value.trim()) { showToast('Please enter your area or community for delivery'); dArea.focus(); return false; }
     }
     if (pickupWho === 'other') {
       if (!document.getElementById('pickup-name').value.trim()) {
@@ -1088,7 +1147,7 @@ window._db = _db;
   function _buildOrderPayload(ref, paymentMethod, paymentStatus, prescriptionFileData) {
     const first  = document.getElementById('first-name').value.trim();
     const last   = document.getElementById('last-name').value.trim();
-    const email  = document.getElementById('email').value.trim();
+    const email  = document.getElementById('email').value.trim().toLowerCase();
     const phone  = document.getElementById('phone').value.trim();
     const otcSub = Cart.items.filter(i => i.category !== 'rx' && i.category !== 'plan').reduce((s, i) => s + i.price * i.qty, 0);
     const planSub = Cart.items.filter(i => i.category === 'plan').reduce((s, i) => s + i.price * i.qty, 0);
@@ -1114,6 +1173,11 @@ window._db = _db;
       discount,
       promoCode: activePromo ? activePromo.code : null,
       deliveryMethod,
+      deliveryAddress: deliveryMethod === 'delivery' ? {
+        street: document.getElementById('delivery-street').value.trim(),
+        area: document.getElementById('delivery-area').value.trim(),
+        landmark: document.getElementById('delivery-landmark').value.trim() || null,
+      } : null,
       shipping: (deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0,
       rxPricesPending: hasRx,
       total: parseFloat((otcSub + planSub - discount + ((deliveryMethod === 'delivery' && otcSub < FREE_DELIVERY_THRESHOLD) ? DELIVERY_FEE : 0)).toFixed(2)),
@@ -1150,7 +1214,22 @@ window._db = _db;
     };
     const methodLabel = methodLabels[selectedPayment] || selectedPayment;
     const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment', prescriptionFileData);
-    if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+    const _placeBtn = document.querySelector('.place-order-btn, #place-order-btn');
+    if (_placeBtn) { _placeBtn.disabled = true; _placeBtn.style.opacity = '0.7'; _placeBtn.setAttribute('aria-busy', 'true'); }
+    let _orderId = null;
+    if (window._saveOrderToFirestore) _orderId = await window._saveOrderToFirestore(payload);
+    // Server-priced totals replace the browser's figures (payment amount,
+    // confirmation email and admin notification all use the server total).
+    if (_orderId && window._finalizeOrder) {
+      const fin = await window._finalizeOrder(_orderId);
+      if (fin && fin.totals) {
+        payload.subtotal = fin.totals.subtotal;
+        payload.discount = fin.totals.discount;
+        payload.shipping = fin.totals.shipping;
+        payload.total = Number(fin.totals.total);
+        if (fin.promoRejected) payload.promoCode = null;
+      }
+    }
     if (payload.isSubscription && window._markCustomerSubscriptionPending) {
       window._markCustomerSubscriptionPending(payload.buyerEmail);
     }

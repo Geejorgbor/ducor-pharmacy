@@ -104,19 +104,9 @@
 </div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
-const app = initializeApp({
-  apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
-  authDomain: "ducor-pharmacy.firebaseapp.com",
-  projectId: "ducor-pharmacy",
-  storageBucket: "ducor-pharmacy.firebasestorage.app",
-  messagingSenderId: "952933384266",
-  appId: "1:952933384266:web:55b906e903d96940d426b3"
-});
-const db = getFirestore(app);
-
+// SECURITY: orders are no longer publicly readable/writable in Firestore.
+// The token is checked server-side by /api/order?action=confirm-delivery, which only
+// sets confirmedByCustomer + deliveredAt.
 function show(id) {
   ['state-loading','state-success','state-already','state-error'].forEach(s => {
     document.getElementById(s).style.display = s === id ? '' : 'none';
@@ -127,96 +117,44 @@ async function confirmDelivery() {
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('order');
   const token   = params.get('token');
-
   if (!orderId || !token) { show('state-error'); return; }
 
   try {
-    // Query Firestore for the order
-    const q = query(collection(db, 'orders'), where('__name__', '==', orderId));
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      // Also try querying by orderId field
-      const q2 = query(collection(db, 'orders'), where('id', '==', orderId));
-      const snap2 = await getDocs(q2);
-      if (snap2.empty) { show('state-error'); return; }
-
-      const orderDoc = snap2.docs[0];
-      await processOrder(orderDoc, token);
-    } else {
-      await processOrder(snap.docs[0], token);
-    }
-  } catch(e) {
-    console.error(e);
-    document.getElementById('error-msg').textContent = 'Something went wrong. Please contact Ducor Pharmacy on WhatsApp.';
-    show('state-error');
-  }
-}
-
-async function processOrder(orderDoc, token) {
-  const data = orderDoc.data();
-
-  // Verify token
-  if (data.confirmToken !== token) {
-    document.getElementById('error-msg').textContent = 'This confirmation link is not valid. Please use the link sent to your WhatsApp.';
-    show('state-error');
-    return;
-  }
-
-  // Already delivered
-  if (data.status === 'delivered') {
-    show('state-already');
-    return;
-  }
-
-  // Confirm delivery in Firestore
-  await updateDoc(orderDoc.ref, {
-    status: 'delivered',
-    deliveredAt: new Date().toISOString(),
-    confirmedByCustomer: true
-  });
-
-  // Notify boss on WhatsApp
-  const customerName = ((data.firstName || '') + ' ' + (data.lastName || '')).trim();
-  try {
-    await fetch('/api/whatsapp', {
+    const resp = await fetch('/api/order?action=confirm-delivery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'delivery_confirmed',
-        delivery: {
-          orderId: data.id || orderDoc.id,
-          customerName: customerName || '—',
-          customerPhone: data.phone || data.buyerPhone || '—',
-          total: data.total || '—',
-        }
-      })
+      body: JSON.stringify({ order: orderId, token })
     });
-  } catch(e) {}
+    const j = await resp.json().catch(() => ({}));
+    if (!resp.ok || !j.ok) {
+      document.getElementById('error-msg').textContent = resp.status === 403
+        ? 'This confirmation link is not valid. Please use the link sent to your WhatsApp.'
+        : 'Something went wrong. Please contact Ducor Pharmacy on WhatsApp.';
+      show('state-error');
+      return;
+    }
+    if (j.already) { show('state-already'); return; }
 
-  // Send delivered email to buyer
-  const buyerEmail = data.buyerEmail || data.email || '';
-  if (buyerEmail) {
+    // Notify the pharmacy on WhatsApp (ref only — no customer data leaves the server here)
     try {
-      await fetch('/api/send-email', {
+      await fetch('/api/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'delivery_confirmed', data: {
-          buyerEmail,
-          buyerName: customerName || '—',
-          ref: data.ref || orderDoc.id.slice(-8).toUpperCase(),
+        body: JSON.stringify({ type: 'delivery_confirmed', delivery: {
+          orderId: j.ref, customerName: j.firstName || '—', customerPhone: '—', total: '—'
         }})
       });
     } catch(e) {}
-  }
 
-  // Show success to customer
-  const ordNum = (data.id || orderDoc.id).slice(-8).toUpperCase();
-  document.getElementById('s-order-num').textContent = '#' + ordNum;
-  document.getElementById('s-customer').textContent = customerName || '—';
-  document.getElementById('s-total').textContent = '$' + (data.total || '0.00');
-  document.getElementById('success-order-box').style.display = 'block';
-  show('state-success');
+    document.getElementById('s-order-num').textContent = '#' + j.ref;
+    document.getElementById('s-customer').textContent = j.firstName || '—';
+    document.getElementById('s-total').textContent = '—';
+    document.getElementById('success-order-box').style.display = 'block';
+    show('state-success');
+  } catch(e) {
+    document.getElementById('error-msg').textContent = 'Something went wrong. Please contact Ducor Pharmacy on WhatsApp.';
+    show('state-error');
+  }
 }
 
 confirmDelivery();

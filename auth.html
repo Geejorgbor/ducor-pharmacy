@@ -102,6 +102,10 @@
     .form-head p{font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.5}
     .checkout-note{display:none;margin-top:8px;padding:8px 12px;background:rgba(13,148,136,0.12);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;color:#5eead4;font-size:0.79rem;font-weight:600}
     .checkout-note.show{display:block}
+    .order-gate{display:none;margin:0 0 18px;padding:14px 16px;border:1px solid rgba(13,148,136,0.35);background:rgba(13,148,136,0.08);border-radius:10px;color:rgba(255,255,255,0.78);font-size:0.86rem;line-height:1.55}
+    .order-gate.show{display:block}
+    .order-gate strong{display:block;font-size:0.95rem;margin-bottom:4px;color:#fff}
+    .order-gate a{color:var(--teal);font-weight:700;cursor:pointer;text-decoration:underline}
 
     /* Fields */
     .field{margin-bottom:15px}
@@ -232,6 +236,10 @@
     </div>
 
     <!-- Tabs -->
+      <div class="order-gate" id="order-gate" role="note">
+        <strong>An account is needed to place an order</strong>
+        Your account links each order, and any prescription you upload with it, to you so you can follow it from your account page. Sign in, or <a onclick="switchTab('signup')">create a free account</a> &mdash; it takes about a minute. You will go straight back to your cart afterwards.
+      </div>
     <div class="tabs">
       <button class="tab active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
       <button class="tab"        id="tab-signup" onclick="switchTab('signup')">Create Account</button>
@@ -243,7 +251,7 @@
       <div class="form-head">
         <h2>Welcome back</h2>
         <p>Sign in to access your health account and orders.</p>
-        <div class="checkout-note" id="checkout-note">Sign in to complete your purchase →</div>
+        <div class="checkout-note" id="checkout-note">Sign in to continue to checkout. Your cart is saved.</div>
       </div>
 
       <div class="alert error" id="login-err">
@@ -842,6 +850,8 @@ const _nextUrl=(()=>{const p=new URLSearchParams(window.location.search).get('ne
   if(goingCheckout){
     const note=document.getElementById('checkout-note');
     if(note) note.classList.add('show');
+    const gateNote=document.getElementById('order-gate');
+    if(gateNote) gateNote.classList.add('show');
   }
   // Persist DIP plan intent even if ?plan= is dropped from next after auth
   try{

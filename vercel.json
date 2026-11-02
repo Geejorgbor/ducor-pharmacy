@@ -83,6 +83,54 @@
     {
       "source": "/refund",
       "destination": "/returns.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html"
+    },
+    {
+      "source": "/returns",
+      "destination": "/returns.html"
+    },
+    {
+      "source": "/shipping",
+      "destination": "/shipping.html"
+    },
+    {
+      "source": "/track-order",
+      "destination": "/track-order.html"
+    },
+    {
+      "source": "/otc",
+      "destination": "/otc.html"
+    },
+    {
+      "source": "/vitamins",
+      "destination": "/vitamins.html"
+    },
+    {
+      "source": "/prescription",
+      "destination": "/prescription.html"
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog.html"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/checkout.html"
     }
   ]
 }

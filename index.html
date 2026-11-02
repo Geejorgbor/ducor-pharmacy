@@ -273,7 +273,8 @@
     /* ── FOOTER ── */
     .footer{background:#06193c;padding:58px 5% 26px}
     .fg{display:grid;grid-template-columns:2fr 1fr 1fr;gap:54px;max-width:1100px;margin:0 auto 44px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:44px}
-    @media(max-width:768px){.fg{grid-template-columns:1fr;gap:26px}}
+    .fg.fg-4{grid-template-columns:2fr 1fr 1fr 1fr}
+    @media(max-width:768px){.fg,.fg.fg-4{grid-template-columns:1fr;gap:26px}}
     .fb{display:flex;gap:13px;align-items:flex-start;margin-bottom:16px}
     .fb img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
     .fb h2{color:#fff;font-size:1.05rem;letter-spacing:1px;margin-bottom:3px}
@@ -470,7 +471,7 @@
       <div class="hero-stats">
         <div class="hero-stat"><span class="num">200+</span><span class="lbl">Medications</span></div>
         <div class="hero-stat"><span class="num">2</span><span class="lbl">Years of Service</span></div>
-        <div class="hero-stat"><span class="num">24/7</span><span class="lbl">Support</span></div>
+        <div class="hero-stat"><span class="num">24/7</span><span class="lbl">AI Chat Assistant</span></div>
       </div>
     </div>
   </div>
@@ -1190,8 +1191,8 @@ document.addEventListener('keydown',function(e){
       <div style="width:46px;height:46px;background:rgba(200,168,75,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 13px">
         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--gold)" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
       </div>
-      <h4 style="color:#fff;font-size:0.85rem;font-weight:700;margin-bottom:6px">Free Delivery</h4>
-      <p style="color:rgba(255,255,255,0.52);font-size:0.78rem;line-height:1.55">Within and around Monrovia</p>
+      <h4 style="color:#fff;font-size:0.85rem;font-weight:700;margin-bottom:6px">Monrovia Delivery</h4>
+      <p style="color:rgba(255,255,255,0.52);font-size:0.78rem;line-height:1.55">Free on orders over $200 ($8 otherwise), or free pickup in Sinkor</p>
     </div>
 
   </div>
@@ -1204,7 +1205,7 @@ document.addEventListener('keydown',function(e){
 </section>
 
 <!-- MEET OUR TEAM -->
-<section class="section team" id="team">
+<section class="section team" id="team" style="display:none">
   <div class="sh reveal">
     <span class="badge">Our People</span>
     <h2>Meet Our Team</h2>
@@ -1217,7 +1218,7 @@ document.addEventListener('keydown',function(e){
 
 <!-- FOOTER -->
 <footer class="footer">
-  <div class="fg" style="grid-template-columns:2fr 1fr 1fr 1fr">
+  <div class="fg fg-4">
     <div>
       <div class="fb">
         <img src="/assets/company-logo.jpg" alt="Ducor"/>
@@ -1229,10 +1230,6 @@ document.addEventListener('keydown',function(e){
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
           dipmonrovia@gmail.com
         </a>
-        <a href="https://wa.me/16309366050" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.6);font-size:0.84rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:color .2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.559 4.14 1.535 5.875L.057 23.882l6.213-1.454A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.924 0-3.74-.509-5.31-1.397l-.38-.225-3.688.864.904-3.597-.247-.37A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-          +1 (630) 936-6050
-        </a>
         <a href="https://wa.me/231880187490" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.6);font-size:0.84rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:color .2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.559 4.14 1.535 5.875L.057 23.882l6.213-1.454A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.924 0-3.74-.509-5.31-1.397l-.38-.225-3.688.864.904-3.597-.247-.37A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
           +231 880 187 490
@@ -1240,6 +1237,10 @@ document.addEventListener('keydown',function(e){
         <a href="https://wa.me/231760801914" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.6);font-size:0.84rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:color .2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.559 4.14 1.535 5.875L.057 23.882l6.213-1.454A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.924 0-3.74-.509-5.31-1.397l-.38-.225-3.688.864.904-3.597-.247-.37A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
           +231 760 801 914
+        </a>
+        <a href="https://wa.me/16309366050" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.6);font-size:0.84rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:color .2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.559 4.14 1.535 5.875L.057 23.882l6.213-1.454A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.924 0-3.74-.509-5.31-1.397l-.38-.225-3.688.864.904-3.597-.247-.37A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          +1 (630) 936-6050
         </a>
       </div>
       <div class="footer-social-row">
@@ -1286,9 +1287,9 @@ document.addEventListener('keydown',function(e){
       <ul>
         <li><a href="/contact.html">Contact Page</a></li>
         <li><a href="mailto:dipmonrovia@gmail.com">dipmonrovia@gmail.com</a></li>
-        <li><a href="tel:+16309366050">+1 (630) 936-6050</a></li>
         <li><a href="tel:+231880187490">+231 880 187 490</a></li>
         <li><a href="tel:+231760801914">+231 760 801 914</a></li>
+        <li><a href="tel:+16309366050">+1 (630) 936-6050</a></li>
       </ul>
       <p style="color:rgba(255,255,255,0.35);font-size:0.75rem;margin-top:16px;line-height:1.6">10th &amp; 11th St., Sinkor<br>Monrovia, Liberia<br>Mon–Sat · 9AM–5PM</p>
     </div>
@@ -1373,9 +1374,13 @@ document.addEventListener('keydown',function(e){
   var grid = document.getElementById('team-grid');
   if (!grid) return;
   if (!staff.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:40px;font-size:0.95rem">Staff photos will appear here once added by the administrator.</div>';
+    // No staff profiles published yet: hide the section rather than show an empty placeholder.
+    var teamSection = document.getElementById('team');
+    if (teamSection) teamSection.style.display = 'none';
     return;
   }
+  var teamShow = document.getElementById('team');
+  if (teamShow) teamShow.style.display = '';
   grid.innerHTML = staff.map(function(m) {
     return '<div class="tm reveal">' +
       (m.photo

@@ -372,7 +372,15 @@ const Cart = {
   },
 
   subtotal() {
-    return this.items.reduce((s, i) => s + i.price * i.qty, 0);
+    // Rx lines are quote-pending: never add catalog prices to the subtotal.
+    return this.items.reduce((s, i) => {
+      if (i.category === 'rx' || i.category === 'prescription') return s;
+      return s + (Number(i.price) || 0) * (Number(i.qty) || 0);
+    }, 0);
+  },
+
+  hasQuotePendingRx() {
+    return this.items.some(i => i.category === 'rx' || i.category === 'prescription');
   },
 
   updateBadge() {
@@ -405,7 +413,7 @@ const Cart = {
         <div class="cart-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
         <div class="cart-item-info">
           <h4>${item.name}</h4>
-          <p>${item.category === 'rx' ? '<span style="color:#0891b2;font-size:11px;font-weight:600">Contact for pricing</span>' : '$' + (item.price * item.qty).toFixed(2)}</p>
+          <p>${(item.category === 'rx' || item.category === 'prescription') ? '<span style="color:#0891b2;font-size:11px;font-weight:600">Contact for pricing</span>' : '$' + (item.price * item.qty).toFixed(2)}</p>
         </div>
         <div class="cart-item-qty">
           <button class="qty-btn" onclick="Cart.setQty('${item.id}', ${item.qty - 1})">−</button>
@@ -415,8 +423,10 @@ const Cart = {
         <button class="cart-remove" onclick="Cart.remove('${item.id}')" title="Remove">×</button>
       </div>`).join('');
     const sub = this.subtotal();
-    if (subtotalVal) subtotalVal.textContent = '$' + sub.toFixed(2);
-    if (totalVal) totalVal.textContent = '$' + sub.toFixed(2);
+    const rxPending = this.hasQuotePendingRx();
+    const label = rxPending ? (sub === 0 ? 'Quote pending' : '$' + sub.toFixed(2) + ' + Rx quote') : '$' + sub.toFixed(2);
+    if (subtotalVal) subtotalVal.textContent = label;
+    if (totalVal) totalVal.textContent = label;
   },
 
   open() {
@@ -1258,16 +1268,12 @@ function showRxPricingNotice(productId, category, productName) {
         </div>
         <div style="padding:24px 28px">
           <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#78350f;line-height:1.7">
-            <strong>⚠️ Prescription Pricing Notice</strong><br>
+            <strong>Prescription Pricing Notice</strong><br>
             The price for <strong id="rx-notice-name" style="color:#0d1b2a"></strong> is <strong>not fixed</strong>. Prescription medication prices change regularly based on current stock levels, dosage availability, and international supply costs.<br><br>
             <strong>Please contact us first</strong> to get the exact current price before placing your order.
           </div>
           <p style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:.5px;text-transform:uppercase;margin:0 0 10px">Contact us now</p>
           <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
-            <a href="tel:+16309366050" style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 14px;text-decoration:none;color:#166534;font-size:13px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-              <div><strong>Call (USA)</strong> &nbsp;+1 (630) 936-6050</div>
-            </a>
             <a href="tel:+231880187490" style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 14px;text-decoration:none;color:#166534;font-size:13px">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
               <div><strong>Call (Liberia)</strong> &nbsp;+231 880 187 490</div>
@@ -1275,6 +1281,11 @@ function showRxPricingNotice(productId, category, productName) {
             <a href="tel:+231760801914" style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 14px;text-decoration:none;color:#166534;font-size:13px">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
               <div><strong>Call (Liberia)</strong> &nbsp;+231 760 801 914</div>
+            </a>
+            
+            <a href="tel:+16309366050" style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 14px;text-decoration:none;color:#166534;font-size:13px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              <div><strong>Call (USA)</strong> &nbsp;+1 (630) 936-6050</div>
             </a>
             <a href="https://wa.me/16309366050" target="_blank" style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 14px;text-decoration:none;color:#166534;font-size:13px">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#16a34a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -1336,10 +1347,10 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
   else if (sortVal === 'price-desc') list = [...list].sort((a,b) => b.price - a.price);
   else list = [...list].sort((a,b) => a.name.localeCompare(b.name));
 
-  const tagClass = { rx: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
-  const tagLabel = { rx: 'RX', otc: 'OTC', vitamins: 'Supplement' };
-  const imgBg = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
-  const icon = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+  const tagClass = { rx: 'tag-rx', prescription: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
+  const tagLabel = { rx: 'RX', prescription: 'RX', otc: 'OTC', vitamins: 'Supplement' };
+  const imgBg = { rx: 'rx-bg', prescription: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+  const icon = { rx: ICONS.rx, prescription: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
 
   const container = document.getElementById(containerId);
   const count = document.getElementById('results-count');

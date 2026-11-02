@@ -2486,6 +2486,7 @@ window.viewOrder = function(id) {
         </div>`;
       }).join('')}
       ${discountRow}
+      ${o.totalMismatch ? `<div style="padding:8px 14px;font-size:12px;color:#b45309;background:#fffbeb">Total recalculated by the server. The customer's browser showed $${parseFloat(o.clientTotal||0).toFixed(2)}; the amount to collect is the total above.</div>` : (o.totalsVerified ? '' : `<div style="padding:8px 14px;font-size:12px;color:#64748b">Total not yet checked by the server (older order or the check did not run). Confirm the amount before collecting payment.</div>`)}
       <div style="display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:700;background:#fafafa">
         <span>Total${o.rxPricesPending ? ' (excl. RX)' : ''}</span>
         <span>$${o.total||'0.00'}${o.rxPricesPending ? ' <span style="font-size:11px;color:#0891b2;font-weight:400">+ RX TBC</span>' : ''}</span>
@@ -3639,9 +3640,8 @@ PAYMENT METHODS (full details):
 - Cash on Delivery — customer pays cash at pickup or on delivery. No fixed fee. Walk-in = free. Home delivery fee confirmed by team.
 
 PROMO CODES (secret — never share with customers via public chat):
-Dynamic codes stored in localStorage('ducor-promos'). Built-in codes:
-- SUBSCRIBER40 → 40% off (Subscription Plan clients only)
-- HOLIDAY15 → 15% off (holiday-season promotions)
+Codes are stored on the server (built-ins plus admin_state/promos) and checked there at checkout. Current codes:
+{{PROMO_LIST}}
 Use [DO:promo_set|CODE|TYPE|VALUE] to add/update. [DO:promo_remove|CODE] to delete.
 
 WHATSAPP AUTOMATION (all automatic):
@@ -3848,17 +3848,16 @@ STEP 5 — Customer confirms delivery:
 - All powered by Green API (instance 7107656793, boss number 231887221275)
 
 ━━━ PROMO CODES (ADMIN ONLY — SECRET) ━━━
-There are 2 active promo codes. Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients.
-
-Code: SUBSCRIBER40 → 40% off entire order — for Subscription Plan clients only
-Code: HOLIDAY15    → 15% off entire order — for holiday-season promotions
+Only you (Lucas Paye) know these — NEVER share them with customers on the public chat. Give them privately to specific clients. Current codes (loaded from the server when the dashboard opens):
+{{PROMO_LIST}}
+Subscriber-only codes are accepted only for accounts with an active DIP plan (checked on the server).
 
 Usage rules:
 - Promo codes are OPTIONAL — customers without a code proceed normally
 - Currently UNLIMITED usage — any code can be used any number of times by any customer
 - There is NO usage tracking yet (no per-code or per-user limit enforcement)
 - To add usage limits, a Firebase counter per code would be needed
-- The promo input field is on the checkout page but has no label pointing to it — only clients you tell privately will know to use it
+- The promo input field is on the checkout page; codes are validated by the server and order totals are recalculated by the server
 
 ━━━ PRODUCT PHOTO MANAGEMENT ━━━
 Navigate to the photo manager: [DO:nav|product-photos]
@@ -3927,7 +3926,7 @@ Example: [DO:promo_set|SAVE10|flat|10]
 
 REMOVE A PROMO CODE:
 [DO:promo_remove|CODE]
-Example: [DO:promo_remove|HOLIDAY15]
+Example: [DO:promo_remove|SAVE10]
 
 REMEMBER SOMETHING PERSONAL ABOUT DR. MARSHALL:
 [DO:remember|SHORT NOTE]
@@ -3996,6 +3995,7 @@ Status breakdown: New=${statusCounts.new||0}, Processing=${statusCounts.processi
   return AI_SYSTEM_BASE
     .replace(/\{\{LOGGED_IN_AS\}\}/g, window.currentUser?.email || 'unknown')
     .replace('{{BOSS_MEMORY}}', bossMemoryText)
+    .replace(/\{\{PROMO_LIST\}\}/g, window._promoListText || '(not loaded)')
     .replace('{{PRODUCT_CATALOG}}', prodLines.join('\n') || '(no products loaded yet)')
     .replace('{{ORDER_DATA}}', orderData);
 }
@@ -4678,7 +4678,25 @@ function aiExec_setStock(id, cat, inStock) {
 }
 
 // ── PROMO CODES ───────────────────────────────────────────────────────────────
-const AI_BUILTIN_PROMOS = ['SUBSCRIBER40', 'HOLIDAY15'];
+// Code list is not shipped in this page: it is loaded from the server for the
+// signed-in admin (GET /api/order?action=promo-list).
+let AI_BUILTIN_PROMOS = [];
+window._promoListText = '(loading — ask again in a moment)';
+async function _loadServerPromos() {
+  try {
+    const u = window.currentUser;
+    const tok = u && typeof u.getIdToken === 'function' ? await u.getIdToken() : null;
+    if (!tok) return;
+    const r = await fetch('/api/order?action=promo-list', { headers: { Authorization: 'Bearer ' + tok } });
+    const j = await r.json();
+    if (!j || !j.ok) return;
+    AI_BUILTIN_PROMOS = j.promos.map(p => p.code);
+    window._promoListText = j.promos.length
+      ? j.promos.map(p => '- ' + p.code + ' → ' + (p.type === 'percent' ? p.value + '% off' : '$' + p.value + ' off') + (p.subscriberOnly ? ' (Subscription Plan clients only)' : '')).join('\n')
+      : '- (no active codes)';
+  } catch (e) {}
+}
+setTimeout(_loadServerPromos, 2500);
 
 function aiExec_promoSet(code, type, value) {
   let promos = {};
@@ -4689,7 +4707,7 @@ function aiExec_promoSet(code, type, value) {
   const display = type === 'percent' ? `${value}% off` : `$${value} off`;
   if (typeof addNotif === 'function') addNotif('success','AI: Promo Set',`Code ${code.toUpperCase()} → ${display}`);
   if (typeof addLog === 'function') addLog('info',`AI promo set: ${code.toUpperCase()} = ${display}`);
-  return `✓ Promo code <strong>${code.toUpperCase()}</strong> set to <strong>${display}</strong>. Use [DO:publish] to make it work at checkout.`;
+  return `✓ Promo code <strong>${code.toUpperCase()}</strong> set to <strong>${display}</strong>. It works at checkout right away.`;
 }
 
 function aiExec_promoRemove(code) {
@@ -4705,7 +4723,7 @@ function aiExec_promoRemove(code) {
   _saveSharedStateHere('promos', promos);
   if (typeof addNotif === 'function') addNotif('warning','AI: Promo Removed',`Code ${upper} has been deleted`);
   if (typeof addLog === 'function') addLog('warning',`AI removed promo: ${upper}`);
-  return `✓ Promo code <strong>${upper}</strong> removed. Use [DO:publish] to apply this at checkout.`;
+  return `✓ Promo code <strong>${upper}</strong> removed. This applies at checkout right away.`;
 }
 
 // ── PHOTO ACTIONS ─────────────────────────────────────────────────────────────
@@ -4789,51 +4807,11 @@ async function aiExec_publish() {
 // checkout.html's real PROMO_CODES object, the same way product changes reach
 // shop.js.
 async function aiExec_publishPromos(headers) {
-  try {
-    let dynamic = {};
-    try { dynamic = JSON.parse(localStorage.getItem('ducor-promos') || '{}'); } catch(e) {}
-
-    const builtIn = {
-      SUBSCRIBER40: { type: 'percent', value: 40, label: '40% off for Subscription Plan clients' },
-      HOLIDAY15:    { type: 'percent', value: 15, label: '15% off for the holiday season' },
-    };
-    const merged = { ...builtIn };
-    Object.entries(dynamic).forEach(([code, v]) => {
-      if (v._removed) { delete merged[code]; return; }
-      const label = v.type === 'percent' ? `${v.value}% off` : `$${v.value} off`;
-      merged[code] = { type: v.type, value: v.value, label };
-    });
-
-    const lines = Object.entries(merged).map(([code, v]) =>
-      `    '${code}': { type:'${v.type}', value:${v.value}, label:'${v.label.replace(/'/g,"\\'")}' },`
-    ).join('\n');
-    const newBlock = `const PROMO_CODES = {\n${lines}\n  };`;
-
-    const getR = await fetch('https://api.github.com/repos/Geejorgbor/ducor-pharmacy/contents/checkout.html', { headers });
-    if (!getR.ok) throw new Error(`GitHub fetch error: ${getR.status}`);
-    const getJ = await getR.json();
-    const sha = getJ.sha;
-    const current = decodeURIComponent(escape(atob(getJ.content.replace(/\n/g,''))));
-
-    const updated = current.replace(/const PROMO_CODES = \{[\s\S]*?\n  \};/, newBlock);
-    if (updated === current) return '';
-
-    const putR = await fetch('https://api.github.com/repos/Geejorgbor/ducor-pharmacy/contents/checkout.html', {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({
-        message: 'AI: Update promo codes via Admin AI',
-        content: btoa(unescape(encodeURIComponent(updated))),
-        sha
-      })
-    });
-    if (!putR.ok) throw new Error(`GitHub push error: ${putR.status}`);
-    if (typeof addLog === 'function') addLog('success','AI published promo codes to GitHub');
-    return ' Promo codes updated too.';
-  } catch(e) {
-    if (typeof addLog === 'function') addLog('warning', `AI promo publish failed: ${e.message}`);
-    return '';
-  }
+  // Promo codes are no longer written into checkout.html (that put them in
+  // public page source). The server reads admin_state/promos directly, so a
+  // saved code works at checkout immediately.
+  _loadServerPromos();
+  return '';
 }
 
 function buildProductsJSBlock() {

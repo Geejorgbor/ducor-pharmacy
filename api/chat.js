@@ -121,7 +121,7 @@ function localPharmacyFallback(text) {
 
   // Payment
   if (/\b(pay|payment|momo|mobile money|sendwave|chase|cod|cash on delivery|bank transfer|receipt)\b/.test(t)) {
-    return "We accept several payment options: MTN Mobile Money (number given after order — then send your receipt to +231 887 221 275 on WhatsApp), Sendwave (details after order — send receipt on WhatsApp), Bank Transfer via Chase Bank USA (Account #958758598, Routing #075000019, Account Name: Ducor International Pharmacy — any bank worldwide can send; send receipt on WhatsApp), and Cash on Delivery when the order arrives or for walk-in pickup. Walk-in pickup delivery fee is FREE; home delivery fee depends on location and is confirmed before dispatch. After we confirm your receipt, tracking shows Payment Confirmed ✓.";
+    return "We accept several payment options: MTN Mobile Money (number given after order — then send your receipt to +231 887 221 275 on WhatsApp), Sendwave (details after order — send receipt on WhatsApp), Bank Transfer to our USA bank account (the account details are shown on the checkout page after you place your order; send the receipt on WhatsApp), and Cash on Delivery when the order arrives or for walk-in pickup. Walk-in pickup delivery fee is FREE; home delivery fee depends on location and is confirmed before dispatch. After we confirm your receipt, tracking shows Payment Confirmed ✓.";
   }
 
 
@@ -290,7 +290,7 @@ Customers receive automatic emails at every key step:
 ━━━ PAYMENT & CONFIRMATION ━━━
 - MTN Mobile Money: number is given after order — pay and send receipt to +231 887 221 275 on WhatsApp
 - Sendwave: details given after order — send receipt to WhatsApp after paying
-- Bank Transfer (Chase Bank USA): Account #958758598, Routing #075000019, Account Name: Ducor International Pharmacy. Any bank worldwide can send. Send receipt to WhatsApp after paying.
+- Bank Transfer (USA bank account): the account details are shown to the customer on the checkout page after they place an order. Never type out account or routing numbers in chat; direct the customer to checkout or to WhatsApp +231 887 221 275. Send receipt to WhatsApp after paying.
 - Cash on Delivery: pay in cash when order arrives or when walking in to pick up at pharmacy
 - Delivery fee: FREE for walk-in pickup. Home delivery fee depends on location — confirmed by our team before dispatch
 - After sending payment receipt, our team confirms it and the tracking page shows "Payment Confirmed ✓"

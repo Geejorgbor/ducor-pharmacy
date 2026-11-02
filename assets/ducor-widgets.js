@@ -376,7 +376,7 @@ function initChat() {
   `;
   document.head.appendChild(style);
 
-  const CONTACT_HTML = '<a href="https://wa.me/16309366050" target="_blank" rel="noopener">WhatsApp +1 (630) 936-6050</a> · <a href="https://wa.me/231880187490" target="_blank" rel="noopener">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank" rel="noopener">+231 760 801 914</a>';
+  const CONTACT_HTML = '<a href="https://wa.me/231880187490" target="_blank" rel="noopener">+231 880 187 490</a> · <a href="https://wa.me/231760801914" target="_blank" rel="noopener">+231 760 801 914</a> · <a href="https://wa.me/16309366050" target="_blank" rel="noopener">WhatsApp +1 (630) 936-6050</a>';
   const HOURS_MSG = 'Our pharmacists are available Monday–Saturday, 9AM–5PM (Monrovia time). Outside those hours I can keep helping as your online assistant, or you can reach the team anytime: ' + CONTACT_HTML + '.';
   // WhatsApp bridge: server notifies Lonestar + Boss (275). Client stores primary
   // waBridgeChatId = Lonestar only. Handoff allowed ANYTIME (after-hours ok).
