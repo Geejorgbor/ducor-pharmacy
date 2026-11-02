@@ -346,12 +346,22 @@ const Cart = {
     return plan;
   },
 
+  removeSubscriptionPlan() {
+    this.load();
+    try { localStorage.removeItem('dipSubscribe'); } catch(e) {}
+    this.items = this.items.filter(i => i.id !== 'dip-plan' && i.category !== 'plan');
+    this.save();
+    this.updateBadge();
+    this.renderDrawer();
+  },
+
   hasSubscriptionPlan() {
     this.load();
     return this.items.some(i => i.id === 'dip-plan' || i.category === 'plan');
   },
 
     remove(id) {
+    if (id === 'dip-plan') { try { localStorage.removeItem('dipSubscribe'); } catch(e) {} }
     this.items = this.items.filter(i => i.id !== id);
     this.save();
     this.updateBadge();
