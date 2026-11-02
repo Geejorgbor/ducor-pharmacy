@@ -1125,7 +1125,7 @@ window._db = _db;
   function _buildOrderPayload(ref, paymentMethod, paymentStatus, prescriptionFileData) {
     const first  = document.getElementById('first-name').value.trim();
     const last   = document.getElementById('last-name').value.trim();
-    const email  = document.getElementById('email').value.trim();
+    const email  = document.getElementById('email').value.trim().toLowerCase();
     const phone  = document.getElementById('phone').value.trim();
     const otcSub = Cart.items.filter(i => i.category !== 'rx' && i.category !== 'plan').reduce((s, i) => s + i.price * i.qty, 0);
     const planSub = Cart.items.filter(i => i.category === 'plan').reduce((s, i) => s + i.price * i.qty, 0);
