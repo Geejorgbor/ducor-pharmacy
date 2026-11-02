@@ -668,7 +668,7 @@
 <script src="/assets/shop.js"></script>
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 const _fbCfg = {
@@ -692,8 +692,14 @@ function _waitForAuthUser(){
 
 async function _saveOrderToFirestore(orderData) {
   try {
-    const ref = await addDoc(collection(_db, 'orders'), orderData);
-    return ref && ref.id ? ref.id : null;
+    // Id is known up front; wait up to 10s for the write so a slow network
+    // never leaves the customer stuck on "placing order".
+    const ref = doc(collection(_db, 'orders'));
+    const ok = await Promise.race([
+      setDoc(ref, orderData).then(() => true, () => false),
+      new Promise(r => setTimeout(() => r(null), 10000)),
+    ]);
+    return ok === false ? null : ref.id;
   } catch(e) { return null; }
 }
 
@@ -1209,7 +1215,7 @@ window._db = _db;
     const methodLabel = methodLabels[selectedPayment] || selectedPayment;
     const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment', prescriptionFileData);
     const _placeBtn = document.querySelector('.place-order-btn, #place-order-btn');
-    if (_placeBtn) { _placeBtn.disabled = true; }
+    if (_placeBtn) { _placeBtn.disabled = true; _placeBtn.style.opacity = '0.7'; _placeBtn.setAttribute('aria-busy', 'true'); }
     let _orderId = null;
     if (window._saveOrderToFirestore) _orderId = await window._saveOrderToFirestore(payload);
     // Server-priced totals replace the browser's figures (payment amount,
