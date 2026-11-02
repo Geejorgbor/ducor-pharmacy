@@ -372,7 +372,15 @@ const Cart = {
   },
 
   subtotal() {
-    return this.items.reduce((s, i) => s + i.price * i.qty, 0);
+    // Rx lines are quote-pending: never add catalog prices to the subtotal.
+    return this.items.reduce((s, i) => {
+      if (i.category === 'rx' || i.category === 'prescription') return s;
+      return s + (Number(i.price) || 0) * (Number(i.qty) || 0);
+    }, 0);
+  },
+
+  hasQuotePendingRx() {
+    return this.items.some(i => i.category === 'rx' || i.category === 'prescription');
   },
 
   updateBadge() {
@@ -405,7 +413,7 @@ const Cart = {
         <div class="cart-item-icon ${iconClass[item.category] || 'rx-bg'}">${iconSvg[item.category] || ICONS.rx}</div>
         <div class="cart-item-info">
           <h4>${item.name}</h4>
-          <p>${item.category === 'rx' ? '<span style="color:#0891b2;font-size:11px;font-weight:600">Contact for pricing</span>' : '$' + (item.price * item.qty).toFixed(2)}</p>
+          <p>${(item.category === 'rx' || item.category === 'prescription') ? '<span style="color:#0891b2;font-size:11px;font-weight:600">Contact for pricing</span>' : '$' + (item.price * item.qty).toFixed(2)}</p>
         </div>
         <div class="cart-item-qty">
           <button class="qty-btn" onclick="Cart.setQty('${item.id}', ${item.qty - 1})">−</button>
@@ -415,8 +423,10 @@ const Cart = {
         <button class="cart-remove" onclick="Cart.remove('${item.id}')" title="Remove">×</button>
       </div>`).join('');
     const sub = this.subtotal();
-    if (subtotalVal) subtotalVal.textContent = '$' + sub.toFixed(2);
-    if (totalVal) totalVal.textContent = '$' + sub.toFixed(2);
+    const rxPending = this.hasQuotePendingRx();
+    const label = rxPending ? (sub === 0 ? 'Quote pending' : '$' + sub.toFixed(2) + ' + Rx quote') : '$' + sub.toFixed(2);
+    if (subtotalVal) subtotalVal.textContent = label;
+    if (totalVal) totalVal.textContent = label;
   },
 
   open() {
@@ -1336,10 +1346,10 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
   else if (sortVal === 'price-desc') list = [...list].sort((a,b) => b.price - a.price);
   else list = [...list].sort((a,b) => a.name.localeCompare(b.name));
 
-  const tagClass = { rx: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
-  const tagLabel = { rx: 'RX', otc: 'OTC', vitamins: 'Supplement' };
-  const imgBg = { rx: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
-  const icon = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
+  const tagClass = { rx: 'tag-rx', prescription: 'tag-rx', otc: 'tag-otc', vitamins: 'tag-vit' };
+  const tagLabel = { rx: 'RX', prescription: 'RX', otc: 'OTC', vitamins: 'Supplement' };
+  const imgBg = { rx: 'rx-bg', prescription: 'rx-bg', otc: 'otc-bg', vitamins: 'vit-bg' };
+  const icon = { rx: ICONS.rx, prescription: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
 
   const container = document.getElementById(containerId);
   const count = document.getElementById('results-count');
