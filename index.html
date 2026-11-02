@@ -273,7 +273,8 @@
     /* ── FOOTER ── */
     .footer{background:#06193c;padding:58px 5% 26px}
     .fg{display:grid;grid-template-columns:2fr 1fr 1fr;gap:54px;max-width:1100px;margin:0 auto 44px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:44px}
-    @media(max-width:768px){.fg{grid-template-columns:1fr;gap:26px}}
+    .fg.fg-4{grid-template-columns:2fr 1fr 1fr 1fr}
+    @media(max-width:768px){.fg,.fg.fg-4{grid-template-columns:1fr;gap:26px}}
     .fb{display:flex;gap:13px;align-items:flex-start;margin-bottom:16px}
     .fb img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
     .fb h2{color:#fff;font-size:1.05rem;letter-spacing:1px;margin-bottom:3px}
@@ -1217,7 +1218,7 @@ document.addEventListener('keydown',function(e){
 
 <!-- FOOTER -->
 <footer class="footer">
-  <div class="fg" style="grid-template-columns:2fr 1fr 1fr 1fr">
+  <div class="fg fg-4">
     <div>
       <div class="fb">
         <img src="/assets/company-logo.jpg" alt="Ducor"/>
