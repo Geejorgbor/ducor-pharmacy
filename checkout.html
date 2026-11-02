@@ -692,8 +692,33 @@ function _waitForAuthUser(){
 
 async function _saveOrderToFirestore(orderData) {
   try {
-    await addDoc(collection(_db, 'orders'), orderData);
-  } catch(e) {}
+    const ref = await addDoc(collection(_db, 'orders'), orderData);
+    return ref && ref.id ? ref.id : null;
+  } catch(e) { return null; }
+}
+
+async function _getIdToken() {
+  try { const u = await _waitForAuthUser(); return u ? await u.getIdToken() : null; } catch(e) { return null; }
+}
+
+// Ask the server to price the order from its own price list. The server
+// overwrites subtotal/discount/shipping/total on the order and returns them.
+async function _finalizeOrder(orderId) {
+  if (!orderId) return null;
+  try {
+    const token = await _getIdToken();
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch('/api/order?action=finalize', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+      body: JSON.stringify({ orderId }),
+      signal: ctl.signal,
+    });
+    clearTimeout(timer);
+    const j = await r.json();
+    return (j && j.ok && j.totals) ? j : null;
+  } catch(e) { return null; }
 }
 
 async function _markCustomerSubscriptionPending(email) {
@@ -725,6 +750,8 @@ async function _markCustomerSubscriptionPending(email) {
 }
 
 window._saveOrderToFirestore = _saveOrderToFirestore;
+window._finalizeOrder = _finalizeOrder;
+window._getIdToken = _getIdToken;
 window._markCustomerSubscriptionPending = _markCustomerSubscriptionPending;
 window._db = _db;
 </script>
@@ -997,9 +1024,12 @@ window._db = _db;
     msg.style.color = '#64748b'; msg.textContent = 'Checking code…';
     let promo = null;
     try {
-      const r = await fetch('/api/order?action=promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+      const token = window._getIdToken ? await window._getIdToken() : null;
+      const r = await fetch('/api/order?action=promo', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}), body: JSON.stringify({ code }) });
       const j = await r.json();
       if (j && j.ok && j.promo) promo = j.promo;
+      else if (j && j.error === 'not_subscriber') { msg.style.color='#dc2626'; msg.textContent=code + ' is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return; }
+      else if (j && j.error === 'sign_in_required') { msg.style.color='#dc2626'; msg.textContent='Please sign in again to use ' + code + '.'; activePromo=null; renderSummary(); return; }
     } catch (e) {
       msg.style.color='#dc2626'; msg.textContent='Could not check the code right now. Please try again.'; activePromo=null; renderSummary(); return;
     }
@@ -1008,10 +1038,8 @@ window._db = _db;
     if (promo.subscriberOnly && Cart.hasSubscriptionPlan && Cart.hasSubscriptionPlan()) {
       msg.style.color='#dc2626'; msg.textContent=code + ' cannot be used on the subscription plan purchase.'; activePromo=null; renderSummary(); return;
     }
-    if (promo.subscriberOnly && !isActiveSubscriber()) {
-      msg.style.color='#dc2626'; msg.textContent=code + ' is for active DIP Subscription Plan members only.'; activePromo=null; renderSummary(); return;
-    }
-    activePromo = { code, type: promo.type, value: promo.value, label: promo.label };
+    // Membership for subscriber-only codes is checked by the server above.
+    activePromo = { code, type: promo.type, value: promo.value, label: promo.label, subscriberOnly: !!promo.subscriberOnly };
     msg.style.color='#16a34a';
     msg.textContent='Promo applied: ' + promo.label;
     renderSummary();
@@ -1180,7 +1208,22 @@ window._db = _db;
     };
     const methodLabel = methodLabels[selectedPayment] || selectedPayment;
     const payload = _buildOrderPayload(ref, methodLabel, selectedPayment === 'cash' ? 'Pending' : 'Awaiting Payment', prescriptionFileData);
-    if (window._saveOrderToFirestore) window._saveOrderToFirestore(payload);
+    const _placeBtn = document.querySelector('.place-order-btn, #place-order-btn');
+    if (_placeBtn) { _placeBtn.disabled = true; }
+    let _orderId = null;
+    if (window._saveOrderToFirestore) _orderId = await window._saveOrderToFirestore(payload);
+    // Server-priced totals replace the browser's figures (payment amount,
+    // confirmation email and admin notification all use the server total).
+    if (_orderId && window._finalizeOrder) {
+      const fin = await window._finalizeOrder(_orderId);
+      if (fin && fin.totals) {
+        payload.subtotal = fin.totals.subtotal;
+        payload.discount = fin.totals.discount;
+        payload.shipping = fin.totals.shipping;
+        payload.total = Number(fin.totals.total);
+        if (fin.promoRejected) payload.promoCode = null;
+      }
+    }
     if (payload.isSubscription && window._markCustomerSubscriptionPending) {
       window._markCustomerSubscriptionPending(payload.buyerEmail);
     }

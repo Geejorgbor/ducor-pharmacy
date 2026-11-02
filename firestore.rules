@@ -12,7 +12,7 @@ service cloud.firestore {
     }
 
 
-    // Orders — checkout creates orders without requiring an account.
+    // Orders — created by checkout (an account is required by the site).
     // Reads/updates are restricted to the admin or the logged-in owner
     // (buyerEmail == auth email). Guest flows go through server endpoints
     // that check the ref / confirmToken and return status only:
@@ -26,7 +26,14 @@ service cloud.firestore {
         && resource.data.buyerEmail == request.auth.token.email;
     }
     match /orders/{orderId} {
-      allow create: if true;
+      // Browsers may create an order but may not pre-set server-owned fields
+      // (server-priced totals, payment confirmation, plan activation).
+      allow create: if isAdmin() || (
+        !request.resource.data.keys().hasAny(['totalsVerified', 'totalsVerifiedAt', 'clientTotal',
+            'totalMismatch', 'paymentConfirmed', 'paymentConfirmedAt', 'subscriptionActivatedAt',
+            'confirmedByCustomer', 'confirmToken'])
+        && request.resource.data.get('subscriptionStatus', null) != 'active'
+      );
       allow read: if isAdmin() || isOrderOwner();
       allow update: if isAdmin();
       allow delete: if false;
