@@ -472,6 +472,23 @@ const UNIT_PRICING = {
   vit032:{count:100,unit:0.36},
   vit034:{count:100,unit:0.40},
   vit037:{count:100,unit:0.36},
+  rx032:{count:100,unit:0.12},
+  rx042:{count:100,unit:0.18},
+  rx043:{count:100,unit:0.20},
+  rx048:{count:90,unit:0.09},
+  rx050:{count:90,unit:0.22},
+  rx051:{count:90,unit:0.09},
+  rx054:{count:90,unit:0.31},
+  rx056:{count:90,unit:0.13},
+  rx077:{count:100,unit:0.10},
+  rx081:{count:30,unit:0.27},
+  rx117:{count:100,unit:0.48},
+  rx131:{count:100,unit:0.30},
+  rx132:{count:100,unit:0.48},
+  rx152:{count:30,unit:0.80},
+  otc042:{count:16,unit:0.25},
+  vit010:{count:60,unit:0.27},
+  vit026:{count:30,unit:0.80},
 };
 
 // ── CART ───────────────────────────────────────────────────────────────────────
