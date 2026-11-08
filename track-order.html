@@ -12,7 +12,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Track Your Order – Ducor International Pharmacy Liberia</title>
-  <link rel="icon" href="/assets/company-logo.jpg"/>
+  <link rel="icon" href="/assets/company-logo-sm.jpg"/>
   <meta name="description" content="Track your medication order from Ducor International Pharmacy, Monrovia Liberia. Enter your order reference number to see real-time delivery status."/>
   <meta name="keywords" content="track pharmacy order Liberia, order tracking Ducor pharmacy, medicine delivery status Liberia, order status Monrovia pharmacy, track medicine delivery Liberia"/>
   <meta name="robots" content="index, follow"/>
@@ -89,7 +89,7 @@
 
 <nav class="shop-nav">
   <a href="/index.html" class="nav-brand">
-    <img src="/assets/company-logo.jpg" alt="Ducor"/>
+    <img src="/assets/company-logo-sm.jpg" alt="Ducor"/>
     <div class="nav-brand-text">
       <h1>DUCOR</h1>
       <p>International Pharmacy</p>
@@ -111,7 +111,7 @@
 <div class="track-wrap">
   <div class="track-card">
     <div class="track-top">
-      <img src="/assets/company-logo.jpg" alt="Ducor"/>
+      <img src="/assets/company-logo-sm.jpg" alt="Ducor"/>
       <h2>Track Your Order</h2>
       <p>Ducor International Pharmacy</p>
     </div>
@@ -127,26 +127,15 @@
     </div>
   </div>
 
-  <a href="https://wa.me/16309366050" target="_blank" class="wa-help" style="margin-top:16px;border-radius:12px;background:#fff;border:1px solid #e2e8f0;color:#0d1b2a;text-decoration:none;display:flex;padding:14px 20px">
+  <a href="https://wa.me/231880187490" target="_blank" class="wa-help" style="margin-top:16px;border-radius:12px;background:#fff;border:1px solid #e2e8f0;color:#0d1b2a;text-decoration:none;display:flex;padding:14px 20px">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-    Need help? Contact us on WhatsApp — +1 (630) 936-6050
+    Need help? Contact us on WhatsApp — +231 880 187 490
   </a>
 </div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
-const app = initializeApp({
-  apiKey: "AIzaSyB2N6CcL0cGxBLfSdPANHJjjKuP5Rp0EIE",
-  authDomain: "ducor-pharmacy.firebaseapp.com",
-  projectId: "ducor-pharmacy",
-  storageBucket: "ducor-pharmacy.firebasestorage.app",
-  messagingSenderId: "952933384266",
-  appId: "1:952933384266:web:55b906e903d96940d426b3"
-});
-const db = getFirestore(app);
-
+// SECURITY: orders are no longer publicly readable in Firestore. Tracking goes
+// through /api/order?action=status, which returns status fields only (no personal data).
 const STEPS = [
   { key: 'new',        label: 'Order Placed',          desc: 'We have received your order and it is being reviewed by our team.' },
   { key: 'processing', label: 'Order Processing',       desc: 'Your order is being prepared by our pharmacy team.' },
@@ -172,21 +161,35 @@ document.getElementById('ref-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.searchOrder();
 });
 
-async function loadOrder(ref) {
-  try {
-    const q = query(collection(db, 'orders'), where('ref', '==', ref));
-    unsubscribe = onSnapshot(q, snap => {
-      if (snap.empty) {
-        document.getElementById('result').innerHTML = `
+const NOT_FOUND_HTML = `
           <div class="not-found">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <strong>Order not found</strong><br>
             Please check your reference number. It looks like <strong>DUCOR-XXXXXXXX</strong>.
           </div>`;
-        return;
-      }
-      renderOrder(snap.docs[0].data(), snap.docs[0].id);
-    });
+
+async function fetchStatus(ref) {
+  const resp = await fetch('/api/order?action=status&ref=' + encodeURIComponent(ref), { cache: 'no-store' });
+  if (resp.status === 404) return null;
+  const j = await resp.json();
+  if (!resp.ok || !j.ok) throw new Error(j.error || 'lookup failed');
+  return j.order;
+}
+
+async function loadOrder(ref) {
+  try {
+    const order = await fetchStatus(ref);
+    if (!order) { document.getElementById('result').innerHTML = NOT_FOUND_HTML; return; }
+    renderOrder(order, order.ref);
+    // Light polling replaces the old live Firestore listener.
+    let last = JSON.stringify(order);
+    const timer = setInterval(async () => {
+      try {
+        const o = await fetchStatus(ref);
+        if (o && JSON.stringify(o) !== last) { last = JSON.stringify(o); renderOrder(o, o.ref); }
+      } catch (e) {}
+    }, 30000);
+    unsubscribe = () => clearInterval(timer);
   } catch(e) {
     document.getElementById('result').innerHTML = `<div class="not-found">Something went wrong. Please try again or contact us on WhatsApp.</div>`;
   }
@@ -255,18 +258,17 @@ function renderOrder(data, docId) {
 
   document.getElementById('result').innerHTML = `
     <div class="order-header">
-      <div class="ref">${data.ref || docId.slice(-8).toUpperCase()}</div>
+      <div class="ref">${_escHtml(data.ref || docId)}</div>
       <div class="name">${name}</div>
       <div class="meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-        <span>${_escHtml(data.paymentMethod) || '—'}</span>
         ${paymentBadge}
       </div>
     </div>
     <div class="timeline">${stepsHtml}</div>
     ${itemsHtml}
-    <a href="https://wa.me/16309366050" target="_blank" class="wa-help" style="margin-top:20px">
+    <a href="https://wa.me/231880187490" target="_blank" class="wa-help" style="margin-top:20px">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Questions? WhatsApp us — +1 (630) 936-6050
+      Questions? WhatsApp us — +231 880 187 490
     </a>`;
 }
 
