@@ -582,14 +582,16 @@ function attachZoom(wrapEl, imgEl) {
   // OTC/Vitamins where we know the real count and self-service buying
   // already applies (RX goes through a phone call, where quantity is
   // discussed directly with the pharmacist instead).
-  const unitCount = _UNIT_COUNT_BY_ID[pid];
-  if (unitCount && (form === 'Tablet' || form === 'Capsule') && dispCat !== 'rx') {
-    const perUnitPrice = product.price / unitCount;
-    const formWord = form === 'Tablet' ? 'tablets' : 'capsules';
+  const _up = (typeof UNIT_PRICING !== 'undefined') ? UNIT_PRICING[pid] : null;
+  const unitCount = _up ? _up.count : null;
+  if (_up) {
+    const perUnitPrice = _up.unit;
+    const formWord = form === 'Capsule' ? 'capsules' : 'tablets';
     document.getElementById('pd-unit-buy').style.display = 'block';
     document.getElementById('pd-unit-form-label').textContent = formWord;
     document.getElementById('pd-unit-form-label2').textContent = formWord;
     const qtyInput = document.getElementById('pd-unit-qty');
+    qtyInput.max = Math.min(unitCount, 99);
     const priceEl = document.getElementById('pd-unit-price');
     function updateUnitPrice() {
       const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
