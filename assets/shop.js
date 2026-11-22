@@ -1182,6 +1182,14 @@ function _applyImage(productId, imageUrl, svgFallback) {
 // guaranteed-404 request wasted on every product photo (slow on weak connections).
 const _PRODUCTS_WITH_PNG = new Set(['vit032']);
 
+// Refresh the revised prescription artwork on devices with cached originals.
+const _REVISED_PRESCRIPTION_IMAGES = new Set(['rx025', 'rx030', 'rx090', 'rx102']);
+
+function productJpgUrl(productId) {
+  const path = '/assets/products/' + productId + '.jpg';
+  return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-20261122' : path;
+}
+
 async function _loadProductImage(productId, productName, category, svgFallback) {
   // 1a. PNG with transparent background (preferred — no white box), only when known to exist
   if (_PRODUCTS_WITH_PNG.has(productId)) {
@@ -1199,9 +1207,9 @@ async function _loadProductImage(productId, productName, category, svgFallback) 
     const img = new Image();
     img.onload = () => res(true);
     img.onerror = () => res(false);
-    img.src = '/assets/products/' + productId + '.jpg';
+    img.src = productJpgUrl(productId);
   });
-  if (localOk) { _applyImage(productId, '/assets/products/' + productId + '.jpg', svgFallback); return; }
+  if (localOk) { _applyImage(productId, productJpgUrl(productId), svgFallback); return; }
 
   // 2. NDC-specific NIH photo (exact bottle match)
   const ndc = _PRODUCT_NDC[productId];
@@ -1371,7 +1379,7 @@ const ProductModal = {
     });
     (async () => {
       const src = (_PRODUCTS_WITH_PNG.has(productId) && await tryLoad('/assets/products/' + productId + '.png'))
-               || await tryLoad('/assets/products/' + productId + '.jpg');
+               || await tryLoad(productJpgUrl(productId));
       if (src) {
         const img = document.createElement('img');
         img.src = src; img.alt = product.name;
