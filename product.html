@@ -401,7 +401,7 @@
 </footer>
 
 <script src="/assets/product-info.js"></script>
-<script src="/assets/shop.js"></script>
+<script src="/assets/shop.js?v=prescription-20261122"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -473,13 +473,13 @@ function attachZoom(wrapEl, imgEl) {
   const probe = new Image();
   probe.onload = function () {
     const img = document.createElement('img');
-    img.src = '/assets/products/' + pid + '.jpg';
+    img.src = productJpgUrl(pid);
     img.alt = product.name;
     frame.innerHTML = '';
     frame.appendChild(img);
     attachZoom(frame, img);
   };
-  probe.src = '/assets/products/' + pid + '.jpg';
+  probe.src = productJpgUrl(pid);
 
   // Medication form, verified against each product's real photo/label —
   // most product names are just "Drug 50mg" with no form word at all, so
