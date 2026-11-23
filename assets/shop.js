@@ -1187,7 +1187,7 @@ const _REVISED_PRESCRIPTION_IMAGES = new Set(PRODUCTS.prescription.map(product =
 
 function productJpgUrl(productId) {
   const path = '/assets/products/' + productId + '.jpg';
-  return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-studio-20261123' : path;
+  return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-pack-20261123' : path;
 }
 
 async function _loadProductImage(productId, productName, category, svgFallback) {
