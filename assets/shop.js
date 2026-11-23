@@ -1184,9 +1184,11 @@ const _PRODUCTS_WITH_PNG = new Set(['vit032']);
 
 // Refresh the revised prescription artwork on devices with cached originals.
 const _REVISED_PRESCRIPTION_IMAGES = new Set(PRODUCTS.prescription.map(product => product.id));
+const _REVISED_OTC_IMAGES = new Set(PRODUCTS.otc.filter(product => !product.adminOnly).map(product => product.id));
 
 function productJpgUrl(productId) {
   const path = '/assets/products/' + productId + '.jpg';
+  if (_REVISED_OTC_IMAGES.has(productId)) return path + '?v=otc-studio-20261123';
   return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-pack-20261123' : path;
 }
 
