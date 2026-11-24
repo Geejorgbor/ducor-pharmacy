@@ -1195,17 +1195,9 @@ function _applyImage(productId, imageUrl, svgFallback) {
   img.src = imageUrl;
 }
 
-// Refresh the revised product artwork on devices with cached originals.
-const _REVISED_PRESCRIPTION_IMAGES = new Set(PRODUCTS.prescription.map(product => product.id));
-const _REVISED_OTC_IMAGES = new Set(PRODUCTS.otc.filter(product => !product.adminOnly || product.id === 'otc049').map(product => product.id));
-const _REVISED_VITAMIN_IMAGES = new Set(PRODUCTS.vitamins.filter(product => product.id !== 'vit012').map(product => product.id));
-
+// Refresh product artwork on devices with cached studio cards or older pack photos.
 function productJpgUrl(productId) {
-  const path = '/assets/products/' + productId + '.jpg';
-  if (productId === 'vit008') return path + '?v=coq10-label-20261124';
-  if (_REVISED_OTC_IMAGES.has(productId)) return path + '?v=otc-studio-refresh-20261124';
-  if (_REVISED_VITAMIN_IMAGES.has(productId)) return path + '?v=vitamins-studio-20261124';
-  return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-containers-20261124' : path;
+  return '/assets/products/' + productId + '.jpg?v=real-pack-20261124';
 }
 
 function productSaleUnit(productId) {
