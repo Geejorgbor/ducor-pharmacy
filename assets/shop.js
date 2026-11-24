@@ -260,176 +260,120 @@ const ICONS = {
   </svg>`
 };
 
-// Per-tablet/capsule pricing: count in the bottle priced above, and the price of ONE tablet/capsule.
-// Read by product.html (individual-unit buying) and lib/pricing.js (server totals for "<id>-unit" items).
-
-// Per-tablet/capsule pricing: count in the bottle priced above, and the price of ONE tablet/capsule.
-// Read by product.html (individual-unit buying) and lib/pricing.js (server totals for "<id>-unit" items).
-const UNIT_PRICING = {
-  vit009:{count:100,unit:0.48},
-  otc002:{count:100,unit:0.36},
-  otc003:{count:100,unit:0.42},
-  otc004:{count:100,unit:0.48},
-  otc005:{count:50,unit:0.72},
-  otc008:{count:150,unit:0.20},
-  otc010:{count:36,unit:0.28},
-  otc011:{count:120,unit:0.25},
-  otc013:{count:100,unit:0.40},
-  otc018:{count:90,unit:0.53},
-  otc022:{count:100,unit:0.48},
-  otc024:{count:16,unit:1.00},
-  otc028:{count:10,unit:1.50},
-  otc033:{count:50,unit:0.48},
-  otc034:{count:100,unit:0.36},
-  otc036:{count:24,unit:0.50},
-  otc039:{count:100,unit:0.36},
-  otc040:{count:90,unit:0.40},
-  otc041:{count:60,unit:0.60},
-  otc042:{count:24,unit:0.50},
-  otc045:{count:50,unit:0.60},
-  otc048:{count:50,unit:0.48},
-  otc051:{count:100,unit:0.36},
-  otc054:{count:100,unit:0.36},
-  otc055:{count:30,unit:0.80},
-  otc056:{count:100,unit:0.36},
-  rx001:{count:100,unit:0.60},
-  rx002:{count:100,unit:0.48},
-  rx005:{count:100,unit:0.42},
-  rx006:{count:100,unit:0.48},
-  rx007:{count:100,unit:0.48},
-  rx008:{count:90,unit:0.47},
-  rx009:{count:90,unit:0.53},
-  rx010:{count:30,unit:1.00},
-  rx011:{count:30,unit:0.80},
-  rx015:{count:20,unit:0.80},
-  rx016:{count:20,unit:1.00},
-  rx017:{count:30,unit:0.80},
-  rx018:{count:30,unit:0.80},
-  rx019:{count:30,unit:1.00},
-  rx020:{count:100,unit:0.48},
-  rx021:{count:30,unit:0.80},
-  rx022:{count:30,unit:0.13},
-  rx023:{count:30,unit:1.00},
-  rx024:{count:90,unit:0.47},
-  rx025:{count:90,unit:0.53},
-  rx027:{count:30,unit:1.00},
-  rx028:{count:30,unit:1.20},
-  rx029:{count:30,unit:1.33},
-  rx030:{count:30,unit:1.00},
-  rx032:{count:100,unit:0.36},
-  rx033:{count:100,unit:0.48},
-  rx034:{count:100,unit:0.42},
-  rx035:{count:100,unit:0.42},
-  rx036:{count:100,unit:0.48},
-  rx037:{count:100,unit:0.48},
-  rx038:{count:20,unit:1.50},
-  rx039:{count:100,unit:0.60},
-  rx044:{count:100,unit:0.40},
-  rx045:{count:100,unit:0.48},
-  rx046:{count:90,unit:0.53},
-  rx048:{count:60,unit:0.50},
-  rx049:{count:100,unit:0.48},
-  rx050:{count:100,unit:0.48},
-  rx051:{count:90,unit:0.53},
-  rx053:{count:50,unit:0.60},
-  rx055:{count:30,unit:1.20},
-  rx056:{count:90,unit:0.53},
-  rx057:{count:90,unit:0.53},
-  rx058:{count:90,unit:0.53},
-  rx061:{count:100,unit:0.48},
-  rx062:{count:100,unit:0.36},
-  rx063:{count:100,unit:0.42},
-  rx064:{count:100,unit:0.48},
-  rx065:{count:100,unit:0.42},
-  rx066:{count:100,unit:0.48},
-  rx067:{count:100,unit:0.48},
-  rx068:{count:100,unit:0.48},
-  rx069:{count:100,unit:0.48},
-  rx070:{count:100,unit:0.48},
-  rx071:{count:100,unit:0.60},
-  rx072:{count:100,unit:0.48},
-  rx074:{count:100,unit:0.48},
-  rx075:{count:100,unit:0.60},
-  rx076:{count:100,unit:0.60},
-  rx077:{count:100,unit:0.50},
-  rx078:{count:100,unit:0.60},
-  rx082:{count:30,unit:0.67},
-  rx083:{count:120,unit:0.35},
-  rx084:{count:120,unit:0.40},
-  rx087:{count:100,unit:0.40},
-  rx088:{count:100,unit:0.42},
-  rx089:{count:100,unit:0.42},
-  rx090:{count:100,unit:0.42},
-  rx091:{count:100,unit:0.48},
-  rx092:{count:100,unit:0.48},
-  rx092b:{count:100,unit:0.42},
-  rx093:{count:100,unit:0.42},
-  rx094:{count:100,unit:0.48},
-  rx095:{count:100,unit:0.48},
-  rx096:{count:100,unit:0.48},
-  rx097:{count:90,unit:0.47},
-  rx098:{count:90,unit:0.53},
-  rx099:{count:90,unit:0.53},
-  rx100:{count:90,unit:0.53},
-  rx101:{count:100,unit:0.42},
-  rx102:{count:100,unit:0.48},
-  rx103:{count:100,unit:0.40},
-  rx104:{count:100,unit:0.42},
-  rx105:{count:100,unit:0.48},
-  rx106:{count:100,unit:0.40},
-  rx107:{count:100,unit:0.42},
-  rx108:{count:100,unit:0.42},
-  rx109:{count:100,unit:0.48},
-  rx110:{count:100,unit:0.42},
-  rx111:{count:100,unit:0.48},
-  rx115:{count:90,unit:0.53},
-  rx116:{count:100,unit:0.42},
-  rx120:{count:30,unit:0.80},
-  rx121:{count:30,unit:0.80},
-  rx122:{count:30,unit:0.93},
-  rx123:{count:30,unit:1.00},
-  rx124:{count:30,unit:0.80},
-  rx125:{count:30,unit:1.00},
-  rx126:{count:100,unit:0.48},
-  rx127:{count:90,unit:0.40},
-  rx133:{count:100,unit:0.36},
-  rx134:{count:30,unit:1.00},
-  rx135:{count:30,unit:1.00},
-  rx136:{count:60,unit:0.50},
-  rx137:{count:90,unit:0.47},
-  rx138:{count:90,unit:0.53},
-  rx139:{count:100,unit:0.48},
-  rx141:{count:30,unit:0.80},
-  rx142:{count:30,unit:1.00},
-  rx143:{count:100,unit:0.48},
-  rx144:{count:30,unit:0.80},
-  rx145:{count:30,unit:1.00},
-  rx147:{count:30,unit:0.80},
-  rx148:{count:100,unit:0.48},
-  rx149:{count:20,unit:2.50},
-  rx150:{count:100,unit:0.48},
-  vit002:{count:90,unit:0.40},
-  vit003:{count:100,unit:0.36},
-  vit004:{count:60,unit:0.50},
-  vit005:{count:60,unit:0.60},
-  vit008:{count:30,unit:1.00,container:'Bottle'},
-  vit010:{count:60,unit:0.80},
-  vit011:{count:100,unit:0.48},
-  vit012:{count:100,unit:0.48},
-  vit013:{count:100,unit:0.40},
-  vit015:{count:100,unit:0.48},
-  vit016:{count:120,unit:0.50},
-  vit017:{count:60,unit:0.60},
-  vit018:{count:90,unit:0.53},
-  vit019:{count:60,unit:0.60},
-  vit020:{count:120,unit:0.35},
-  vit025:{count:100,unit:0.60},
-  vit028:{count:100,unit:0.36},
-  vit029:{count:100,unit:0.36},
-  vit031:{count:100,unit:0.36},
-  vit032:{count:100,unit:0.36},
-  vit034:{count:100,unit:0.40},
-  vit037:{count:100,unit:0.36},
+// Part-pack amounts and prices from the Ducor retail price list.
+// Customers may buy only these amounts — not single tablets (except 1 N95 mask, if listed).
+// Used by product.html and by lib/pricing.js, which prices cart SKUs named "<id>-p<size>".
+const PART_PACK = {
+  otc002: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 3, label: '10 tablets' }],
+  otc003: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }, { size: 20, price: 15, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  otc004: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 25, label: '30 tablets' }, { size: 20, price: 18, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
+  otc008: [{ size: 150, price: 30, label: 'Full pack (150 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }, { size: 10, price: 4, label: '10 tablets' }],
+  otc011: [{ size: 120, price: 30, label: 'Full pack (120 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 10, label: '30 tablets' }],
+  otc013: [{ size: 100, price: 40, label: 'Full pack (100 capsules)', pack: true }, { size: 30, price: 12, label: '30 capsules' }, { size: 15, price: 8, label: '15 capsules' }],
+  otc018: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  otc022: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 30, label: '30 tablets' }],
+  otc033: [{ size: 50, price: 24, label: 'Full pack (50 Tablets)', pack: true }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  otc034: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 30, price: 12, label: '30 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  otc039: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
+  otc040: [{ size: 90, price: 36, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
+  otc041: [{ size: 60, price: 36, label: 'Full pack (60 tablets)', pack: true }, { size: 30, price: 12, label: '30 tablets' }],
+  otc048: [{ size: 50, price: 24, label: 'Full pack (50 Tablets)', pack: true }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  otc051: [{ size: 100, price: 36, label: 'Full pack (100 Capsules)', pack: true }, { size: 60, price: 20, label: '60 capsules' }, { size: 30, price: 12, label: '30 capsules' }],
+  otc054: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  otc056: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  rx001: [{ size: 100, price: 60, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 48, label: '60 tablets' }, { size: 30, price: 30, label: '30 tablets' }, { size: 20, price: 20, label: '20 tablets' }, { size: 10, price: 10, label: '10 tablets' }],
+  rx002: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
+  rx005: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }, { size: 20, price: 7, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  rx006: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
+  rx007: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
+  rx008: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }, { size: 14, price: 7, label: '14 tablets' }],
+  rx009: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 14, price: 10, label: '14 tablets' }],
+  rx020: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 10, label: '15 tablets' }],
+  rx024: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }, { size: 15, price: 10, label: '15 tablets' }],
+  rx025: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 24, label: '30 tablets' }, { size: 15, price: 15, label: '15 tablets' }],
+  rx027: [{ size: 30, price: 30, label: 'Full pack (30 Tablets)', pack: true }, { size: 10, price: 7, label: '10 tablets' }],
+  rx028: [{ size: 30, price: 36, label: 'Full pack (30 Tablets)', pack: true }, { size: 10, price: 10, label: '10 tablets' }],
+  rx033: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx034: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  rx035: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  rx036: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx037: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx039: [{ size: 100, price: 60, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 48, label: '60 capsules' }, { size: 30, price: 30, label: '30 capsules' }],
+  rx044: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  rx045: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx046: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx049: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx050: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx051: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx056: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx057: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx058: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx061: [{ size: 100, price: 48, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 26, label: '60 capsules' }, { size: 30, price: 20, label: '30 capsules' }],
+  rx062: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 25, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
+  rx063: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx064: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx065: [{ size: 100, price: 42, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 32, label: '60 capsules' }, { size: 30, price: 18, label: '30 capsules' }],
+  rx066: [{ size: 100, price: 48, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 36, label: '60 capsules' }, { size: 30, price: 20, label: '30 capsules' }],
+  rx067: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx068: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx069: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx070: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx071: [{ size: 100, price: 60, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 48, label: '60 capsules' }, { size: 30, price: 36, label: '30 capsules' }],
+  rx072: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx077: [{ size: 100, price: 50, label: 'Full pack (100 Tablets)', pack: true }, { size: 20, price: 14, label: '20 tablets' }, { size: 10, price: 6, label: '10 tablets' }],
+  rx078: [{ size: 100, price: 60, label: 'Full pack (100 Tablets)', pack: true }, { size: 20, price: 16, label: '20 tablets' }, { size: 10, price: 8, label: '10 tablets' }],
+  rx083: [{ size: 120, price: 42, label: 'Full pack (120 Tablets)', pack: true }, { size: 60, price: 26, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx084: [{ size: 120, price: 48, label: 'Full pack (120 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx087: [{ size: 100, price: 40, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
+  rx088: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 28, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx089: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 28, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx090: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 28, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx091: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx092: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx092b: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 28, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx093: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 28, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx094: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx095: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx096: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx097: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx098: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx099: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx100: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx101: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }, { size: 15, price: 10, label: '15 tablets' }],
+  rx102: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 12, label: '15 tablets' }],
+  rx103: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx104: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx105: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx106: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx107: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 34, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx108: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 34, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx109: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx110: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 34, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx111: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx115: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx116: [{ size: 100, price: 42, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 32, label: '60 capsules' }, { size: 30, price: 18, label: '30 capsules' }],
+  rx126: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx127: [{ size: 90, price: 36, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
+  rx133: [{ size: 100, price: 36, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  rx137: [{ size: 90, price: 42, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 34, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx138: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx139: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx143: [{ size: 100, price: 48, label: 'Full pack (100 Capsules)', pack: true }, { size: 60, price: 36, label: '60 capsules' }, { size: 30, price: 20, label: '30 capsules' }],
+  rx150: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  vit002: [{ size: 90, price: 36, label: 'Full pack (90 Tablets)', pack: true }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 12, label: '15 tablets' }],
+  vit003: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 12, label: '15 tablets' }],
+  vit011: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  vit012: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  vit013: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  vit015: [{ size: 100, price: 48, label: 'Full pack (100 Capsules)', pack: true }, { size: 60, price: 36, label: '60 capsules' }, { size: 30, price: 20, label: '30 capsules' }],
+  vit016: [{ size: 120, price: 60, label: 'Full pack (120 Capsules)', pack: true }, { size: 60, price: 48, label: '60 capsules' }, { size: 30, price: 30, label: '30 capsules' }],
+  vit025: [{ size: 100, price: 60, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 40, label: '60 tablets' }, { size: 30, price: 24, label: '30 tablets' }],
+  vit028: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  vit029: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  vit031: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  vit032: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  vit034: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  vit037: [{ size: 100, price: 36, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
 };
 
 // ── CART ───────────────────────────────────────────────────────────────────────
@@ -444,6 +388,8 @@ const Cart = {
     // Self-heal carts saved before the 'prescription'/'rx' category mismatch
     // fix — checkout.html's RX pricing/questionnaire logic all keys off 'rx'.
     this.items.forEach(i => { if (i.category === 'prescription') i.category = 'rx'; });
+    // Drop leftover single-tablet lines from the old per-tablet feature.
+    this.items = this.items.filter(i => !String(i.id || '').endsWith('-unit'));
   },
 
   save() {
@@ -458,6 +404,37 @@ const Cart = {
       existing.qty += 1;
     } else {
       this.items.push({ ...product, category: cat, qty: 1 });
+    }
+    this.save();
+    this.updateBadge();
+    this.renderDrawer();
+  },
+
+  addPack(product, category, option) {
+    this.load();
+    const cat = category === 'prescription' ? 'rx' : category;
+    if (!option || option.pack) {
+      this.add(product, category);
+      return;
+    }
+    const id = partPackSku(product.id, option);
+    const existing = this.items.find(i => i.id === id);
+    const name = product.name + ' — ' + option.label;
+    if (existing) {
+      existing.qty += 1;
+      existing.price = option.price;
+      existing.name = name;
+      existing.packSize = option.size;
+    } else {
+      this.items.push({
+        id: id,
+        name: name,
+        price: option.price,
+        category: cat,
+        qty: 1,
+        packSize: option.size,
+        parentId: product.id
+      });
     }
     this.save();
     this.updateBadge();
@@ -1191,7 +1168,17 @@ function productJpgUrl(productId) {
 }
 
 function productSaleUnit(productId) {
-  return UNIT_PRICING[productId]?.container || 'Dose';
+  if (typeof PART_PACK !== 'undefined' && PART_PACK[productId]) return 'pack';
+  return 'Dose';
+}
+
+function getPartPack(productId) {
+  return (typeof PART_PACK !== 'undefined' && PART_PACK[productId]) || null;
+}
+
+function partPackSku(productId, option) {
+  if (!option || option.pack) return productId;
+  return productId + '-p' + option.size;
 }
 
 async function _loadProductImage(productId, productName, category, svgFallback) {
@@ -1418,7 +1405,7 @@ const ProductModal = {
 // ── RX PRICING NOTICE ─────────────────────────────────────────────────────────
 // Shows before a prescription item can be added to cart
 
-function showRxPricingNotice(productId, category, productName) {
+function showRxPricingNotice(productId, category, productName, option) {
   let overlay = document.getElementById('rx-price-notice');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -1473,7 +1460,7 @@ function showRxPricingNotice(productId, category, productName) {
   document.getElementById('rx-notice-name').textContent = productName || 'this medication';
   document.getElementById('rx-notice-add-btn').onclick = () => {
     overlay.style.display = 'none';
-    addToCart(productId, category);
+    addToCart(productId, category, option);
   };
 }
 
@@ -1557,12 +1544,17 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
   setTimeout(() => _startImageLoading(list, category), 30);
 }
 
-function addToCart(productId, category) {
+function addToCart(productId, category, option) {
   Cart.load();
   const product = PRODUCTS[category].find(p => p.id === productId);
   if (!product) return;
-  Cart.add(product, category);
-  showToast(`${product.name} added to cart`);
+  if (option && !option.pack) {
+    Cart.addPack(product, category, option);
+    showToast(`${product.name} — ${option.label} added to cart`);
+  } else {
+    Cart.add(product, category);
+    showToast(`${product.name} added to cart`);
+  }
   const btn = document.getElementById('btn-' + productId);
   if (btn) {
     btn.classList.add('added');

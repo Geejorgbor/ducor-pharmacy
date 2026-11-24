@@ -104,6 +104,21 @@
     .pd-notice-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
     .pd-label-source { color: var(--navy); font-size: 13px; }
 
+    /* ── Quantity choice (part of a pack) ── */
+    .pd-qty { display: flex; flex-direction: column; gap: 10px; }
+    .pd-qty[hidden] { display: none; }
+    .pd-qty-hint { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0; }
+    .pd-qty select {
+      width: 100%; padding: 14px 16px; padding-right: 40px;
+      border: 1px solid var(--border); border-radius: 12px;
+      font-family: inherit; font-size: 15px; font-weight: 500; color: var(--navy);
+      background-color: #fff;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a3a5c' stroke-width='2.5'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat; background-position: right 14px center;
+      appearance: none; -webkit-appearance: none;
+    }
+    .pd-qty select:focus { outline: 2px solid #c9a055; outline-offset: 2px; }
+
     /* ── Action buttons ── */
     .pd-actions { display: flex; flex-direction: column; gap: 12px; }
     .pd-btn-cart {
@@ -282,16 +297,12 @@
       <a class="pd-label-source" id="pd-label-source" hidden>View the manufacturer’s full label (PDF)</a>
     </div>
 
-    <!-- BUY INDIVIDUAL TABLETS/CAPSULES — like at the pharmacy counter -->
-    <div id="pd-unit-buy" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:14px;padding:16px 18px;margin-bottom:20px">
-      <p style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#166534;margin-bottom:6px">Prefer Just a Few?</p>
-      <p style="font-size:13px;color:#166534;margin-bottom:12px;line-height:1.5">Buy the exact number of <span id="pd-unit-form-label">tablets</span> you need, just like at the pharmacy counter — no need to buy the whole bottle.</p>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <input type="number" id="pd-unit-qty" min="1" value="1" style="width:76px;padding:10px 12px;border:1.5px solid #86efac;border-radius:9px;font-size:14px;font-family:inherit;color:#1e293b"/>
-        <span id="pd-unit-form-label2" style="font-size:14px;color:#166534">tablets</span>
-        <span id="pd-unit-price" style="font-weight:700;color:#166534;font-size:15px">= $0.00</span>
-        <button id="pd-btn-unit-cart" style="padding:10px 20px;border:none;border-radius:9px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">Add to Cart</button>
-      </div>
+    <!-- Quantity choice: only shown for products the shop sells in part-pack amounts -->
+    <div class="pd-qty" id="pd-qty-box" hidden>
+      <p class="pd-section-label">Quantity</p>
+      <p class="pd-qty-hint" id="pd-qty-hint">You can buy part of this pack, in the amounts the shop already sells.</p>
+      <label for="pd-qty-select" class="pd-qty-hint" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Choose amount</label>
+      <select id="pd-qty-select"></select>
     </div>
 
     <hr class="pd-divider">
@@ -403,7 +414,7 @@
 </footer>
 
 <script src="/assets/product-info.js?v=coq10-label-20261124"></script>
-<script src="/assets/shop.js?v=otc-studio-refresh-20261124"></script>
+<script src="/assets/shop.js?v=part-pack-20261124"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -584,54 +595,36 @@ function attachZoom(wrapEl, imgEl) {
   const strengthMatch = product.name.match(/(\d[\d.,]*\s*(?:mcg|mg|g|%|iu|IU|ml|\/\S+)(?:\s*\/\s*[\d.,]+\s*\S+)?)/i);
   const strength = labelInfo?.strength || (strengthMatch ? strengthMatch[0] : 'See product label');
 
-  // Buy individual tablets/capsules instead of the whole bottle — only for
-  // OTC/Vitamins where we know the real count and self-service buying
-  // already applies (RX goes through a phone call, where quantity is
-  // discussed directly with the pharmacist instead).
-  const _up = (typeof UNIT_PRICING !== 'undefined') ? UNIT_PRICING[pid] : null;
-  const unitCount = _up ? _up.count : null;
+  const packOptions = (typeof getPartPack === 'function') ? getPartPack(pid) : null;
+  const unitCount = packOptions && packOptions.length
+    ? (packOptions.find(function (o) { return o.pack; }) || packOptions[0]).size
+    : null;
   const unitForm = { Capsule: 'Capsule', Softgel: 'Softgel' }[form] || 'Tablet';
   const formWord = unitForm.toLowerCase() + 's';
-  if (_up) {
-    const perUnitPrice = _up.unit;
-    document.getElementById('pd-unit-buy').style.display = 'block';
-    document.getElementById('pd-unit-form-label').textContent = formWord;
-    document.getElementById('pd-unit-form-label2').textContent = formWord;
-    const qtyInput = document.getElementById('pd-unit-qty');
-    qtyInput.max = Math.min(unitCount, 99);
-    const priceEl = document.getElementById('pd-unit-price');
-    function updateUnitPrice() {
-      const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
-      priceEl.textContent = '= $' + (perUnitPrice * qty).toFixed(2);
-    }
-    qtyInput.addEventListener('input', updateUnitPrice);
-    updateUnitPrice();
-    document.getElementById('pd-btn-unit-cart').addEventListener('click', function () {
-      const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
-      Cart.load();
-      const unitId = pid + '-unit';
-      const existing = Cart.items.find(i => i.id === unitId);
-      const unitName = product.name + ' (Individual ' + unitForm + 's)';
-      if (existing) {
-        existing.qty += qty;
-        if (labelInfo) existing.name = unitName;
-      } else {
-        Cart.items.push({
-          id: unitId,
-          name: unitName,
-          price: perUnitPrice,
-          category: cat,
-          qty: qty,
-        });
+  let selectedOption = packOptions ? (packOptions.find(function (o) { return o.pack; }) || packOptions[0]) : null;
+
+  if (packOptions && packOptions.length) {
+    const box = document.getElementById('pd-qty-box');
+    const sel = document.getElementById('pd-qty-select');
+    const hint = document.getElementById('pd-qty-hint');
+    const showPrices = dispCat !== 'rx';
+    box.hidden = false;
+    hint.textContent = showPrices
+      ? 'You can buy part of this pack, in the amounts the shop already sells.'
+      : 'Choose the amount you want. A pharmacist will confirm the price before your order is sent.';
+    sel.innerHTML = packOptions.map(function (o, i) {
+      const text = showPrices ? (o.label + ' — $' + Number(o.price).toFixed(2)) : o.label;
+      return '<option value="' + i + '"' + (o.pack ? ' selected' : '') + '>' + text + '</option>';
+    }).join('');
+    function applyOption() {
+      selectedOption = packOptions[parseInt(sel.value, 10)] || packOptions[0];
+      if (showPrices) {
+        document.getElementById('pd-price').textContent = '$' + Number(selectedOption.price).toFixed(2);
+        document.querySelector('#pd-price-row .pd-unit').textContent = '/ ' + selectedOption.label;
       }
-      Cart.save();
-      Cart.updateBadge();
-      Cart.renderDrawer();
-      const btn = this;
-      const original = btn.textContent;
-      btn.textContent = 'Added!';
-      setTimeout(() => { btn.textContent = original; }, 2000);
-    });
+    }
+    sel.addEventListener('change', applyOption);
+    applyOption();
   }
 
   // About paragraph
@@ -707,11 +700,11 @@ function attachZoom(wrapEl, imgEl) {
   document.getElementById('pd-btn-cart').addEventListener('click', function () {
     if (dispCat === 'rx') {
       if (typeof showRxPricingNotice === 'function') {
-        showRxPricingNotice(pid, cat, product.name);
+        showRxPricingNotice(pid, cat, product.name, selectedOption);
       }
       return;
     }
-    addToCart(pid, cat);
+    addToCart(pid, cat, selectedOption);
     this.classList.add('added');
     this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Added to Cart!`;
     setTimeout(() => {
@@ -723,11 +716,11 @@ function attachZoom(wrapEl, imgEl) {
   document.getElementById('pd-btn-buy').addEventListener('click', function () {
     if (dispCat === 'rx') {
       if (typeof showRxPricingNotice === 'function') {
-        showRxPricingNotice(pid, cat, product.name);
+        showRxPricingNotice(pid, cat, product.name, selectedOption);
       }
       return;
     }
-    addToCart(pid, cat);
+    addToCart(pid, cat, selectedOption);
     window.location.href = '/checkout.html';
   });
 
