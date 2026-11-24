@@ -1189,7 +1189,7 @@ const _REVISED_OTC_IMAGES = new Set(PRODUCTS.otc.filter(product => !product.admi
 function productJpgUrl(productId) {
   const path = '/assets/products/' + productId + '.jpg';
   if (_REVISED_OTC_IMAGES.has(productId)) return path + '?v=otc-containers-20261123';
-  return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-pack-20261123' : path;
+  return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-containers-20261124' : path;
 }
 
 async function _loadProductImage(productId, productName, category, svgFallback) {
