@@ -102,6 +102,7 @@
       margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
     }
     .pd-notice-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+    .pd-label-source { color: var(--navy); font-size: 13px; }
 
     /* ── Action buttons ── */
     .pd-actions { display: flex; flex-direction: column; gap: 12px; }
@@ -233,7 +234,7 @@
 
     <!-- ABOUT -->
     <div>
-      <p class="pd-section-label">About This Medication</p>
+      <p class="pd-section-label" id="pd-about-label">About This Medication</p>
       <p class="pd-about-text" id="pd-about"></p>
 
       <ul class="pd-facts" id="pd-facts"></ul>
@@ -278,6 +279,7 @@
     <div class="pd-notice" id="pd-notice">
       <div class="pd-notice-title" id="pd-notice-title"></div>
       <p class="pd-notice-body" id="pd-notice-body"></p>
+      <a class="pd-label-source" id="pd-label-source" hidden>View the manufacturer’s full label (PDF)</a>
     </div>
 
     <!-- BUY INDIVIDUAL TABLETS/CAPSULES — like at the pharmacy counter -->
@@ -400,8 +402,8 @@
   <p>© 2025 <a href="/index.html">Ducor International Pharmacy</a> · Trusted Pharmaceutical &amp; Medication Supply In Liberia</p>
 </footer>
 
-<script src="/assets/product-info.js"></script>
-<script src="/assets/shop.js?v=vitamins-studio-20261124"></script>
+<script src="/assets/product-info.js?v=coq10-label-20261124"></script>
+<script src="/assets/shop.js?v=coq10-label-20261124"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -433,6 +435,9 @@ function attachZoom(wrapEl, imgEl) {
     return;
   }
 
+  const info = (typeof PRODUCT_INFO !== 'undefined') ? PRODUCT_INFO[pid] : null;
+  const labelInfo = info?.label;
+
   // Page title
   document.title = product.name + ' – Ducor International Pharmacy';
 
@@ -460,6 +465,7 @@ function attachZoom(wrapEl, imgEl) {
     priceRow.parentNode.insertBefore(notice, priceRow.nextSibling);
   } else {
     document.getElementById('pd-price').textContent = '$' + product.price.toFixed(2);
+    document.querySelector('#pd-price-row .pd-unit').textContent = '/ ' + productSaleUnit(pid);
   }
 
   // Image background
@@ -523,7 +529,7 @@ function attachZoom(wrapEl, imgEl) {
     vit013:'Tablet',vit017:'Tablet',vit018:'Tablet',vit020:'Tablet',vit025:'Tablet',vit028:'Tablet',
     vit029:'Tablet',vit031:'Tablet',vit032:'Tablet',vit037:'Tablet',
     // ── Vitamins — Capsule ──
-    vit006:'Capsule',vit007:'Capsule',vit008:'Capsule',vit009:'Capsule',vit015:'Capsule',vit016:'Capsule',
+    vit006:'Capsule',vit007:'Capsule',vit009:'Capsule',vit015:'Capsule',vit016:'Capsule',
     vit019:'Capsule',vit027:'Capsule',vit030:'Capsule',vit034:'Capsule',
   };
 
@@ -549,7 +555,7 @@ function attachZoom(wrapEl, imgEl) {
   // fall back to guessing from the name for anything not yet in the table
   // (e.g. a new product added later).
   const nameLower = product.name.toLowerCase();
-  let form = _FORM_BY_ID[pid];
+  let form = labelInfo?.form || _FORM_BY_ID[pid];
   if (!form) {
     form = 'See product label';
     if      (/\binhaler\b/.test(nameLower))               form = 'Inhaler';
@@ -576,7 +582,7 @@ function attachZoom(wrapEl, imgEl) {
 
   // Extract strength / dosage from name
   const strengthMatch = product.name.match(/(\d[\d.,]*\s*(?:mcg|mg|g|%|iu|IU|ml|\/\S+)(?:\s*\/\s*[\d.,]+\s*\S+)?)/i);
-  const strength = strengthMatch ? strengthMatch[0] : 'See product label';
+  const strength = labelInfo?.strength || (strengthMatch ? strengthMatch[0] : 'See product label');
 
   // Buy individual tablets/capsules instead of the whole bottle — only for
   // OTC/Vitamins where we know the real count and self-service buying
@@ -584,9 +590,10 @@ function attachZoom(wrapEl, imgEl) {
   // discussed directly with the pharmacist instead).
   const _up = (typeof UNIT_PRICING !== 'undefined') ? UNIT_PRICING[pid] : null;
   const unitCount = _up ? _up.count : null;
+  const unitForm = { Capsule: 'Capsule', Softgel: 'Softgel' }[form] || 'Tablet';
+  const formWord = unitForm.toLowerCase() + 's';
   if (_up) {
     const perUnitPrice = _up.unit;
-    const formWord = form === 'Capsule' ? 'capsules' : 'tablets';
     document.getElementById('pd-unit-buy').style.display = 'block';
     document.getElementById('pd-unit-form-label').textContent = formWord;
     document.getElementById('pd-unit-form-label2').textContent = formWord;
@@ -604,11 +611,14 @@ function attachZoom(wrapEl, imgEl) {
       Cart.load();
       const unitId = pid + '-unit';
       const existing = Cart.items.find(i => i.id === unitId);
-      if (existing) { existing.qty += qty; }
-      else {
+      const unitName = product.name + ' (Individual ' + unitForm + 's)';
+      if (existing) {
+        existing.qty += qty;
+        if (labelInfo) existing.name = unitName;
+      } else {
         Cart.items.push({
           id: unitId,
-          name: product.name + ' (Individual ' + formWord.charAt(0).toUpperCase() + formWord.slice(1) + ')',
+          name: unitName,
           price: perUnitPrice,
           category: cat,
           qty: qty,
@@ -630,15 +640,18 @@ function attachZoom(wrapEl, imgEl) {
     otc:     `${product.name} is an over-the-counter medication available without a prescription. It has been carefully selected and sourced from certified manufacturers. Our pharmacy team is always available to guide you on proper use, dosage, and any potential interactions.`,
     vitamins:`${product.name} is a dietary supplement available at Ducor International Pharmacy. Our supplements are sourced from reputable, certified manufacturers and are designed to support overall health and wellbeing as part of a balanced lifestyle.`
   };
-  document.getElementById('pd-about').textContent = aboutMap[dispCat] || aboutMap.rx;
+  document.getElementById('pd-about').textContent = labelInfo?.about || aboutMap[dispCat] || aboutMap.rx;
+  if (labelInfo) document.getElementById('pd-about-label').textContent = 'About This Supplement';
 
   // Key facts table
   const facts = [
     ['Category',     catFull[dispCat] || '—'],
     ['Strength',     strength],
     ['Form',         form],
+    ...(labelInfo && unitCount ? [['Bottle size', `${unitCount} ${formWord} per bottle`]] : []),
+    ...(labelInfo?.facts || []),
     ['Availability', 'In Stock at Ducor Pharmacy'],
-    ['Storage',      'Store below 25°C, away from light and moisture'],
+    ['Storage',      labelInfo?.storage || 'Store below 25°C, away from light and moisture'],
     ['Dispensed by', 'Licensed Pharmacist · Ducor International Pharmacy'],
   ];
   document.getElementById('pd-facts').innerHTML = facts
@@ -661,12 +674,18 @@ function attachZoom(wrapEl, imgEl) {
     }
   };
   const notice = noticeMap[dispCat] || noticeMap.rx;
-  document.getElementById('pd-notice-title').textContent = notice.title;
-  document.getElementById('pd-notice-body').textContent  = notice.body;
+  document.getElementById('pd-notice-title').textContent = labelInfo ? 'Manufacturer Label' : notice.title;
+  document.getElementById('pd-notice-body').textContent = labelInfo
+    ? `${labelInfo.directions} ${labelInfo.warning}`
+    : notice.body;
+  if (labelInfo) {
+    const source = document.getElementById('pd-label-source');
+    source.href = labelInfo.url;
+    source.hidden = false;
+  }
 
   // Medication info cards (from product-info.js)
-  const info = (typeof PRODUCT_INFO !== 'undefined') ? PRODUCT_INFO[pid] : null;
-  if (info) {
+  if (info && !labelInfo) {
     document.getElementById('mi-uses').textContent  = info.uses;
     document.getElementById('mi-works').textContent = info.works;
     document.getElementById('mi-side').textContent  = info.side;

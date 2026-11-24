@@ -193,7 +193,7 @@ const PRODUCTS = {
     {id:'vit003',name:'B-Complex with Vitamin C',price:36.00},
     {id:'vit004',name:'Calcium with Vitamin D',price:30.00},
     {id:'vit005',name:'CertaVite Senior Multivitamin',price:36.00},
-    {id:'vit008',name:'CoQ10 100mg',price:30.00},
+    {id:'vit008',name:'Geri-Care CoQ10 100 mg',price:30.00},
     {id:'vit009',name:'Cod Liver Oil',price:48.00},
     {id:'vit010',name:'Collagen Formula Capsules',price:48.00},
     {id:'vit011',name:'Cranberry Tablets',price:48.00},
@@ -412,7 +412,7 @@ const UNIT_PRICING = {
   vit003:{count:100,unit:0.36},
   vit004:{count:60,unit:0.50},
   vit005:{count:60,unit:0.60},
-  vit008:{count:30,unit:1.00},
+  vit008:{count:30,unit:1.00,container:'Bottle'},
   vit010:{count:60,unit:0.80},
   vit011:{count:100,unit:0.48},
   vit012:{count:100,unit:0.48},
@@ -1184,9 +1184,14 @@ const _REVISED_VITAMIN_IMAGES = new Set(PRODUCTS.vitamins.filter(product => prod
 
 function productJpgUrl(productId) {
   const path = '/assets/products/' + productId + '.jpg';
+  if (productId === 'vit008') return path + '?v=coq10-label-20261124';
   if (_REVISED_OTC_IMAGES.has(productId)) return path + '?v=otc-containers-20261123';
   if (_REVISED_VITAMIN_IMAGES.has(productId)) return path + '?v=vitamins-studio-20261124';
   return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-containers-20261124' : path;
+}
+
+function productSaleUnit(productId) {
+  return UNIT_PRICING[productId]?.container || 'Dose';
 }
 
 async function _loadProductImage(productId, productName, category, svgFallback) {
@@ -1351,6 +1356,7 @@ const ProductModal = {
 
     document.getElementById('pm-name').textContent  = product.name;
     document.getElementById('pm-price').textContent = '$' + product.price.toFixed(2);
+    document.getElementById('pm-unit').textContent  = '/ ' + productSaleUnit(productId);
     document.getElementById('pm-note').textContent  = notes[dispCat] || '';
     const priceRow = document.querySelector('.pm-price-row');
     if (priceRow) priceRow.style.display = dispCat === 'rx' ? 'none' : '';
@@ -1533,7 +1539,7 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name">${p.name}</p>
-        ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#0891b2;font-size:12px;font-weight:600">📞 Call for pricing</p>` : `<p class="product-price">$${p.price.toFixed(2)} <span>/ Dose</span></p>`}
+        ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#0891b2;font-size:12px;font-weight:600">📞 Call for pricing</p>` : `<p class="product-price">$${p.price.toFixed(2)} <span>/ ${productSaleUnit(p.id)}</span></p>`}
         ${(category === 'rx' || category === 'prescription')
           ? `<button class="btn-add" id="btn-${p.id}" onclick="showRxPricingNotice('${p.id}','${category}','${p.name.replace(/'/g, '&apos;').replace(/"/g, '&quot;')}')" style="background:linear-gradient(135deg,#0d1b2a,#162540)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
