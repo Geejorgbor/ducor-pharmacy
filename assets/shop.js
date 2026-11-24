@@ -261,7 +261,12 @@ const ICONS = {
 };
 
 // Part-pack amounts and prices from the Ducor retail price list.
-// Every amount the list gives a price for is offered, at that exact price, except single tablets (the 1 column) for now.
+// Each product follows its own row exactly: every amount that row prices is offered at that list price,
+// including a single unit (the 1 column) where the row prices it. Amounts the row does not price are not offered.
+// Items with only a full-pack price stay full pack.
+// Flagged, not guessed: Fluconazole 150mg is 2 tablets at $5 on the list (PDF column 2; no pack price) but is not on the website.
+// Oral Digital Thermometer shows "$100LD" in the 1 column — left unchanged. Melatonin 10mg is a 60-tablet pack at $36;
+// the 60 column also has $20, which we do not offer as a second price for the same 60 tablets (30 tablets stay $12).
 // Used by product.html and by lib/pricing.js, which prices cart SKUs named "<id>-p<size>".
 const PART_PACK = {
   otc002: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 3, label: '10 tablets' }],
