@@ -1197,7 +1197,7 @@ function _applyImage(productId, imageUrl, svgFallback) {
 
 // Refresh product artwork on devices with cached studio cards or older pack photos.
 function productJpgUrl(productId) {
-  return '/assets/products/' + productId + '.jpg?v=real-pack-20261124';
+  return '/assets/products/' + productId + '.jpg?v=real-pack-20261124b';
 }
 
 function productSaleUnit(productId) {
