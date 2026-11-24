@@ -63,6 +63,13 @@
       font-family: 'Cormorant Garamond', serif;
       font-size: 38px; font-weight: 700; color: var(--navy); line-height: 1.2; margin: 0;
     }
+    .pd-use {
+      margin: 8px 0 0;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.45;
+    }
 
     .pd-price-row { display: flex; align-items: baseline; gap: 10px; }
     .pd-price { font-size: 44px; font-weight: 700; color: var(--navy); letter-spacing: -2px; }
@@ -257,7 +264,10 @@
 
     <span class="pd-tag product-tag tag-rx" id="pd-tag">Loading…</span>
 
-    <h1 class="pd-name" id="pd-name">Loading…</h1>
+    <div class="pd-title-block">
+      <h1 class="pd-name" id="pd-name">Loading…</h1>
+      <p class="pd-use" id="pd-use" hidden></p>
+    </div>
 
     <div class="pd-price-row" id="pd-price-row">
       <span class="pd-price" id="pd-price"></span>
@@ -439,7 +449,7 @@
 </footer>
 
 <script src="/assets/product-info.js?v=coq10-label-20261124"></script>
-<script src="/assets/shop.js?v=real-pack-20261124b"></script>
+<script src="/assets/shop.js?v=used-for-20261124"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -491,6 +501,12 @@ function attachZoom(wrapEl, imgEl) {
 
   // Name & price
   document.getElementById('pd-name').textContent = product.name;
+  const usedFor = (typeof productUsedFor === 'function') ? productUsedFor(pid) : '';
+  const useEl = document.getElementById('pd-use');
+  if (usedFor && useEl) {
+    useEl.textContent = 'Used for: ' + usedFor;
+    useEl.hidden = false;
+  }
   if (dispCat === 'rx') {
     document.getElementById('pd-price-row').style.display = 'none';
     // Insert a "Call for pricing" notice under the product name
