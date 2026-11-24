@@ -1177,34 +1177,20 @@ function _applyImage(productId, imageUrl, svgFallback) {
   img.src = imageUrl;
 }
 
-// Only these product IDs actually have a real PNG file in assets/products/ —
-// everyone else only has a .jpg, so probing .png first would just be a
-// guaranteed-404 request wasted on every product photo (slow on weak connections).
-const _PRODUCTS_WITH_PNG = new Set(['vit032']);
-
-// Refresh the revised prescription artwork on devices with cached originals.
+// Refresh the revised product artwork on devices with cached originals.
 const _REVISED_PRESCRIPTION_IMAGES = new Set(PRODUCTS.prescription.map(product => product.id));
 const _REVISED_OTC_IMAGES = new Set(PRODUCTS.otc.filter(product => !product.adminOnly).map(product => product.id));
+const _REVISED_VITAMIN_IMAGES = new Set(PRODUCTS.vitamins.filter(product => product.id !== 'vit012').map(product => product.id));
 
 function productJpgUrl(productId) {
   const path = '/assets/products/' + productId + '.jpg';
   if (_REVISED_OTC_IMAGES.has(productId)) return path + '?v=otc-containers-20261123';
+  if (_REVISED_VITAMIN_IMAGES.has(productId)) return path + '?v=vitamins-studio-20261124';
   return _REVISED_PRESCRIPTION_IMAGES.has(productId) ? path + '?v=prescription-containers-20261124' : path;
 }
 
 async function _loadProductImage(productId, productName, category, svgFallback) {
-  // 1a. PNG with transparent background (preferred — no white box), only when known to exist
-  if (_PRODUCTS_WITH_PNG.has(productId)) {
-    const pngOk = await new Promise(res => {
-      const img = new Image();
-      img.onload = () => res(true);
-      img.onerror = () => res(false);
-      img.src = '/assets/products/' + productId + '.png';
-    });
-    if (pngOk) { _applyImage(productId, '/assets/products/' + productId + '.png', svgFallback); return; }
-  }
-
-  // 1b. Local photo — /assets/products/{id}.jpg
+  // 1. Local photo — /assets/products/{id}.jpg
   const localOk = await new Promise(res => {
     const img = new Image();
     img.onload = () => res(true);
@@ -1380,8 +1366,7 @@ const ProductModal = {
       const i = new Image(); i.onload = () => res(src); i.onerror = () => res(null); i.src = src;
     });
     (async () => {
-      const src = (_PRODUCTS_WITH_PNG.has(productId) && await tryLoad('/assets/products/' + productId + '.png'))
-               || await tryLoad(productJpgUrl(productId));
+      const src = await tryLoad(productJpgUrl(productId));
       if (src) {
         const img = document.createElement('img');
         img.src = src; img.alt = product.name;
