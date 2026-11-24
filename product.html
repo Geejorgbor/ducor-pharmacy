@@ -118,6 +118,25 @@
       appearance: none; -webkit-appearance: none;
     }
     .pd-qty select:focus { outline: 2px solid #c9a055; outline-offset: 2px; }
+    .pd-qty-input-row { display: flex; align-items: center; gap: 12px; }
+    .pd-qty-input-row input[type="number"] {
+      flex: 1; padding: 14px 16px;
+      border: 1px solid var(--border); border-radius: 12px;
+      font-family: inherit; font-size: 15px; font-weight: 500; color: var(--navy);
+      background: #fff; width: 100%;
+      -moz-appearance: textfield;
+    }
+    .pd-qty-input-row input[type="number"]::-webkit-outer-spin-button,
+    .pd-qty-input-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .pd-qty-input-row input[type="number"]:focus { outline: 2px solid #c9a055; outline-offset: 2px; }
+    .pd-qty-input-unit { font-size: 14px; color: var(--muted); white-space: nowrap; }
+    .pd-qty-field-label { font-size: 13px; font-weight: 600; color: var(--navy); margin: 0; }
+    .pd-qty-error {
+      margin: 0; font-size: 14px; line-height: 1.55; color: #7a2e2e;
+      background: #faf6f2; border: 1px solid #e4d5c8; border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .pd-qty-error[hidden] { display: none; }
 
     /* ── Action buttons ── */
     .pd-actions { display: flex; flex-direction: column; gap: 12px; }
@@ -301,8 +320,14 @@
     <div class="pd-qty" id="pd-qty-box" hidden>
       <p class="pd-section-label">Quantity</p>
       <p class="pd-qty-hint" id="pd-qty-hint">You can buy part of this pack, in the amounts the shop already sells.</p>
-      <label for="pd-qty-select" class="pd-qty-hint" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Choose amount</label>
+      <label for="pd-qty-select" class="pd-qty-field-label">Choose an amount</label>
       <select id="pd-qty-select"></select>
+      <label for="pd-qty-input" class="pd-qty-field-label">Or type how many you want</label>
+      <div class="pd-qty-input-row">
+        <input type="number" id="pd-qty-input" inputmode="numeric" min="1" step="1" autocomplete="off">
+        <span class="pd-qty-input-unit" id="pd-qty-input-unit">tablets</span>
+      </div>
+      <p class="pd-qty-error" id="pd-qty-error" hidden></p>
     </div>
 
     <hr class="pd-divider">
@@ -414,7 +439,7 @@
 </footer>
 
 <script src="/assets/product-info.js?v=coq10-label-20261124"></script>
-<script src="/assets/shop.js?v=part-pack-20261124"></script>
+<script src="/assets/shop.js?v=part-pack-box-20261124"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -603,28 +628,86 @@ function attachZoom(wrapEl, imgEl) {
   const formWord = unitForm.toLowerCase() + 's';
   let selectedOption = packOptions ? (packOptions.find(function (o) { return o.pack; }) || packOptions[0]) : null;
 
+  const qtyError = document.getElementById('pd-qty-error');
+  function showQtyError(msg) {
+    if (!qtyError) return;
+    if (msg) { qtyError.textContent = msg; qtyError.hidden = false; }
+    else { qtyError.textContent = ''; qtyError.hidden = true; }
+  }
+
   if (packOptions && packOptions.length) {
     const box = document.getElementById('pd-qty-box');
     const sel = document.getElementById('pd-qty-select');
+    const input = document.getElementById('pd-qty-input');
     const hint = document.getElementById('pd-qty-hint');
+    const unitEl = document.getElementById('pd-qty-input-unit');
     const showPrices = dispCat !== 'rx';
+    const unitWord = (typeof partPackUnitWord === 'function') ? partPackUnitWord(packOptions) : formWord;
     box.hidden = false;
+    if (unitEl) unitEl.textContent = unitWord;
     hint.textContent = showPrices
-      ? 'You can buy part of this pack, in the amounts the shop already sells.'
-      : 'Choose the amount you want. A pharmacist will confirm the price before your order is sent.';
+      ? ((typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) : 'You can buy part of this pack, in the amounts the shop already sells.')
+      : ((typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) + ' A pharmacist will confirm the price before your order is sent.' : 'Choose the amount you want. A pharmacist will confirm the price before your order is sent.');
     sel.innerHTML = packOptions.map(function (o, i) {
       const text = showPrices ? (o.label + ' — $' + Number(o.price).toFixed(2)) : o.label;
       return '<option value="' + i + '"' + (o.pack ? ' selected' : '') + '>' + text + '</option>';
     }).join('');
     function applyOption() {
       selectedOption = packOptions[parseInt(sel.value, 10)] || packOptions[0];
+      if (input) input.value = selectedOption.size;
+      showQtyError('');
+      if (showPrices) {
+        document.getElementById('pd-price').textContent = '$' + Number(selectedOption.price).toFixed(2);
+        document.querySelector('#pd-price-row .pd-unit').textContent = '/ ' + selectedOption.label;
+      }
+    }
+    function applyTypedAmount() {
+      const raw = (input.value || '').trim();
+      if (raw === '') { showQtyError(''); return; }
+      const size = parseInt(raw, 10);
+      if (!/^[0-9]+$/.test(raw) || size < 1) {
+        selectedOption = null;
+        showQtyError((typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) : 'Please enter an allowed amount.');
+        return;
+      }
+      const match = packOptions.find(function (o) { return o.size === size; });
+      if (!match) {
+        selectedOption = null;
+        showQtyError((typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) : 'That amount is not sold.');
+        return;
+      }
+      const idx = packOptions.indexOf(match);
+      sel.value = String(idx);
+      selectedOption = match;
+      showQtyError('');
       if (showPrices) {
         document.getElementById('pd-price').textContent = '$' + Number(selectedOption.price).toFixed(2);
         document.querySelector('#pd-price-row .pd-unit').textContent = '/ ' + selectedOption.label;
       }
     }
     sel.addEventListener('change', applyOption);
+    input.addEventListener('input', applyTypedAmount);
+    input.addEventListener('change', applyTypedAmount);
     applyOption();
+  }
+
+  function resolveCartOption() {
+    if (!packOptions || !packOptions.length) return selectedOption;
+    const input = document.getElementById('pd-qty-input');
+    const raw = input ? String(input.value || '').trim() : '';
+    if (raw !== '') {
+      const size = parseInt(raw, 10);
+      const match = /^[0-9]+$/.test(raw) ? packOptions.find(function (o) { return o.size === size; }) : null;
+      if (!match) {
+        const msg = (typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) : 'That amount is not sold.';
+        showQtyError(msg);
+        return null;
+      }
+      selectedOption = match;
+      showQtyError('');
+      return match;
+    }
+    return selectedOption;
   }
 
   // About paragraph
@@ -698,13 +781,19 @@ function attachZoom(wrapEl, imgEl) {
 
   // Button actions
   document.getElementById('pd-btn-cart').addEventListener('click', function () {
+    const option = resolveCartOption();
+    if (packOptions && packOptions.length && !option) return;
     if (dispCat === 'rx') {
       if (typeof showRxPricingNotice === 'function') {
-        showRxPricingNotice(pid, cat, product.name, selectedOption);
+        showRxPricingNotice(pid, cat, product.name, option);
       }
       return;
     }
-    addToCart(pid, cat, selectedOption);
+    const result = addToCart(pid, cat, option);
+    if (result && result.ok === false) {
+      showQtyError(result.message);
+      return;
+    }
     this.classList.add('added');
     this.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Added to Cart!`;
     setTimeout(() => {
@@ -714,13 +803,19 @@ function attachZoom(wrapEl, imgEl) {
   });
 
   document.getElementById('pd-btn-buy').addEventListener('click', function () {
+    const option = resolveCartOption();
+    if (packOptions && packOptions.length && !option) return;
     if (dispCat === 'rx') {
       if (typeof showRxPricingNotice === 'function') {
-        showRxPricingNotice(pid, cat, product.name, selectedOption);
+        showRxPricingNotice(pid, cat, product.name, option);
       }
       return;
     }
-    addToCart(pid, cat, selectedOption);
+    const result = addToCart(pid, cat, option);
+    if (result && result.ok === false) {
+      showQtyError(result.message);
+      return;
+    }
     window.location.href = '/checkout.html';
   });
 

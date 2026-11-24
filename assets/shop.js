@@ -261,36 +261,37 @@ const ICONS = {
 };
 
 // Part-pack amounts and prices from the Ducor retail price list.
-// Customers may buy only these amounts — not single tablets (except 1 N95 mask, if listed).
+// A bottle is offered in about 3 sensible amounts (for example 30, 60, or the whole pack).
+// Amounts under 20 are dropped unless they are a short course. No single tablets.
 // Used by product.html and by lib/pricing.js, which prices cart SKUs named "<id>-p<size>".
 const PART_PACK = {
-  otc002: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 3, label: '10 tablets' }],
-  otc003: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }, { size: 20, price: 15, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
-  otc004: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 25, label: '30 tablets' }, { size: 20, price: 18, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
-  otc008: [{ size: 150, price: 30, label: 'Full pack (150 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }, { size: 10, price: 4, label: '10 tablets' }],
+  otc002: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  otc003: [{ size: 100, price: 42, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  otc004: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 25, label: '30 tablets' }],
+  otc008: [{ size: 150, price: 30, label: 'Full pack (150 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
   otc011: [{ size: 120, price: 30, label: 'Full pack (120 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 10, label: '30 tablets' }],
-  otc013: [{ size: 100, price: 40, label: 'Full pack (100 capsules)', pack: true }, { size: 30, price: 12, label: '30 capsules' }, { size: 15, price: 8, label: '15 capsules' }],
+  otc013: [{ size: 100, price: 40, label: 'Full pack (100 capsules)', pack: true }, { size: 30, price: 12, label: '30 capsules' }],
   otc018: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   otc022: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 30, label: '30 tablets' }],
-  otc033: [{ size: 50, price: 24, label: 'Full pack (50 Tablets)', pack: true }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
-  otc034: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 30, price: 12, label: '30 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  otc033: [{ size: 50, price: 24, label: 'Full pack (50 Tablets)', pack: true }, { size: 20, price: 10, label: '20 tablets' }],
+  otc034: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 30, price: 12, label: '30 tablets' }],
   otc039: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
   otc040: [{ size: 90, price: 36, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 20, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
   otc041: [{ size: 60, price: 36, label: 'Full pack (60 tablets)', pack: true }, { size: 30, price: 12, label: '30 tablets' }],
-  otc048: [{ size: 50, price: 24, label: 'Full pack (50 Tablets)', pack: true }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
+  otc048: [{ size: 50, price: 24, label: 'Full pack (50 Tablets)', pack: true }, { size: 20, price: 10, label: '20 tablets' }],
   otc051: [{ size: 100, price: 36, label: 'Full pack (100 Capsules)', pack: true }, { size: 60, price: 20, label: '60 capsules' }, { size: 30, price: 12, label: '30 capsules' }],
   otc054: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
   otc056: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
-  rx001: [{ size: 100, price: 60, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 48, label: '60 tablets' }, { size: 30, price: 30, label: '30 tablets' }, { size: 20, price: 20, label: '20 tablets' }, { size: 10, price: 10, label: '10 tablets' }],
-  rx002: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
-  rx005: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }, { size: 20, price: 7, label: '20 tablets' }, { size: 10, price: 5, label: '10 tablets' }],
-  rx006: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
-  rx007: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 20, price: 10, label: '20 tablets' }, { size: 10, price: 7, label: '10 tablets' }],
-  rx008: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }, { size: 14, price: 7, label: '14 tablets' }],
-  rx009: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 14, price: 10, label: '14 tablets' }],
-  rx020: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 10, label: '15 tablets' }],
-  rx024: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }, { size: 15, price: 10, label: '15 tablets' }],
-  rx025: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 24, label: '30 tablets' }, { size: 15, price: 15, label: '15 tablets' }],
+  rx001: [{ size: 100, price: 60, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 48, label: '60 tablets' }, { size: 30, price: 30, label: '30 tablets' }],
+  rx002: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx005: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
+  rx006: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx007: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx008: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
+  rx009: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx020: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
+  rx024: [{ size: 90, price: 42, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx025: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 24, label: '30 tablets' }],
   rx027: [{ size: 30, price: 30, label: 'Full pack (30 Tablets)', pack: true }, { size: 10, price: 7, label: '10 tablets' }],
   rx028: [{ size: 30, price: 36, label: 'Full pack (30 Tablets)', pack: true }, { size: 10, price: 10, label: '10 tablets' }],
   rx033: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
@@ -320,8 +321,8 @@ const PART_PACK = {
   rx070: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   rx071: [{ size: 100, price: 60, label: 'Full pack (100 capsules)', pack: true }, { size: 60, price: 48, label: '60 capsules' }, { size: 30, price: 36, label: '30 capsules' }],
   rx072: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
-  rx077: [{ size: 100, price: 50, label: 'Full pack (100 Tablets)', pack: true }, { size: 20, price: 14, label: '20 tablets' }, { size: 10, price: 6, label: '10 tablets' }],
-  rx078: [{ size: 100, price: 60, label: 'Full pack (100 Tablets)', pack: true }, { size: 20, price: 16, label: '20 tablets' }, { size: 10, price: 8, label: '10 tablets' }],
+  rx077: [{ size: 100, price: 50, label: 'Full pack (100 Tablets)', pack: true }, { size: 20, price: 14, label: '20 tablets' }],
+  rx078: [{ size: 100, price: 60, label: 'Full pack (100 Tablets)', pack: true }, { size: 20, price: 16, label: '20 tablets' }],
   rx083: [{ size: 120, price: 42, label: 'Full pack (120 Tablets)', pack: true }, { size: 60, price: 26, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
   rx084: [{ size: 120, price: 48, label: 'Full pack (120 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
   rx087: [{ size: 100, price: 40, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 12, label: '30 tablets' }],
@@ -339,8 +340,8 @@ const PART_PACK = {
   rx098: [{ size: 90, price: 48, label: 'Full pack (90 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   rx099: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   rx100: [{ size: 90, price: 48, label: 'Full pack (90 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
-  rx101: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }, { size: 15, price: 10, label: '15 tablets' }],
-  rx102: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 12, label: '15 tablets' }],
+  rx101: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
+  rx102: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   rx103: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 15, label: '30 tablets' }],
   rx104: [{ size: 100, price: 42, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
   rx105: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
@@ -360,8 +361,8 @@ const PART_PACK = {
   rx139: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   rx143: [{ size: 100, price: 48, label: 'Full pack (100 Capsules)', pack: true }, { size: 60, price: 36, label: '60 capsules' }, { size: 30, price: 20, label: '30 capsules' }],
   rx150: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
-  vit002: [{ size: 90, price: 36, label: 'Full pack (90 Tablets)', pack: true }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 12, label: '15 tablets' }],
-  vit003: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 30, price: 20, label: '30 tablets' }, { size: 15, price: 12, label: '15 tablets' }],
+  vit002: [{ size: 90, price: 36, label: 'Full pack (90 Tablets)', pack: true }, { size: 30, price: 20, label: '30 tablets' }],
+  vit003: [{ size: 100, price: 36, label: 'Full pack (100 Tablets)', pack: true }, { size: 30, price: 20, label: '30 tablets' }],
   vit011: [{ size: 100, price: 48, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   vit012: [{ size: 100, price: 48, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 36, label: '60 tablets' }, { size: 30, price: 20, label: '30 tablets' }],
   vit013: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 32, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
@@ -375,6 +376,7 @@ const PART_PACK = {
   vit034: [{ size: 100, price: 40, label: 'Full pack (100 Tablets)', pack: true }, { size: 60, price: 30, label: '60 tablets' }, { size: 30, price: 18, label: '30 tablets' }],
   vit037: [{ size: 100, price: 36, label: 'Full pack (100 tablets)', pack: true }, { size: 60, price: 24, label: '60 tablets' }, { size: 30, price: 16, label: '30 tablets' }],
 };
+
 
 // ── CART ───────────────────────────────────────────────────────────────────────
 
@@ -397,6 +399,11 @@ const Cart = {
   },
 
   add(product, category) {
+    const options = getPartPack(product.id);
+    if (options) {
+      const pack = options.find(function (o) { return o.pack; });
+      return this.addAmount(product, category, pack ? pack.size : null);
+    }
     this.load();
     const cat = category === 'prescription' ? 'rx' : category;
     const existing = this.items.find(i => i.id === product.id);
@@ -408,37 +415,33 @@ const Cart = {
     this.save();
     this.updateBadge();
     this.renderDrawer();
+    return { ok: true };
   },
 
   addPack(product, category, option) {
+    if (!option) return this.add(product, category);
+    return this.addAmount(product, category, option.size);
+  },
+
+  addAmount(product, category, size) {
     this.load();
-    const cat = category === 'prescription' ? 'rx' : category;
-    if (!option || option.pack) {
-      this.add(product, category);
-      return;
+    const options = getPartPack(product.id);
+    if (!options) return this.add(product, category);
+    const option = partPackOption(product.id, size);
+    if (!option) {
+      return { ok: false, message: allowedAmountMessage(options) };
     }
-    const id = partPackSku(product.id, option);
-    const existing = this.items.find(i => i.id === id);
-    const name = product.name + ' — ' + option.label;
-    if (existing) {
-      existing.qty += 1;
-      existing.price = option.price;
-      existing.name = name;
-      existing.packSize = option.size;
-    } else {
-      this.items.push({
-        id: id,
-        name: name,
-        price: option.price,
-        category: cat,
-        qty: 1,
-        packSize: option.size,
-        parentId: product.id
-      });
+    const current = cartTabletTotal(this.items, product.id, options);
+    const next = current + option.size;
+    const split = splitTabletTotal(next, options);
+    if (!split) {
+      return { ok: false, message: 'That would be ' + next + ' ' + partPackUnitWord(options) + '. ' + allowedAmountMessage(options) };
     }
+    this.items = applyPartPackLines(this.items, product, category, options, split.packs, split.part);
     this.save();
     this.updateBadge();
     this.renderDrawer();
+    return { ok: true, split: split, option: option, total: next };
   },
 
   addSubscriptionPlan() {
@@ -483,9 +486,43 @@ const Cart = {
   },
 
   setQty(id, qty) {
-    if (qty < 1) { this.remove(id); return; }
+    this.load();
     const item = this.items.find(i => i.id === id);
-    if (item) item.qty = qty;
+    if (!item) return;
+    const parentId = item.parentId || parentProductId(item.id);
+    const options = getPartPack(parentId);
+    if (!options) {
+      if (qty < 1) { this.remove(id); return; }
+      item.qty = qty;
+      this.save();
+      this.updateBadge();
+      this.renderDrawer();
+      return;
+    }
+    const currentTotal = cartTabletTotal(this.items, parentId, options);
+    const lineSize = Number(item.packSize) || (item.id === parentId
+      ? ((options.find(function (o) { return o.pack; }) || {}).size || 0)
+      : (Number((String(item.id).match(/-p(\d+)$/) || [])[1]) || 0));
+    const newQty = Math.max(0, Number(qty) || 0);
+    const newTotal = currentTotal - lineSize * (Number(item.qty) || 0) + lineSize * newQty;
+    if (newTotal <= 0) {
+      this.items = this.items.filter(function (i) {
+        return i.id !== parentId && i.parentId !== parentId && parentProductId(i.id) !== parentId;
+      });
+      this.save();
+      this.updateBadge();
+      this.renderDrawer();
+      return;
+    }
+    const split = splitTabletTotal(newTotal, options);
+    if (!split) {
+      if (typeof showToast === 'function') {
+        showToast('That would be ' + newTotal + ' ' + partPackUnitWord(options) + '. ' + allowedAmountMessage(options));
+      }
+      return;
+    }
+    const product = findProductById(parentId) || { id: parentId, name: String(item.name || '').replace(/ — .*/, ''), price: item.price };
+    this.items = applyPartPackLines(this.items, product, item.category, options, split.packs, split.part);
     this.save();
     this.updateBadge();
     this.renderDrawer();
@@ -1181,6 +1218,127 @@ function partPackSku(productId, option) {
   return productId + '-p' + option.size;
 }
 
+
+function findProductById(productId) {
+  const cats = ['otc', 'vitamins', 'prescription'];
+  for (let i = 0; i < cats.length; i++) {
+    const list = PRODUCTS[cats[i]] || [];
+    const found = list.find(function (x) { return x.id === productId; });
+    if (found) return found;
+  }
+  return null;
+}
+
+function parentProductId(sku) {
+  const m = String(sku || '').match(/^(.*)-p(\d+)$/);
+  return m ? m[1] : sku;
+}
+
+function partPackOption(productId, size) {
+  const options = getPartPack(productId);
+  if (!options) return null;
+  const n = Number(size);
+  return options.find(function (o) { return o.size === n; }) || null;
+}
+
+function partPackUnitWord(options) {
+  const lab = (options && options[0] && options[0].label) || 'tablets';
+  if (/capsule/i.test(lab)) return 'capsules';
+  if (/softgel/i.test(lab)) return 'softgels';
+  return 'tablets';
+}
+
+function joinOr(parts) {
+  if (!parts || !parts.length) return '';
+  if (parts.length === 1) return parts[0];
+  if (parts.length === 2) return parts[0] + ' or ' + parts[1];
+  return parts.slice(0, -1).join(', ') + ', or ' + parts[parts.length - 1];
+}
+
+function allowedAmountMessage(options) {
+  const pack = options.find(function (o) { return o.pack; });
+  const parts = options.filter(function (o) { return !o.pack; }).map(function (o) { return o.size; }).sort(function (a, b) { return a - b; }).map(String);
+  const unit = partPackUnitWord(options);
+  if (pack && parts.length) {
+    return 'You can buy ' + joinOr(parts.concat([String(pack.size)])) + ' ' + unit +
+      '. A full pack plus ' + joinOr(parts) + ' is also allowed.';
+  }
+  if (pack) return 'This item is sold as a full pack of ' + pack.size + ' only.';
+  return 'You can buy ' + joinOr(parts) + ' ' + unit + '.';
+}
+
+function splitTabletTotal(total, options) {
+  const n = Number(total);
+  if (!options || !Number.isInteger(n) || n < 1) return null;
+  const pack = options.find(function (o) { return o.pack; });
+  const partSizes = options.filter(function (o) { return !o.pack; }).map(function (o) { return o.size; });
+  const packSize = pack ? pack.size : 0;
+  if (packSize > 0) {
+    const packs = Math.floor(n / packSize);
+    const rem = n - packs * packSize;
+    if (rem === 0) return { packs: packs, part: 0 };
+    if (partSizes.indexOf(rem) >= 0) return { packs: packs, part: rem };
+    return null;
+  }
+  if (partSizes.indexOf(n) >= 0) return { packs: 0, part: n };
+  return null;
+}
+
+function lineTabletCount(item, productId, options) {
+  const parent = item.parentId || parentProductId(item.id);
+  if (item.id !== productId && parent !== productId) return 0;
+  let size = Number(item.packSize) || 0;
+  if (!size && item.id === productId) {
+    const pack = options.find(function (o) { return o.pack; });
+    size = pack ? pack.size : 0;
+  }
+  if (!size) {
+    const m = String(item.id).match(/-p(\d+)$/);
+    size = m ? Number(m[1]) : 0;
+  }
+  return size * (Number(item.qty) || 0);
+}
+
+function cartTabletTotal(items, productId, options) {
+  return items.reduce(function (sum, item) { return sum + lineTabletCount(item, productId, options); }, 0);
+}
+
+function applyPartPackLines(items, product, category, options, packs, part) {
+  const cat = category === 'prescription' ? 'rx' : category;
+  const pid = product.id;
+  const rest = items.filter(function (i) {
+    return i.id !== pid && i.parentId !== pid && parentProductId(i.id) !== pid;
+  });
+  const packOpt = options.find(function (o) { return o.pack; });
+  if (packs > 0 && packOpt) {
+    rest.push({
+      id: pid,
+      name: product.name,
+      price: packOpt.price,
+      category: cat,
+      qty: packs,
+      packSize: packOpt.size,
+      image: product.image || ''
+    });
+  }
+  if (part > 0) {
+    const partOpt = options.find(function (o) { return !o.pack && o.size === part; });
+    if (partOpt) {
+      rest.push({
+        id: pid + '-p' + part,
+        name: product.name + ' — ' + partOpt.label,
+        price: partOpt.price,
+        category: cat,
+        qty: 1,
+        packSize: part,
+        parentId: pid
+      });
+    }
+  }
+  return rest;
+}
+
+
 async function _loadProductImage(productId, productName, category, svgFallback) {
   // 1. Local photo — /assets/products/{id}.jpg
   const localOk = await new Promise(res => {
@@ -1547,13 +1705,18 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 function addToCart(productId, category, option) {
   Cart.load();
   const product = PRODUCTS[category].find(p => p.id === productId);
-  if (!product) return;
+  if (!product) return { ok: false, message: 'Product not found.' };
+  const result = option
+    ? Cart.addPack(product, category, option)
+    : Cart.add(product, category);
+  if (result && result.ok === false) {
+    showToast(result.message);
+    return result;
+  }
   if (option && !option.pack) {
-    Cart.addPack(product, category, option);
-    showToast(`${product.name} — ${option.label} added to cart`);
+    showToast(product.name + ' — ' + option.label + ' added to cart');
   } else {
-    Cart.add(product, category);
-    showToast(`${product.name} added to cart`);
+    showToast(product.name + ' added to cart');
   }
   const btn = document.getElementById('btn-' + productId);
   if (btn) {
@@ -1564,6 +1727,7 @@ function addToCart(productId, category, option) {
       btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add to Cart`;
     }, 2000);
   }
+  return { ok: true };
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
