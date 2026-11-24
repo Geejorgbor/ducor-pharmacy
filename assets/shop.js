@@ -1427,7 +1427,7 @@ function _applyImage(productId, imageUrl, svgFallback) {
 
 // Refresh product artwork on devices with cached studio cards or older pack photos.
 function productJpgUrl(productId) {
-  return '/assets/products/' + productId + '.jpg?v=used-for-20261124';
+  return '/assets/products/' + productId + '.jpg?v=studio-card-20261124';
 }
 
 function productSaleUnit(productId) {
