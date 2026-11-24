@@ -244,6 +244,9 @@ async function finalizeHandler(req, res) {
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'Pricing unavailable' });
   }
+  if (t.invalidAmounts && t.invalidAmounts.length) {
+    return res.status(400).json({ ok: false, error: 'Invalid amount', invalidAmounts: t.invalidAmounts });
+  }
   const clientTotal = Number(o.total);
   const patch = {
     subtotal: t.subtotal,
