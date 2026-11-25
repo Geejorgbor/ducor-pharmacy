@@ -1504,11 +1504,11 @@ const ProductModal = {
     tagEl.className   = 'pm-tag product-tag ' + (tagClasses[dispCat] || 'tag-rx');
 
     document.getElementById('pm-name').textContent  = product.name;
-    document.getElementById('pm-price').textContent = '$' + product.price.toFixed(2);
-    document.getElementById('pm-unit').textContent  = '/ ' + productSaleUnit(productId);
+    document.getElementById('pm-price').textContent = '';
+    document.getElementById('pm-unit').textContent  = '';
     document.getElementById('pm-note').textContent  = notes[dispCat] || '';
     const priceRow = document.querySelector('.pm-price-row');
-    if (priceRow) priceRow.style.display = dispCat === 'rx' ? 'none' : '';
+    if (priceRow) priceRow.style.display = 'none';
 
     const imgSide = document.getElementById('pm-img-side');
     imgSide.className = 'pm-img-side ' + (bgClasses[dispCat] || 'rx-bg');
@@ -1687,8 +1687,8 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
       <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${icon[category]}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
-        <p class="product-name">${p.name}</p>
-        ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#0891b2;font-size:12px;font-weight:600">📞 Call for pricing</p>` : `<p class="product-price">$${p.price.toFixed(2)} <span>/ ${productSaleUnit(p.id)}</span></p>`}
+        <p class="product-name"><a href="/product.html?id=${p.id}&cat=${category}" style="color:inherit;text-decoration:none">${p.name}</a></p>
+        ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#0891b2;font-size:12px;font-weight:600">📞 Call for pricing</p>` : `<p class="product-price-hint"><a href="/product.html?id=${p.id}&cat=${category}">Click product to see price</a></p>`}
         ${(category === 'rx' || category === 'prescription')
           ? `<button class="btn-add" id="btn-${p.id}" onclick="showRxPricingNotice('${p.id}','${category}','${p.name.replace(/'/g, '&apos;').replace(/"/g, '&quot;')}')" style="background:linear-gradient(135deg,#0d1b2a,#162540)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>

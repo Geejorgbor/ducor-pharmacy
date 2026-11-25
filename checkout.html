@@ -29,7 +29,7 @@
   <meta name="twitter:title" content="Secure Checkout – Ducor International Pharmacy Liberia"/>
   <meta name="twitter:description" content="Order your medications securely online from Ducor International Pharmacy, Monrovia Liberia."/>
   <meta name="twitter:image" content="https://www.ducor-international-pharmacy.com/assets/company-logo.jpg"/>
-  <link rel="stylesheet" href="/assets/shop.css"/>
+  <link rel="stylesheet" href="/assets/shop.css?v=20261125-pricing-notice"/>
   <style>
     .checkout-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 32px; display: grid; grid-template-columns: 1fr 420px; gap: 32px; }
     @media (max-width: 900px) { .checkout-wrap { grid-template-columns: 1fr; padding: 24px 16px; } }
@@ -189,6 +189,8 @@
 </script>
 </head>
 <body>
+
+<div class="ducor-top-notice" role="region" aria-label="Pricing notice"><span class="ducor-top-notice-badge">Notice</span><span>Click on any product to see its price.</span></div>
 
 <nav class="shop-nav">
   <a href="/index.html" class="nav-brand">
@@ -666,7 +668,7 @@
   </div>
 </div>
 
-<script src="/assets/shop.js"></script>
+<script src="/assets/shop.js?v=20261125-pricing-notice"></script>
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -1398,7 +1400,7 @@ window._db = _db;
 })();
 </script>
 <script type="module" src="/assets/analytics.js"></script>
-<script src="/assets/ducor-widgets.js" defer></script>
+<script src="/assets/ducor-widgets.js?v=20261125-pricing-notice" defer></script>
 
 <footer class="shop-footer">
   <div class="footer-social">
