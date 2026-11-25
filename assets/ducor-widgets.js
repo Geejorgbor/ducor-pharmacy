@@ -82,7 +82,7 @@ function ensureProductCatalog() {
       return;
     }
     var s = document.createElement('script');
-    s.src = '/assets/shop.js';
+    s.src = '/assets/shop.js?v=20261125-pricing-notice';
     s.async = true;
     s.onload = finish;
     s.onerror = function () { resolve([]); };
@@ -252,9 +252,7 @@ function initSearch() {
       container.innerHTML = results.map(function (p, i) {
         var badge = p.category === 'prescription' ? 'RX' : p.category === 'otc' ? 'OTC' : 'VIT';
         var badgeClass = p.category === 'prescription' ? 'rx' : (p.category || 'otc');
-        var priceHtml = p.category === 'prescription'
-          ? ''
-          : `<span class="ducor-sr-price">$${(Number(p.price) || 0).toFixed(2)}</span>`;
+        var priceHtml = '';
         return `<a class="ducor-sr-item" href="${productHref(p)}" data-idx="${i}">
         <span class="ducor-sr-badge ${badgeClass}">${badge}</span>
         <span class="ducor-sr-name">${escapeHtml(p.name)}</span>
