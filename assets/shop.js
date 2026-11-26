@@ -1200,8 +1200,250 @@ const _REVISED_PRESCRIPTION_IMAGES = new Set(PRODUCTS.prescription.map(product =
 const _REVISED_OTC_IMAGES = new Set(PRODUCTS.otc.filter(product => !product.adminOnly || product.id === 'otc049').map(product => product.id));
 const _REVISED_VITAMIN_IMAGES = new Set(PRODUCTS.vitamins.filter(product => product.id !== 'vit012').map(product => product.id));
 
+// Packaging from Ducor’s package reviews and matched stock labels. An omitted amount needs stock confirmation.
+const PRODUCT_PACKAGING = {
+  otc001: ['Pack'],
+  otc002: ['Bottle', '100 tablets'],
+  otc003: ['Bottle', '100 tablets'],
+  otc004: ['Bottle', '100 caplets'],
+  otc005: ['Bottle', '50 tablets'],
+  otc007: ['Tube'],
+  otc008: ['Bottle', '150 chewable tablets'],
+  otc009: ['Bottle', '15 mL'],
+  otc010: ['Bottle', '36 chewable tablets'],
+  otc011: ['Bottle', '120 tablets'],
+  otc012: ['Pack', '28.4 g'],
+  otc014: ['Pack', '60 g'],
+  otc015: ['Pack', '1 meter'],
+  otc016: ['Pack', '1 monitor'],
+  otc017: ['Bottle'],
+  otc018: ['Bottle', '90 tablets'],
+  otc019: ['Bottle'],
+  otc020: ['Bottle'],
+  otc021: ['Bottle'],
+  otc023: ['Tube', '15 g'],
+  otc025: ['Bottle', '12 fl oz'],
+  otc026: ['Pack'],
+  otc028: ['Bottle', '10 tablets'],
+  otc029: ['Bottle', '4 fl oz'],
+  otc030: ['Pack', '2 oz'],
+  otc031: ['Tube'],
+  otc032: ['Pack', '1 oz'],
+  otc033: ['Bottle'],
+  otc034: ['Bottle', '100 tablets'],
+  otc035: ['Tube'],
+  otc036: ['Pack', '24 caplets'],
+  otc039: ['Bottle', '100 tablets'],
+  otc040: ['Bottle', '90 tablets'],
+  otc041: ['Bottle', '60 tablets'],
+  otc043: ['Tube'],
+  otc044: ['Pack', '45 g'],
+  otc046: ['Bottle', '16 fl oz'],
+  otc047: ['Tube', '85 g'],
+  otc049: ['Pack'],
+  otc050: ['Bottle', '12 fl oz'],
+  otc051: ['Bottle', '100 capsules'],
+  otc053: ['Bottle'],
+  otc054: ['Bottle', '100 tablets'],
+  otc055: ['Bottle', '30 tablets'],
+  otc056: ['Bottle', '100 chewable tablets'],
+  otc057: ['Bottle'],
+  rx001: ['Bottle', '100 tablets'],
+  rx002: ['Bottle', '100 tablets'],
+  rx003: ['Tube'],
+  rx004: ['Pack', '1 inhaler'],
+  rx005: ['Bottle', '100 tablets'],
+  rx006: ['Bottle', '100 tablets'],
+  rx007: ['Bottle', '100 tablets'],
+  rx008: ['Bottle', '90 tablets'],
+  rx009: ['Bottle', '90 tablets'],
+  rx010: ['Bottle', '30 tablets'],
+  rx011: ['Bottle', '30 tablets'],
+  rx012: ['Bottle'],
+  rx014: ['Bottle'],
+  rx015: ['Bottle', '20 tablets'],
+  rx016: ['Bottle', '20 tablets'],
+  rx017: ['Bottle', '30 tablets'],
+  rx018: ['Bottle', '30 tablets'],
+  rx019: ['Bottle', '30 tablets'],
+  rx020: ['Bottle', '100 tablets'],
+  rx021: ['Bottle', '30 capsules'],
+  rx022: ['Bottle', '30 capsules'],
+  rx023: ['Bottle', '30 capsules'],
+  rx024: ['Bottle', '90 tablets'],
+  rx025: ['Bottle', '90 tablets'],
+  rx026: ['Bottle', '30 mL'],
+  rx027: ['Bottle', '30 tablets'],
+  rx028: ['Bottle', '30 tablets'],
+  rx029: ['Bottle', '30 tablets'],
+  rx030: ['Bottle', '30 tablets'],
+  rx032: ['Bottle'],
+  rx033: ['Bottle', '100 tablets'],
+  rx034: ['Bottle'],
+  rx035: ['Bottle'],
+  rx036: ['Bottle', '100 tablets'],
+  rx037: ['Bottle', '100 tablets'],
+  rx038: ['Bottle', '20 tablets'],
+  rx039: ['Bottle', '100 capsules'],
+  rx044: ['Bottle', '100 tablets'],
+  rx045: ['Bottle', '100 tablets'],
+  rx046: ['Bottle'],
+  rx047: ['Pack'],
+  rx048: ['Bottle'],
+  rx049: ['Bottle', '100 tablets'],
+  rx050: ['Bottle'],
+  rx051: ['Bottle', '90 tablets'],
+  rx052: ['Bottle', '10 mL'],
+  rx053: ['Bottle', '50 capsules'],
+  rx055: ['Bottle', '30 tablets'],
+  rx056: ['Bottle'],
+  rx057: ['Bottle', '90 tablets'],
+  rx058: ['Bottle', '90 tablets'],
+  rx060: ['Bottle', '35 mL'],
+  rx061: ['Bottle', '100 capsules'],
+  rx062: ['Bottle', '100 tablets'],
+  rx063: ['Bottle'],
+  rx064: ['Bottle', '100 tablets'],
+  rx065: ['Bottle', '100 capsules'],
+  rx066: ['Bottle', '100 capsules'],
+  rx067: ['Bottle', '100 tablets'],
+  rx068: ['Bottle', '100 tablets'],
+  rx069: ['Bottle', '100 tablets'],
+  rx070: ['Bottle', '100 tablets'],
+  rx071: ['Bottle', '100 capsules'],
+  rx072: ['Bottle', '100 tablets'],
+  rx073: ['Tube'],
+  rx074: ['Bottle', '100 tablets'],
+  rx075: ['Bottle', '100 tablets'],
+  rx077: ['Bottle', '100 tablets'],
+  rx078: ['Bottle', '100 tablets'],
+  rx079: ['Bottle'],
+  rx082: ['Pack', '30 tablets'],
+  rx083: ['Bottle', '120 tablets'],
+  rx084: ['Bottle', '120 tablets'],
+  rx087: ['Bottle'],
+  rx088: ['Bottle'],
+  rx089: ['Bottle'],
+  rx090: ['Bottle', '100 tablets'],
+  rx091: ['Bottle'],
+  rx092: ['Bottle'],
+  rx092b: ['Bottle', '100 tablets'],
+  rx093: ['Bottle', '100 tablets'],
+  rx094: ['Bottle', '100 tablets'],
+  rx095: ['Bottle', '100 tablets'],
+  rx096: ['Bottle', '100 tablets'],
+  rx097: ['Bottle'],
+  rx098: ['Bottle', '90 tablets'],
+  rx099: ['Bottle', '90 tablets'],
+  rx100: ['Bottle', '90 tablets'],
+  rx101: ['Bottle', '100 tablets'],
+  rx102: ['Bottle'],
+  rx103: ['Bottle', '100 tablets'],
+  rx104: ['Bottle', '100 tablets'],
+  rx105: ['Bottle', '100 tablets'],
+  rx106: ['Bottle', '100 tablets'],
+  rx107: ['Bottle', '100 tablets'],
+  rx108: ['Bottle', '100 tablets'],
+  rx109: ['Bottle', '100 tablets'],
+  rx110: ['Bottle'],
+  rx111: ['Bottle', '100 tablets'],
+  rx113: ['Bottle', '3 mL'],
+  rx115: ['Bottle'],
+  rx116: ['Bottle', '100 capsules'],
+  rx119: ['Tube', '30 g'],
+  rx120: ['Bottle'],
+  rx121: ['Bottle', '30 tablets'],
+  rx123: ['Bottle', '30 tablets'],
+  rx124: ['Bottle', '30 tablets'],
+  rx125: ['Pack', '30 tablets'],
+  rx126: ['Bottle', '100 tablets'],
+  rx127: ['Bottle', '90 tablets'],
+  rx133: ['Bottle', '100 tablets'],
+  rx134: ['Bottle', '30 capsules'],
+  rx135: ['Bottle', '30 capsules'],
+  rx136: ['Bottle', '60 tablets'],
+  rx137: ['Bottle', '90 tablets'],
+  rx138: ['Bottle', '90 tablets'],
+  rx139: ['Bottle', '100 tablets'],
+  rx141: ['Bottle', '30 tablets'],
+  rx142: ['Bottle', '30 tablets'],
+  rx143: ['Bottle', '100 capsules'],
+  rx144: ['Bottle'],
+  rx145: ['Bottle', '30 tablets'],
+  rx146: ['Bottle', '2.5 mL'],
+  rx147: ['Bottle', '30 tablets'],
+  rx148: ['Bottle', '100 capsules'],
+  rx149: ['Pack', '20 capsules'],
+  rx150: ['Bottle', '100 tablets'],
+  vit002: ['Bottle', '90 tablets'],
+  vit003: ['Bottle'],
+  vit004: ['Bottle', '60 tablets'],
+  vit005: ['Bottle'],
+  vit008: ['Bottle', '30 softgels'],
+  vit009: ['Bottle', '100 softgels'],
+  vit010: ['Bottle'],
+  vit011: ['Bottle', '100 tablets'],
+  vit012: ['Bottle'],
+  vit013: ['Bottle', '100 tablets'],
+  vit014: ['Bottle'],
+  vit015: ['Bottle'],
+  vit016: ['Bottle'],
+  vit017: ['Bottle', '60 tablets'],
+  vit018: ['Bottle', '90 tablets'],
+  vit019: ['Bottle'],
+  vit020: ['Bottle', '120 tablets'],
+  vit021: ['Bottle'],
+  vit022: ['Bottle'],
+  vit024: ['Bottle'],
+  vit025: ['Bottle', '100 tablets'],
+  vit028: ['Bottle'],
+  vit029: ['Bottle'],
+  vit031: ['Bottle', '100 tablets'],
+  vit032: ['Bottle', '100 tablets'],
+  vit033: ['Bottle'],
+  vit034: ['Bottle'],
+  vit035: ['Bottle'],
+  vit036: ['Bottle'],
+  vit037: ['Bottle'],
+};
+
+// These bottle listings previously showed generic cartons. Add a matching stock photo before restoring it.
+const PACKAGE_PHOTO_PENDING = new Set([
+  'otc019',
+  'otc029',
+  'otc053',
+  'rx012',
+  'rx026',
+  'rx052',
+  'rx060',
+  'rx079',
+  'rx102',
+  'rx113',
+  'rx146',
+  'vit024',
+]);
+
+function productPackagingText(productId) {
+  const packaging = PRODUCT_PACKAGING[productId];
+  return packaging ? packaging.join(' · ') : 'Packaging to confirm';
+}
+
+function productQuantityLabel(productId, option) {
+  const packaging = PRODUCT_PACKAGING[productId];
+  const count = packaging?.[1]?.match(/^(\d+) /);
+  if (!option.pack || packaging?.[0] !== 'Bottle' || Number(count?.[1]) !== option.size) return option.label;
+  return 'Full bottle (' + packaging[1] + ')';
+}
+
+function productImagePlaceholder(productId, fallback) {
+  if (!PACKAGE_PHOTO_PENDING.has(productId)) return fallback;
+  return '<p class="product-photo-pending">Bottle photo pending</p>';
+}
+
 function productJpgUrl(productId) {
+  if (PACKAGE_PHOTO_PENDING.has(productId)) return null;
   const path = '/assets/products/' + productId + '.jpg';
+  if (['otc003', 'otc008', 'otc009'].includes(productId)) return path + '?v=20261126-package-photos';
   if (productId === 'vit008') return path + '?v=coq10-label-20261124';
   if (_REVISED_OTC_IMAGES.has(productId)) return path + '?v=otc-studio-refresh-20261124';
   if (_REVISED_VITAMIN_IMAGES.has(productId)) return path + '?v=vitamins-studio-20261124';
@@ -1393,7 +1635,7 @@ try { _customPhotos = JSON.parse(localStorage.getItem('ducor-photos') || '{}'); 
 
 function _startImageLoading(list, category) {
   list.forEach(p => {
-    const svgFallback = _makeSVGLabel(p.name, category);
+    const svgFallback = productImagePlaceholder(p.id, _makeSVGLabel(p.name, category));
     const el = document.getElementById('pimg-' + p.id);
     if (!el) return;
     // Admin-set custom photo takes highest priority
@@ -1401,8 +1643,9 @@ function _startImageLoading(list, category) {
       _applyImage(p.id, _customPhotos[p.id], svgFallback);
       return;
     }
-    // Show placeholder SVG while real photo loads
+    // Show a placeholder while the photo loads or awaits stock confirmation.
     el.innerHTML = svgFallback;
+    if (PACKAGE_PHOTO_PENDING.has(p.id)) return;
     const item = { productId: p.id, productName: p.name, category, svgFallback };
     // Load the photo only when the card is close to the screen
     if (_imgObserver) { _imgPending.set(el, item); _imgObserver.observe(el); }
@@ -1515,13 +1758,14 @@ const ProductModal = {
 
     const frame = document.getElementById('pm-img-frame');
     const icons = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
-    frame.innerHTML = icons[dispCat] || ICONS.rx;
+    frame.innerHTML = productImagePlaceholder(productId, icons[dispCat] || ICONS.rx);
 
     const tryLoad = (src) => new Promise(res => {
       const i = new Image(); i.onload = () => res(src); i.onerror = () => res(null); i.src = src;
     });
     (async () => {
-      const src = await tryLoad(productJpgUrl(productId));
+      const photoUrl = productJpgUrl(productId);
+      const src = photoUrl ? await tryLoad(photoUrl) : null;
       if (src) {
         const img = document.createElement('img');
         img.src = src; img.alt = product.name;
@@ -1684,10 +1928,11 @@ function renderProducts(category, containerId, filterVal = '', sortVal = 'name')
 
   container.innerHTML = list.map(p => `
     <div class="product-card">
-      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${icon[category]}</div>
+      <div class="product-img ${imgBg[category]}" id="pimg-${p.id}" onclick="window.location='/product.html?id=${p.id}&cat=${category}'">${productImagePlaceholder(p.id, icon[category])}</div>
       <div class="product-body">
         <span class="product-tag ${tagClass[category]}">${tagLabel[category]}</span>
         <p class="product-name"><a href="/product.html?id=${p.id}&cat=${category}" style="color:inherit;text-decoration:none">${p.name}</a></p>
+        <p class="product-packaging">${productPackagingText(p.id)}</p>
         ${(category === 'rx' || category === 'prescription') ? `<p class="product-price" style="color:#0891b2;font-size:12px;font-weight:600">📞 Call for pricing</p>` : `<p class="product-price-hint"><a href="/product.html?id=${p.id}&cat=${category}">Click product to see price</a></p>`}
         ${(category === 'rx' || category === 'prescription')
           ? `<button class="btn-add" id="btn-${p.id}" onclick="showRxPricingNotice('${p.id}','${category}','${p.name.replace(/'/g, '&apos;').replace(/"/g, '&quot;')}')" style="background:linear-gradient(135deg,#0d1b2a,#162540)">
