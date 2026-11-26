@@ -13,7 +13,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title id="page-title">Product – Ducor International Pharmacy</title>
   <link rel="icon" href="/assets/company-logo-sm.jpg"/>
-  <link rel="stylesheet" href="/assets/shop.css?v=20261125-pricing-notice"/>
+  <link rel="stylesheet" href="/assets/shop.css?v=20261126-package-types"/>
   <style>
     /* ── PRODUCT DETAIL PAGE ────────────────────────────────────────────────── */
     .product-back {
@@ -289,6 +289,7 @@
     <span class="pd-tag product-tag tag-rx" id="pd-tag">Loading…</span>
 
     <h1 class="pd-name" id="pd-name">Loading…</h1>
+    <p class="product-packaging" id="pd-packaging" hidden></p>
 
     <div class="pd-price-row" id="pd-price-row">
       <span class="pd-price" id="pd-price"></span>
@@ -478,7 +479,7 @@
 </footer>
 
 <script src="/assets/product-info.js?v=coq10-label-20261124"></script>
-<script src="/assets/shop.js?v=20261125-pricing-notice"></script>
+<script src="/assets/shop.js?v=20261126-package-types"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -530,6 +531,10 @@ function attachZoom(wrapEl, imgEl) {
 
   // Name & price
   document.getElementById('pd-name').textContent = product.name;
+  const packagingText = productPackagingText(pid);
+  const packagingEl = document.getElementById('pd-packaging');
+  packagingEl.textContent = packagingText;
+  packagingEl.hidden = false;
   if (dispCat === 'rx') {
     document.getElementById('pd-price-row').style.display = 'none';
     // Insert a "Call for pricing" notice under the product name
@@ -548,18 +553,19 @@ function attachZoom(wrapEl, imgEl) {
   // Load image (photo or icon fallback)
   const icons = { rx: ICONS.rx, otc: ICONS.otc, vitamins: ICONS.vit };
   const frame = document.getElementById('pd-img-frame');
-  frame.innerHTML = icons[dispCat] || ICONS.rx;
+  frame.innerHTML = productImagePlaceholder(pid, icons[dispCat] || ICONS.rx);
+  const photoUrl = productJpgUrl(pid);
 
   const probe = new Image();
   probe.onload = function () {
     const img = document.createElement('img');
-    img.src = productJpgUrl(pid);
+    img.src = photoUrl;
     img.alt = product.name;
     frame.innerHTML = '';
     frame.appendChild(img);
     attachZoom(frame, img);
   };
-  probe.src = productJpgUrl(pid);
+  if (photoUrl) probe.src = photoUrl;
 
   // Medication form, verified against each product's real photo/label —
   // most product names are just "Drug 50mg" with no form word at all, so
@@ -659,9 +665,6 @@ function attachZoom(wrapEl, imgEl) {
   const strength = labelInfo?.strength || (strengthMatch ? strengthMatch[0] : 'See product label');
 
   const packOptions = (typeof getPartPack === 'function') ? getPartPack(pid) : null;
-  const unitCount = packOptions && packOptions.length
-    ? (packOptions.find(function (o) { return o.pack; }) || packOptions[0]).size
-    : null;
   const unitForm = { Capsule: 'Capsule', Softgel: 'Softgel' }[form] || 'Tablet';
   const formWord = unitForm.toLowerCase() + 's';
   let selectedOption = packOptions ? (packOptions.find(function (o) { return o.pack; }) || packOptions[0]) : null;
@@ -691,20 +694,21 @@ function attachZoom(wrapEl, imgEl) {
     const showPrices = dispCat !== 'rx';
     const unitWord = (typeof partPackUnitWord === 'function') ? partPackUnitWord(packOptions) : formWord;
     box.hidden = false;
-    if (sectionLabelEl) sectionLabelEl.textContent = showPrices ? 'Pack & Pricing Selection' : 'Quantity';
+    if (sectionLabelEl) sectionLabelEl.textContent = showPrices ? 'Quantity & Pricing' : 'Quantity';
     if (unitEl) unitEl.textContent = unitWord;
     hint.textContent = showPrices
       ? ((typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) : 'Choose a pack or amount below to view its price.')
       : ((typeof allowedAmountMessage === 'function') ? allowedAmountMessage(packOptions) + ' A pharmacist will confirm the price before your order is sent.' : 'Choose the amount you want. A pharmacist will confirm the price before your order is sent.');
     sel.innerHTML = packOptions.map(function (o, i) {
-      const text = showPrices ? (o.label + ' — $' + Number(o.price).toFixed(2)) : o.label;
+      const label = productQuantityLabel(pid, o);
+      const text = showPrices ? (label + ' — $' + Number(o.price).toFixed(2)) : label;
       return '<option value="' + i + '"' + (o.pack ? ' selected' : '') + '>' + text + '</option>';
     }).join('');
     if (showPrices && optionsList) {
       optionsList.hidden = false;
       optionsList.innerHTML = packOptions.map(function (o, i) {
         return '<button type="button" class="pd-qty-option-row' + (o.pack ? ' active' : '') + '" data-idx="' + i + '">'
-          + '<span>' + o.label + '</span>'
+          + '<span>' + productQuantityLabel(pid, o) + '</span>'
           + '<span class="pd-qty-option-price">$' + Number(o.price).toFixed(2) + '</span>'
           + '</button>';
       }).join('');
@@ -718,7 +722,7 @@ function attachZoom(wrapEl, imgEl) {
     function syncSelectionUI(opt) {
       if (!showPrices || !opt) return;
       if (priceBox) priceBox.hidden = false;
-      if (selectedLabelEl) selectedLabelEl.textContent = opt.label;
+      if (selectedLabelEl) selectedLabelEl.textContent = productQuantityLabel(pid, opt);
       if (selectedPriceEl) selectedPriceEl.textContent = '$' + Number(opt.price).toFixed(2);
       if (optionsList) {
         const idx = packOptions.indexOf(opt);
@@ -759,11 +763,11 @@ function attachZoom(wrapEl, imgEl) {
     input.addEventListener('change', applyTypedAmount);
     applyOption();
   } else if (dispCat !== 'rx') {
-    const unitLabel = 'Standard Pack / Unit';
+    const unitLabel = PRODUCT_PACKAGING[pid] ? packagingText : 'Standard unit';
     const priceStr = '$' + Number(product.price).toFixed(2);
     box.hidden = false;
-    if (sectionLabelEl) sectionLabelEl.textContent = 'Pack & Pricing Selection';
-    if (hint) hint.textContent = 'Select your pack option below to view pricing and add to cart.';
+    if (sectionLabelEl) sectionLabelEl.textContent = 'Quantity & Pricing';
+    if (hint) hint.textContent = 'Select an option below to view pricing and add to cart.';
     if (selectLabelEl) selectLabelEl.textContent = 'Choose an option';
     if (inputLabelEl) inputLabelEl.hidden = true;
     if (inputRowEl) inputRowEl.hidden = true;
@@ -813,7 +817,7 @@ function attachZoom(wrapEl, imgEl) {
     ['Category',     catFull[dispCat] || '—'],
     ['Strength',     strength],
     ['Form',         form],
-    ...(labelInfo && unitCount ? [['Bottle size', `${unitCount} ${formWord} per bottle`]] : []),
+    ['Packaging',    packagingText],
     ...(labelInfo?.facts || []),
     ['Availability', 'In Stock at Ducor Pharmacy'],
     ['Storage',      labelInfo?.storage || 'Store below 25°C, away from light and moisture'],

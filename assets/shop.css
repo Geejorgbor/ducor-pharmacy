@@ -175,6 +175,8 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .product-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; flex: 1; }
 .product-price { font-size: 20px; font-weight: 700; color: var(--navy); }
 .product-price span { font-size: 13px; font-weight: 400; color: var(--muted); }
+.product-packaging { color: var(--navy); font-size: 13px; font-weight: 600; line-height: 1.4; margin: 0; }
+.product-photo-pending { color: var(--navy); font-size: 13px; font-weight: 600; text-align: center; margin: 0; }
 .product-price-hint { font-size: 12.5px; font-weight: 600; color: var(--muted); margin: 0; }
 .product-price-hint a { color: var(--navy); text-decoration: none; border-bottom: 1px solid rgba(201, 160, 85, 0.55); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .product-price-hint a:hover { color: #8c6927; border-color: var(--gold); }
