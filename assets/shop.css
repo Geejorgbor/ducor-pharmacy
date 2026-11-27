@@ -82,8 +82,8 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   padding: 20px 32px; display: flex; align-items: center;
   gap: 16px; flex-wrap: wrap; justify-content: space-between;
 }
-.search-wrap { position: relative; flex: 1; max-width: 420px; }
-.search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search-wrap { position: relative; flex: 1; max-width: 420px; z-index: 30; }
+.search-wrap > svg { position: absolute; left: 14px; top: 14px; color: var(--muted); pointer-events: none; }
 .search-input {
   width: 100%; padding: 11px 16px 11px 44px;
   border: 1.5px solid var(--border); border-radius: 10px;
@@ -102,33 +102,43 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .results-count { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .listing-price-hint { font-size: 12.5px; color: var(--muted); margin: 0; line-height: 1.4; }
 
-.condition-search-panel {
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 0 32px 18px;
+#catalog-search-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(560px, calc(100vw - 32px));
+  padding: 14px 16px 12px;
+  background: #0a1929;
+  border: 1.5px solid rgba(201, 160, 85, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(13, 27, 42, 0.28), 0 0 0 1px rgba(201, 160, 85, 0.08);
+  z-index: 40;
 }
+#catalog-search-panel.open { display: block; }
 .condition-modes {
   display: inline-flex;
-  border: 1.5px solid rgba(201, 160, 85, 0.55);
+  border: 1px solid rgba(201, 160, 85, 0.4);
   border-radius: 999px;
   overflow: hidden;
-  margin: 4px 0 12px;
+  margin: 0 0 12px;
 }
 .condition-modes button {
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--navy);
-  font: 600 12px/1.2 inherit;
-  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.72);
+  font: 600 11px/1.2 inherit;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 8px 14px;
+  padding: 7px 13px;
   cursor: pointer;
 }
 .condition-modes button[aria-pressed="true"] {
-  background: linear-gradient(135deg, #0d1b2a, #162540);
-  color: #e8c97a;
+  background: linear-gradient(135deg, #c9a055, #a87830);
+  color: #0a1929;
 }
+.condition-modes button:hover:not([aria-pressed="true"]) { color: #e8c97a; }
 .condition-chips {
   display: flex;
   flex-wrap: wrap;
@@ -136,34 +146,31 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 }
 .condition-chip {
   appearance: none;
-  border: 1px solid rgba(201, 160, 85, 0.5);
-  background: #fff;
-  color: var(--navy);
+  border: 1px solid rgba(201, 160, 85, 0.4);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.9);
   border-radius: 999px;
-  padding: 7px 12px;
+  padding: 7px 11px;
   font: 600 12.5px/1.2 inherit;
   cursor: pointer;
 }
 .condition-chip:hover {
-  border-color: var(--gold);
-  background: #fffdf7;
+  border-color: #c9a055;
+  color: #e8c97a;
 }
 .condition-chip[aria-pressed="true"] {
-  background: #0d1b2a;
-  color: #e8c97a;
+  background: #c9a055;
+  color: #0a1929;
   border-color: #c9a055;
 }
 .condition-disclaimer {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.42);
   margin: 12px 0 0;
-  max-width: 760px;
   line-height: 1.5;
 }
 @media (max-width: 640px) {
-  .condition-search-panel { padding: 0 16px 16px; }
-  .condition-chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
-  .condition-chip { flex-shrink: 0; }
+  #catalog-search-panel { width: 100%; }
 }
 
 /* ── PRODUCTS GRID ── */

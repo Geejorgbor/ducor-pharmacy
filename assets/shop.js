@@ -2012,21 +2012,22 @@ function ensureShopSymptomAssets() {
     .then(function () { return loadShopScriptOnce('/assets/symptom-search.js?v=20261127-symptom-search'); });
 }
 
-function renderCatalogConditionBar(searchInput, update) {
-  const controls = document.querySelector('.controls-bar');
-  if (!controls || document.getElementById('condition-search-panel')) return;
+function bindCatalogSearchPanel(searchInput, update) {
+  const wrap = searchInput && searchInput.closest('.search-wrap');
+  if (!searchInput || !wrap || document.getElementById('catalog-search-panel')) return;
   const api = window.DucorSymptomSearch;
   if (!api) return;
 
   const panel = document.createElement('div');
-  panel.id = 'condition-search-panel';
-  panel.className = 'condition-search-panel';
+  panel.id = 'catalog-search-panel';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-label', 'Search by name or symptom');
 
   const modes = document.createElement('div');
   modes.className = 'condition-modes';
   modes.setAttribute('role', 'tablist');
   modes.setAttribute('aria-label', 'Search mode');
-  ;['all', 'name', 'symptom'].forEach(function (mode, i) {
+  ;['all', 'name', 'symptom'].forEach(function (mode) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.setAttribute('data-mode', mode);
@@ -2053,10 +2054,10 @@ function renderCatalogConditionBar(searchInput, update) {
       const on = btn.getAttribute('aria-pressed') === 'true';
       chips.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
       if (on) {
-        if (searchInput) searchInput.value = '';
+        searchInput.value = '';
       } else {
         btn.setAttribute('aria-pressed', 'true');
-        if (searchInput) searchInput.value = c.label;
+        searchInput.value = c.label;
         const symptomBtn = modes.querySelector('button[data-mode="symptom"]');
         const nameOn = modes.querySelector('button[data-mode="name"][aria-pressed="true"]');
         if (nameOn && symptomBtn) {
@@ -2066,6 +2067,7 @@ function renderCatalogConditionBar(searchInput, update) {
         }
       }
       update();
+      closePanel();
     });
     chips.appendChild(btn);
   });
@@ -2077,18 +2079,45 @@ function renderCatalogConditionBar(searchInput, update) {
   panel.appendChild(modes);
   panel.appendChild(chips);
   panel.appendChild(note);
-  controls.parentNode.insertBefore(panel, controls.nextSibling);
+  wrap.appendChild(panel);
 
-  if (searchInput) {
-    searchInput.addEventListener('input', function () {
-      const q = searchInput.value;
-      const active = {};
-      (api.activeConditions(q) || []).forEach(function (c) { active[c.id] = true; });
-      chips.querySelectorAll('button').forEach(function (b) {
-        b.setAttribute('aria-pressed', active[b.getAttribute('data-id')] ? 'true' : 'false');
-      });
+  function syncChips() {
+    const active = {};
+    (api.activeConditions(searchInput.value || '') || []).forEach(function (c) { active[c.id] = true; });
+    chips.querySelectorAll('button').forEach(function (b) {
+      b.setAttribute('aria-pressed', active[b.getAttribute('data-id')] ? 'true' : 'false');
     });
   }
+
+  function openPanel() {
+    panel.classList.add('open');
+    searchInput.setAttribute('aria-expanded', 'true');
+    syncChips();
+  }
+  function closePanel() {
+    panel.classList.remove('open');
+    searchInput.setAttribute('aria-expanded', 'false');
+  }
+
+  searchInput.setAttribute('aria-expanded', 'false');
+  searchInput.setAttribute('aria-controls', 'catalog-search-panel');
+  searchInput.setAttribute('autocomplete', 'off');
+  searchInput.addEventListener('focus', openPanel);
+  searchInput.addEventListener('click', openPanel);
+  searchInput.addEventListener('input', syncChips);
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closePanel();
+      searchInput.blur();
+    }
+  });
+  // Keep the field focused when using the mode toggle or chips
+  panel.addEventListener('mousedown', function (e) {
+    if (e.target.closest('button')) e.preventDefault();
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (!wrap.contains(e.target)) closePanel();
+  });
 }
 
 function initShop(category) {
@@ -2109,7 +2138,7 @@ function initShop(category) {
   }
 
   function start() {
-    renderCatalogConditionBar(searchInput, update);
+    bindCatalogSearchPanel(searchInput, update);
     update();
   }
 
