@@ -1872,35 +1872,47 @@ function showRxPricingNotice(productId, category, productName, option) {
 
 // ── PRODUCT RENDERER ───────────────────────────────────────────────────────────
 
+function getCatalogSearchMode() {
+  const btn = document.querySelector('.condition-modes button[aria-pressed="true"]');
+  const mode = btn && btn.getAttribute('data-mode');
+  return mode === 'name' || mode === 'symptom' ? mode : 'all';
+}
+
 function renderProducts(category, containerId, filterVal = '', sortVal = 'name') {
-  let list = (PRODUCTS[category] || []).filter(p => !p.adminOnly);
+  let list = (PRODUCTS[category] || []).filter(p => !p.adminOnly).map(function (p) {
+    return Object.assign({}, p, { category: p.category || category });
+  });
 
   if (filterVal.trim()) {
-    const aliases = {
-      tylenol: 'acetaminophen', paracetamol: 'acetaminophen',
-      advil: 'ibuprofen', motrin: 'ibuprofen',
-      aleve: 'naproxen', prilosec: 'omeprazole', nexium: 'esomeprazole',
-      claritin: 'loratadine', zyrtec: 'cetirizine', benadryl: 'diphenhydramine',
-      'ascorbic acid': 'vitamin c', ascorbic: 'vitamin c',
-      'fish oil': 'omega', tums: 'calcium', pepto: 'bismuth'
-    };
-    const raw = filterVal.toLowerCase().trim();
-    const terms = new Set([raw]);
-    Object.keys(aliases).forEach(function (alias) {
-      if (raw === alias || raw.includes(alias) || alias.includes(raw)) {
-        terms.add(aliases[alias]);
-        terms.add(alias);
-      }
-    });
-    const words = raw.split(/\s+/).filter(Boolean);
-    const significant = words.filter(function (w) { return w.length >= 2; });
-    list = list.filter(function (p) {
-      const name = p.name.toLowerCase();
-      if (raw && name.includes(raw)) return true;
-      if (significant.length > 1 && significant.every(function (w) { return name.includes(w); })) return true;
-      for (const t of terms) { if (t && t.length >= 2 && name.includes(t)) return true; }
-      return false;
-    });
+    if (window.DucorSymptomSearch) {
+      list = window.DucorSymptomSearch.filterProducts(list, filterVal, getCatalogSearchMode());
+    } else {
+      const aliases = {
+        tylenol: 'acetaminophen', paracetamol: 'acetaminophen',
+        advil: 'ibuprofen', motrin: 'ibuprofen',
+        aleve: 'naproxen', prilosec: 'omeprazole', nexium: 'esomeprazole',
+        claritin: 'loratadine', zyrtec: 'cetirizine', benadryl: 'diphenhydramine',
+        'ascorbic acid': 'vitamin c', ascorbic: 'vitamin c',
+        'fish oil': 'omega', tums: 'calcium', pepto: 'bismuth'
+      };
+      const raw = filterVal.toLowerCase().trim();
+      const terms = new Set([raw]);
+      Object.keys(aliases).forEach(function (alias) {
+        if (raw === alias || raw.includes(alias) || alias.includes(raw)) {
+          terms.add(aliases[alias]);
+          terms.add(alias);
+        }
+      });
+      const words = raw.split(/\s+/).filter(Boolean);
+      const significant = words.filter(function (w) { return w.length >= 2; });
+      list = list.filter(function (p) {
+        const name = p.name.toLowerCase();
+        if (raw && name.includes(raw)) return true;
+        if (significant.length > 1 && significant.every(function (w) { return name.includes(w); })) return true;
+        for (const t of terms) { if (t && t.length >= 2 && name.includes(t)) return true; }
+        return false;
+      });
+    }
   }
 
   if (sortVal === 'price-asc') list = [...list].sort((a,b) => a.price - b.price);
@@ -1981,17 +1993,127 @@ function addToCart(productId, category, option) {
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
 
+function loadShopScriptOnce(src) {
+  return new Promise(function (resolve) {
+    if (document.querySelector('script[src="' + src + '"]')) return resolve(true);
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { resolve(false); };
+    document.head.appendChild(s);
+  });
+}
+
+function ensureShopSymptomAssets() {
+  if (window.DucorSymptomSearch && typeof PRODUCT_INFO !== 'undefined') {
+    return Promise.resolve(true);
+  }
+  return loadShopScriptOnce('/assets/product-info.js?v=20261127-symptom-search')
+    .then(function () { return loadShopScriptOnce('/assets/symptom-search.js?v=20261127-symptom-search'); });
+}
+
+function renderCatalogConditionBar(searchInput, update) {
+  const controls = document.querySelector('.controls-bar');
+  if (!controls || document.getElementById('condition-search-panel')) return;
+  const api = window.DucorSymptomSearch;
+  if (!api) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'condition-search-panel';
+  panel.className = 'condition-search-panel';
+
+  const modes = document.createElement('div');
+  modes.className = 'condition-modes';
+  modes.setAttribute('role', 'tablist');
+  modes.setAttribute('aria-label', 'Search mode');
+  ;['all', 'name', 'symptom'].forEach(function (mode, i) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('data-mode', mode);
+    btn.setAttribute('aria-pressed', mode === 'all' ? 'true' : 'false');
+    btn.textContent = mode === 'all' ? 'All' : mode === 'name' ? 'Name' : 'Symptom';
+    btn.addEventListener('click', function () {
+      modes.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      update();
+    });
+    modes.appendChild(btn);
+  });
+
+  const chips = document.createElement('div');
+  chips.className = 'condition-chips';
+  api.conditionsList().forEach(function (c) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'condition-chip';
+    btn.setAttribute('data-id', c.id);
+    btn.textContent = c.label;
+    btn.addEventListener('click', function () {
+      const on = btn.getAttribute('aria-pressed') === 'true';
+      chips.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      if (on) {
+        if (searchInput) searchInput.value = '';
+      } else {
+        btn.setAttribute('aria-pressed', 'true');
+        if (searchInput) searchInput.value = c.label;
+        const symptomBtn = modes.querySelector('button[data-mode="symptom"]');
+        const nameOn = modes.querySelector('button[data-mode="name"][aria-pressed="true"]');
+        if (nameOn && symptomBtn) {
+          modes.querySelectorAll('button').forEach(function (b) {
+            b.setAttribute('aria-pressed', b === symptomBtn ? 'true' : 'false');
+          });
+        }
+      }
+      update();
+    });
+    chips.appendChild(btn);
+  });
+
+  const note = document.createElement('p');
+  note.className = 'condition-disclaimer';
+  note.textContent = api.DISCLAIMER;
+
+  panel.appendChild(modes);
+  panel.appendChild(chips);
+  panel.appendChild(note);
+  controls.parentNode.insertBefore(panel, controls.nextSibling);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      const q = searchInput.value;
+      const active = {};
+      (api.activeConditions(q) || []).forEach(function (c) { active[c.id] = true; });
+      chips.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', active[b.getAttribute('data-id')] ? 'true' : 'false');
+      });
+    });
+  }
+}
+
 function initShop(category) {
   Cart.load();
   Cart.updateBadge();
-  renderProducts(category, 'products-grid');
 
   const searchInput = document.getElementById('search-input');
   const sortSelect = document.getElementById('sort-select');
+  if (searchInput && !searchInput.dataset.symptomPlaceholder) {
+    searchInput.placeholder = 'Search by name or what you need, such as pain relief or cough…';
+    searchInput.dataset.symptomPlaceholder = '1';
+  }
 
   function update() {
-    renderProducts(category, 'products-grid', searchInput.value, sortSelect.value);
+    const q = searchInput ? searchInput.value : '';
+    const sort = sortSelect ? sortSelect.value : 'name';
+    renderProducts(category, 'products-grid', q, sort);
   }
+
+  function start() {
+    renderCatalogConditionBar(searchInput, update);
+    update();
+  }
+
+  ensureShopSymptomAssets().then(start, start);
 
   if (searchInput) searchInput.addEventListener('input', update);
   if (sortSelect) sortSelect.addEventListener('change', update);

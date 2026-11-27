@@ -13,7 +13,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title id="page-title">Product – Ducor International Pharmacy</title>
   <link rel="icon" href="/assets/company-logo-sm.jpg"/>
-  <link rel="stylesheet" href="/assets/shop.css?v=20261126-package-types"/>
+  <link rel="stylesheet" href="/assets/shop.css?v=20261127-symptom-search"/>
   <style>
     /* ── PRODUCT DETAIL PAGE ────────────────────────────────────────────────── */
     .product-back {
@@ -138,34 +138,13 @@
       padding: 12px 14px;
     }
     .pd-qty-error[hidden] { display: none; }
-    .pd-qty-price-box {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 14px 16px; border-radius: 12px;
-      background: #0d1b2a; color: #ffffff;
-      border: 1px solid rgba(201, 160, 85, 0.45);
+    .pd-qty-from-price {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy);
     }
-    .pd-qty-price-box[hidden] { display: none; }
-    .pd-qty-price-label { font-size: 13px; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
-    .pd-qty-price-label strong {
-      display: block; color: #e8c97a; font-size: 11px; font-weight: 700;
-      letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 2px;
-    }
-    .pd-qty-price-amount {
-      font-size: 24px; font-weight: 700; color: #e8c97a;
-      white-space: nowrap; letter-spacing: -0.5px;
-    }
-    .pd-qty-options-list { display: flex; flex-direction: column; gap: 8px; }
-    .pd-qty-options-list[hidden] { display: none; }
-    .pd-qty-option-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      width: 100%; padding: 10px 14px; border-radius: 10px;
-      border: 1px solid var(--border); background: #ffffff; color: var(--navy);
-      font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
-      text-align: left; transition: border-color 0.15s, background-color 0.15s;
-    }
-    .pd-qty-option-row:hover { border-color: var(--gold); background: #fffdf7; }
-    .pd-qty-option-row.active { border-color: var(--gold); background: rgba(201, 160, 85, 0.12); font-weight: 600; }
-    .pd-qty-option-price { font-weight: 700; color: var(--navy); white-space: nowrap; }
+    .pd-qty-from-price[hidden] { display: none; }
 
     /* ── Action buttons ── */
     .pd-actions { display: flex; flex-direction: column; gap: 12px; }
@@ -352,16 +331,9 @@
     <div class="pd-qty" id="pd-qty-box" hidden>
       <p class="pd-section-label" id="pd-qty-section-label">Quantity</p>
       <p class="pd-qty-hint" id="pd-qty-hint">You can buy part of this pack, in the amounts the shop already sells.</p>
-      <div class="pd-qty-options-list" id="pd-qty-options-list" hidden></div>
-      <div class="pd-qty-price-box" id="pd-qty-price-box" hidden>
-        <div class="pd-qty-price-label">
-          <strong>Selected Price</strong>
-          <span id="pd-qty-selected-label"></span>
-        </div>
-        <span class="pd-qty-price-amount" id="pd-qty-selected-price"></span>
-      </div>
       <label for="pd-qty-select" class="pd-qty-field-label" id="pd-qty-select-label">Choose an amount</label>
       <select id="pd-qty-select"></select>
+      <p class="pd-qty-from-price" id="pd-qty-from-price" hidden></p>
       <label for="pd-qty-input" class="pd-qty-field-label" id="pd-qty-input-label">Or type how many you want</label>
       <div class="pd-qty-input-row" id="pd-qty-input-row">
         <input type="number" id="pd-qty-input" inputmode="numeric" min="1" step="1" autocomplete="off">
@@ -479,7 +451,7 @@
 </footer>
 
 <script src="/assets/product-info.js?v=coq10-label-20261124"></script>
-<script src="/assets/shop.js?v=20261126-package-types"></script>
+<script src="/assets/shop.js?v=20261127-symptom-search"></script>
 <script>
 // Amazon-style hover-to-zoom — moving the mouse over the photo magnifies
 // it around the cursor position so customers can read labels/dosage clearly.
@@ -681,14 +653,29 @@ function attachZoom(wrapEl, imgEl) {
   const input = document.getElementById('pd-qty-input');
   const hint = document.getElementById('pd-qty-hint');
   const unitEl = document.getElementById('pd-qty-input-unit');
-  const optionsList = document.getElementById('pd-qty-options-list');
-  const priceBox = document.getElementById('pd-qty-price-box');
-  const selectedLabelEl = document.getElementById('pd-qty-selected-label');
-  const selectedPriceEl = document.getElementById('pd-qty-selected-price');
+  const fromPriceEl = document.getElementById('pd-qty-from-price');
   const sectionLabelEl = document.getElementById('pd-qty-section-label');
   const selectLabelEl = document.getElementById('pd-qty-select-label');
   const inputLabelEl = document.getElementById('pd-qty-input-label');
   const inputRowEl = document.getElementById('pd-qty-input-row');
+
+  function lowestOptionPrice(options, fallback) {
+    const prices = (options || []).map(function (o) { return Number(o.price); }).filter(function (n) { return !isNaN(n); });
+    if (prices.length) return Math.min.apply(null, prices);
+    const n = Number(fallback);
+    return isNaN(n) ? null : n;
+  }
+
+  function showFromPrice(amount) {
+    if (!fromPriceEl) return;
+    if (amount == null || isNaN(Number(amount))) {
+      fromPriceEl.hidden = true;
+      fromPriceEl.textContent = '';
+      return;
+    }
+    fromPriceEl.hidden = false;
+    fromPriceEl.textContent = 'From $' + Number(amount).toFixed(2);
+  }
 
   if (packOptions && packOptions.length) {
     const showPrices = dispCat !== 'rx';
@@ -704,38 +691,12 @@ function attachZoom(wrapEl, imgEl) {
       const text = showPrices ? (label + ' — $' + Number(o.price).toFixed(2)) : label;
       return '<option value="' + i + '"' + (o.pack ? ' selected' : '') + '>' + text + '</option>';
     }).join('');
-    if (showPrices && optionsList) {
-      optionsList.hidden = false;
-      optionsList.innerHTML = packOptions.map(function (o, i) {
-        return '<button type="button" class="pd-qty-option-row' + (o.pack ? ' active' : '') + '" data-idx="' + i + '">'
-          + '<span>' + productQuantityLabel(pid, o) + '</span>'
-          + '<span class="pd-qty-option-price">$' + Number(o.price).toFixed(2) + '</span>'
-          + '</button>';
-      }).join('');
-      optionsList.querySelectorAll('.pd-qty-option-row').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          sel.value = btn.getAttribute('data-idx');
-          applyOption();
-        });
-      });
-    }
-    function syncSelectionUI(opt) {
-      if (!showPrices || !opt) return;
-      if (priceBox) priceBox.hidden = false;
-      if (selectedLabelEl) selectedLabelEl.textContent = productQuantityLabel(pid, opt);
-      if (selectedPriceEl) selectedPriceEl.textContent = '$' + Number(opt.price).toFixed(2);
-      if (optionsList) {
-        const idx = packOptions.indexOf(opt);
-        optionsList.querySelectorAll('.pd-qty-option-row').forEach(function (btn) {
-          btn.classList.toggle('active', Number(btn.getAttribute('data-idx')) === idx);
-        });
-      }
-    }
+    if (showPrices) showFromPrice(lowestOptionPrice(packOptions, product.price));
+    else if (fromPriceEl) { fromPriceEl.hidden = true; }
     function applyOption() {
       selectedOption = packOptions[parseInt(sel.value, 10)] || packOptions[0];
       if (input) input.value = selectedOption.size;
       showQtyError('');
-      syncSelectionUI(selectedOption);
     }
     function applyTypedAmount() {
       const raw = (input.value || '').trim();
@@ -756,7 +717,6 @@ function attachZoom(wrapEl, imgEl) {
       sel.value = String(idx);
       selectedOption = match;
       showQtyError('');
-      syncSelectionUI(selectedOption);
     }
     sel.addEventListener('change', applyOption);
     input.addEventListener('input', applyTypedAmount);
@@ -772,16 +732,7 @@ function attachZoom(wrapEl, imgEl) {
     if (inputLabelEl) inputLabelEl.hidden = true;
     if (inputRowEl) inputRowEl.hidden = true;
     sel.innerHTML = '<option value="0" selected>' + unitLabel + ' — ' + priceStr + '</option>';
-    if (optionsList) {
-      optionsList.hidden = false;
-      optionsList.innerHTML = '<button type="button" class="pd-qty-option-row active" data-idx="0">'
-        + '<span>' + unitLabel + '</span>'
-        + '<span class="pd-qty-option-price">' + priceStr + '</span>'
-        + '</button>';
-    }
-    if (priceBox) priceBox.hidden = false;
-    if (selectedLabelEl) selectedLabelEl.textContent = unitLabel;
-    if (selectedPriceEl) selectedPriceEl.textContent = priceStr;
+    showFromPrice(product.price);
   }
 
   function resolveCartOption() {
@@ -914,7 +865,7 @@ function attachZoom(wrapEl, imgEl) {
 
 })();
 </script>
-<script src="/assets/ducor-widgets.js?v=20261125-pricing-notice" defer></script>
+<script src="/assets/ducor-widgets.js?v=20261127-symptom-search" defer></script>
 <script type="module" src="/assets/analytics.js"></script>
 </body>
 </html>
