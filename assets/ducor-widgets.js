@@ -82,7 +82,7 @@ function ensureProductCatalog() {
       return;
     }
     var s = document.createElement('script');
-    s.src = '/assets/shop.js?v=20261125-pricing-notice';
+    s.src = '/assets/shop.js?v=20261127-symptom-search';
     s.async = true;
     s.onload = finish;
     s.onerror = function () { resolve([]); };
@@ -152,51 +152,108 @@ function productHref(p) {
 // ══════════════════════════════════════════
 //  1. GLOBAL SEARCH
 // ══════════════════════════════════════════
+
+var SYMPTOM_ASSETS_VERSION = '20261127-symptom-search';
+function loadScriptOnce(src) {
+  return new Promise(function (resolve) {
+    var existing = document.querySelector('script[src="' + src + '"]');
+    function ready() {
+      resolve(true);
+    }
+    if (existing) {
+      if (src.indexOf('product-info.js') !== -1) {
+        try { if (typeof PRODUCT_INFO !== 'undefined') return ready(); } catch (e) {}
+      }
+      if (src.indexOf('symptom-search.js') !== -1 && window.DucorSymptomSearch) return ready();
+      existing.addEventListener('load', ready);
+      setTimeout(ready, 800);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = false;
+    s.onload = ready;
+    s.onerror = function () { resolve(false); };
+    document.head.appendChild(s);
+  });
+}
+function ensureSymptomAssets() {
+  return loadScriptOnce('/assets/product-info.js?v=' + SYMPTOM_ASSETS_VERSION)
+    .then(function () { return loadScriptOnce('/assets/symptom-search.js?v=' + SYMPTOM_ASSETS_VERSION); });
+}
+
 function initSearch() {
+  ensureSymptomAssets();
   // Inject CSS
   const style = document.createElement('style');
   style.textContent = `
-    #ducor-search-overlay{position:fixed;inset:0;background:rgba(2,12,27,0.82);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(6px)}
+    #ducor-search-overlay{position:fixed;inset:0;background:rgba(2,12,27,0.82);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:72px 16px 24px;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(6px)}
     #ducor-search-overlay.open{opacity:1;pointer-events:all}
-    #ducor-search-box{background:#0a1929;border:1.5px solid rgba(201,160,85,0.35);border-radius:18px;width:100%;max-width:620px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.6);transform:translateY(-16px);transition:transform .2s}
+    #ducor-search-box{background:#0a1929;border:1.5px solid rgba(201,160,85,0.35);border-radius:18px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.6);transform:translateY(-16px);transition:transform .2s;display:flex;flex-direction:column;max-height:calc(100vh - 96px)}
     #ducor-search-overlay.open #ducor-search-box{transform:translateY(0)}
-    #ducor-search-input-wrap{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);gap:12px}
+    #ducor-search-input-wrap{display:flex;align-items:center;padding:16px 20px 10px;gap:12px}
     #ducor-search-input-wrap svg{color:rgba(201,160,85,0.7);flex-shrink:0}
     #ducor-search-q{flex:1;background:none;border:none;outline:none;font-size:1.05rem;color:#fff;font-family:inherit}
     #ducor-search-q::placeholder{color:rgba(255,255,255,0.3)}
-    #ducor-search-results{max-height:420px;overflow-y:auto}
-    .ducor-sr-item{display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);text-decoration:none;transition:background .15s}
+    #ducor-search-modes{display:flex;gap:0;margin:0 20px 10px;border:1px solid rgba(201,160,85,0.35);border-radius:999px;overflow:hidden;align-self:flex-start;flex-shrink:0}
+    #ducor-search-modes button{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.7);font:600 12px/1 Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:background .15s,color .15s}
+    #ducor-search-modes button[aria-pressed="true"]{background:linear-gradient(135deg,#c9a055,#a87830);color:#0a1929}
+    #ducor-search-modes button:hover:not([aria-pressed="true"]){color:#e8c97a;background:rgba(201,160,85,0.08)}
+    #ducor-search-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 12px}
+    #ducor-search-chips button{appearance:none;border:1px solid rgba(201,160,85,0.4);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.88);border-radius:999px;padding:7px 12px;font:600 12.5px/1.2 Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+    #ducor-search-chips button:hover{border-color:#c9a055;color:#e8c97a}
+    #ducor-search-chips button[aria-pressed="true"]{background:#c9a055;color:#0a1929;border-color:#c9a055}
+    #ducor-search-results{overflow-y:auto;flex:1;min-height:120px;max-height:none}
+    .ducor-sr-heading{padding:10px 20px 6px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(201,160,85,0.8)}
+    .ducor-sr-item{display:flex;align-items:center;gap:14px;padding:11px 20px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);text-decoration:none;transition:background .15s}
     .ducor-sr-item:hover{background:rgba(201,160,85,0.08)}
+    .ducor-sr-thumb{width:48px;height:48px;border-radius:10px;background:#12233a;object-fit:contain;flex-shrink:0;border:1px solid rgba(255,255,255,0.08)}
     .ducor-sr-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
-    .ducor-sr-badge.rx{background:rgba(220,38,38,0.15);color:#dc2626}
+    .ducor-sr-badge.rx,.ducor-sr-badge.prescription{background:rgba(220,38,38,0.15);color:#dc2626}
     .ducor-sr-badge.otc{background:rgba(16,185,129,0.15);color:#059669}
     .ducor-sr-badge.vitamins{background:rgba(139,92,246,0.15);color:#7c3aed}
-    .ducor-sr-name{flex:1;color:#fff;font-size:0.9rem;font-weight:600}
-    .ducor-sr-price{color:rgba(201,160,85,0.9);font-weight:700;font-size:0.9rem;flex-shrink:0}
-    #ducor-search-empty{padding:40px 20px;text-align:center;color:rgba(255,255,255,0.3);font-size:0.9rem}
-    #ducor-search-hint{padding:10px 20px;font-size:11px;color:rgba(255,255,255,0.2);display:flex;justify-content:space-between}
+    .ducor-sr-main{flex:1;min-width:0}
+    .ducor-sr-name{display:block;color:#fff;font-size:0.9rem;font-weight:600}
+    .ducor-sr-via{display:block;margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4)}
+    .ducor-sr-price{color:rgba(201,160,85,0.95);font-weight:700;font-size:0.82rem;flex-shrink:0;white-space:nowrap}
+    .ducor-sr-price.rx{color:#7dd3fc;font-weight:600}
+    #ducor-search-empty{padding:28px 20px;text-align:center;color:rgba(255,255,255,0.4);font-size:0.9rem;line-height:1.55}
+    #ducor-search-hint{padding:10px 20px;font-size:11px;color:rgba(255,255,255,0.28);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06)}
+    #ducor-search-disclaimer{padding:0 20px 12px;font-size:11.5px;line-height:1.5;color:rgba(255,255,255,0.38)}
     #ducor-search-btn{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:rgba(255,255,255,0.5);transition:color .2s;display:flex;align-items:center;gap:5px}
     #ducor-search-btn:hover{color:rgba(201,160,85,0.9)}
     #ducor-search-btn-label{font-size:11px;font-weight:600;letter-spacing:.5px}
+    @media(max-width:640px){
+      #ducor-search-overlay{padding:10px 8px 8px;align-items:stretch}
+      #ducor-search-box{max-width:none;max-height:calc(100vh - 16px);border-radius:16px}
+      #ducor-search-q{font-size:16px}
+      #ducor-search-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:10px}
+      #ducor-search-hint span:first-child,#ducor-search-hint span:nth-child(2){display:none}
+    }
   `;
   document.head.appendChild(style);
 
-  // Inject HTML
   const overlay = document.createElement('div');
   overlay.id = 'ducor-search-overlay';
   overlay.innerHTML = `
     <div id="ducor-search-box">
       <div id="ducor-search-input-wrap">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="ducor-search-q" type="text" placeholder="Search 248 medications, vitamins, supplements…" autocomplete="off"/>
+        <input id="ducor-search-q" type="text" placeholder="Search by name or what you need, such as pain relief or cough…" autocomplete="off"/>
         <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:3px 7px;font-size:11px;color:rgba(255,255,255,0.4);font-family:inherit">ESC</kbd>
       </div>
+      <div id="ducor-search-modes" role="tablist" aria-label="Search mode">
+        <button type="button" data-mode="all" aria-pressed="true">All</button>
+        <button type="button" data-mode="name" aria-pressed="false">Name</button>
+        <button type="button" data-mode="symptom" aria-pressed="false">Symptom</button>
+      </div>
+      <div id="ducor-search-chips" hidden></div>
       <div id="ducor-search-results"></div>
+      <p id="ducor-search-disclaimer"></p>
       <div id="ducor-search-hint"><span>↑↓ Navigate</span><span>↵ Open product</span><span>ESC Close</span></div>
     </div>`;
   document.body.appendChild(overlay);
 
-  // Add search button to nav
   const navLinks = document.querySelector('.nav-links');
   if (navLinks) {
     const btn = document.createElement('button');
@@ -208,57 +265,151 @@ function initSearch() {
   }
 
   let selectedIdx = -1;
+  let searchMode = 'all';
+
+  const disclaimer = (window.DucorSymptomSearch && window.DucorSymptomSearch.DISCLAIMER)
+    || 'This is not medical advice. Ask a Ducor pharmacist if you are unsure which medicine is right for you.';
+  const discEl = document.getElementById('ducor-search-disclaimer');
+  if (discEl) discEl.textContent = disclaimer;
+
+  function currentMode() { return searchMode; }
+
+  function setMode(mode, rerender) {
+    searchMode = mode === 'name' || mode === 'symptom' ? mode : 'all';
+    document.querySelectorAll('#ducor-search-modes button').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-mode') === searchMode ? 'true' : 'false');
+    });
+    if (rerender !== false) renderResults(document.getElementById('ducor-search-q').value || '');
+  }
+
+  document.getElementById('ducor-search-modes').addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    setMode(btn.getAttribute('data-mode'));
+  });
+
+  function renderChips(query) {
+    const wrap = document.getElementById('ducor-search-chips');
+    if (!wrap) return;
+    const api = window.DucorSymptomSearch;
+    if (!api) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+    const chips = api.conditionsList();
+    const active = {};
+    (api.activeConditions(query || '') || []).forEach(function (c) { active[c.id] = true; });
+    wrap.hidden = false;
+    wrap.innerHTML = chips.map(function (c) {
+      return '<button type="button" data-chip="' + escapeHtml(c.label) + '" data-id="' + escapeHtml(c.id) + '" aria-pressed="' + (active[c.id] ? 'true' : 'false') + '">' + escapeHtml(c.label) + '</button>';
+    }).join('');
+    wrap.querySelectorAll('button[data-chip]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const input = document.getElementById('ducor-search-q');
+        const already = btn.getAttribute('aria-pressed') === 'true';
+        if (already) {
+          input.value = '';
+        } else {
+          input.value = btn.getAttribute('data-chip');
+          if (searchMode === 'name') setMode('symptom', false);
+        }
+        renderResults(input.value);
+      });
+    });
+  }
 
   function openSearch() {
     overlay.classList.add('open');
     document.getElementById('ducor-search-q').focus();
     selectedIdx = -1;
-    ensureProductCatalog(); // warm catalog (needed on homepage)
+    ensureProductCatalog();
+    ensureSymptomAssets().then(function () {
+      const d = document.getElementById('ducor-search-disclaimer');
+      if (d && window.DucorSymptomSearch) d.textContent = window.DucorSymptomSearch.DISCLAIMER;
+      renderResults(document.getElementById('ducor-search-q').value || '');
+    });
     renderResults(document.getElementById('ducor-search-q').value || '');
   }
 
   function closeSearch() {
     overlay.classList.remove('open');
     document.getElementById('ducor-search-q').value = '';
+    selectedIdx = -1;
+  }
+
+  function resultItemHtml(p, i, viaLabel) {
+    var badge = p.category === 'prescription' || p.category === 'rx' ? 'RX' : p.category === 'otc' ? 'OTC' : 'VIT';
+    var badgeClass = p.category === 'prescription' || p.category === 'rx' ? 'rx' : (p.category || 'otc');
+    var price = window.DucorSymptomSearch ? window.DucorSymptomSearch.priceLabel(p) : '';
+    var priceClass = (p.category === 'prescription' || p.category === 'rx') ? 'ducor-sr-price rx' : 'ducor-sr-price';
+    var img = window.DucorSymptomSearch ? window.DucorSymptomSearch.photoUrl(p) : ('/assets/products/' + p.id + '.jpg');
+    var via = viaLabel ? '<span class="ducor-sr-via">' + escapeHtml(viaLabel) + '</span>' : '';
+    return '<a class="ducor-sr-item" href="' + productHref(p) + '" data-idx="' + i + '">'
+      + '<img class="ducor-sr-thumb" src="' + escapeHtml(img) + '" alt="" width="48" height="48" onerror="this.style.visibility=\'hidden\'"/>'
+      + '<span class="ducor-sr-badge ' + badgeClass + '">' + badge + '</span>'
+      + '<span class="ducor-sr-main"><span class="ducor-sr-name">' + escapeHtml(p.name) + '</span>' + via + '</span>'
+      + (price ? '<span class="' + priceClass + '">' + escapeHtml(price) + '</span>' : '')
+      + '</a>';
   }
 
   function renderResults(q) {
     const container = document.getElementById('ducor-search-results');
+    renderChips(q);
+
     if (!q.trim()) {
-      container.innerHTML = `<div id="ducor-search-empty">Start typing to search medications, vitamins &amp; supplements…</div>`;
+      container.innerHTML = '<div id="ducor-search-empty">Search by medicine name, or tap a need below — for example pain relief, eye medication, or running stomach.</div>';
       return;
     }
 
     function paint(allProducts) {
       if (!allProducts.length) {
-        container.innerHTML = `<div id="ducor-search-empty">Catalog is still loading… try again in a moment.</div>`;
+        container.innerHTML = '<div id="ducor-search-empty">Catalog is still loading… try again in a moment.</div>';
         ensureProductCatalog().then(function (loaded) {
-          if (document.getElementById('ducor-search-q').value.trim() === q.trim()) {
-            paint(loaded);
-          }
+          if (document.getElementById('ducor-search-q').value.trim() === q.trim()) paint(loaded);
         });
         return;
       }
-      const expanded = expandSearchTerms(q);
-      const results = allProducts
-        .filter(function (p) { return productMatchesQuery(p, expanded); })
-        .sort(function (a, b) { return scoreProduct(b, expanded) - scoreProduct(a, expanded); })
-        .slice(0, 12);
 
-      if (!results.length) {
-        container.innerHTML = `<div id="ducor-search-empty">No results for "<strong style="color:#fff">${escapeHtml(q)}</strong>". Try a different name or category.</div>`;
+      const api = window.DucorSymptomSearch;
+      if (!api) {
+        ensureSymptomAssets().then(function () {
+          if (document.getElementById('ducor-search-q').value.trim() === q.trim()) paint(allProducts);
+        });
+        container.innerHTML = '<div id="ducor-search-empty">Loading search…</div>';
         return;
       }
-      container.innerHTML = results.map(function (p, i) {
-        var badge = p.category === 'prescription' ? 'RX' : p.category === 'otc' ? 'OTC' : 'VIT';
-        var badgeClass = p.category === 'prescription' ? 'rx' : (p.category || 'otc');
-        var priceHtml = '';
-        return `<a class="ducor-sr-item" href="${productHref(p)}" data-idx="${i}">
-        <span class="ducor-sr-badge ${badgeClass}">${badge}</span>
-        <span class="ducor-sr-name">${escapeHtml(p.name)}</span>
-        ${priceHtml}
-      </a>`;
-      }).join('');
+
+      const found = api.searchProducts(allProducts, q, currentMode());
+      const mode = currentMode();
+      if (!found.results.length) {
+        const needHint = found.conditions && found.conditions.length
+          ? ' No products in the current catalog are listed for ' + found.conditions.map(function (c) { return c.label.toLowerCase(); }).join(', ') + '.'
+          : '';
+        container.innerHTML = '<div id="ducor-search-empty">No results for "<strong style="color:#fff">' + escapeHtml(q) + '</strong>".' + needHint + ' Try the other search mode, a different name, or ask the pharmacist.</div>';
+        return;
+      }
+
+      // Name mode keeps today's short list. Symptom / All show every matching product, including Rx.
+      var html = '';
+      var idx = 0;
+      if (mode === 'all' && found.nameCount && found.symptomCount) {
+        var nameOnly = found.nameResults;
+        var symptomExtra = found.symptomResults.filter(function (p) {
+          return !nameOnly.some(function (n) { return n.id === p.id; });
+        });
+        html += '<div class="ducor-sr-heading">Matching names (' + nameOnly.length + ')</div>';
+        html += nameOnly.map(function (p) { return resultItemHtml(p, idx++, 'Name match'); }).join('');
+        if (symptomExtra.length) {
+          var condLabel = (found.conditions[0] && found.conditions[0].label) || 'this need';
+          html += '<div class="ducor-sr-heading">For ' + escapeHtml(condLabel) + ' (' + symptomExtra.length + ')</div>';
+          html += symptomExtra.map(function (p) { return resultItemHtml(p, idx++, 'Symptom match'); }).join('');
+        }
+      } else if (mode === 'name') {
+        var nameList = found.nameResults.slice(0, 12);
+        html += nameList.map(function (p) { return resultItemHtml(p, idx++); }).join('');
+      } else {
+        var condLabel2 = (found.conditions[0] && found.conditions[0].label) || q;
+        html += '<div class="ducor-sr-heading">' + escapeHtml(String(found.results.length)) + ' product' + (found.results.length === 1 ? '' : 's') + ' for ' + escapeHtml(condLabel2) + '</div>';
+        html += found.results.map(function (p) { return resultItemHtml(p, idx++); }).join('');
+      }
+      container.innerHTML = html;
       selectedIdx = -1;
     }
 
